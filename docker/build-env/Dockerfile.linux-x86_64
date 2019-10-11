@@ -1,0 +1,15 @@
+ 
+FROM debian:buster-20190708
+
+RUN apt-get update && apt-get install -y libicu63 socat wget
+
+
+RUN useradd -m helium
+
+COPY helium /helium/
+
+USER helium
+
+WORKDIR /work
+
+ENTRYPOINT ["/helium/launch.sh"]

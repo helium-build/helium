@@ -1,0 +1,63 @@
+{
+  "implements" : [
+    "jdk",
+    "jdk12"
+  ],
+  "version" : "12.0.2+10",
+  "os" : {
+    "Windows" : {
+      
+    }
+  },
+  "architecture" : {
+    "X86" : {
+      
+    }
+  },
+  "setupSteps" : [
+    {
+      "SdkDownload" : {
+        "url" : "https://github.com/AdoptOpenJDK/openjdk12-binaries/releases/download/jdk-12.0.2%2B10/OpenJDK12U-jdk_x86-32_windows_hotspot_12.0.2_10.zip",
+        "fileName" : "OpenJDK12U-jdk_x86-32_windows_hotspot_12.0.2_10.zip",
+        "hash" : {
+          "Sha256" : {
+            "value" : "2b175ef177e2e6741517e85cabe346ffbd0e2b65608c0a2db4565068ae87aba5"
+          }
+        }
+      }
+    },
+    {
+      "SdkExtract" : {
+        "fileName" : "OpenJDK12U-jdk_x86-32_windows_hotspot_12.0.2_10.zip",
+        "directory" : "."
+      }
+    },
+    {
+      "SdkDelete" : {
+        "fileName" : "OpenJDK12U-jdk_x86-32_windows_hotspot_12.0.2_10.zip"
+      }
+    }
+  ],
+  "pathDirs" : [
+    "jdk-12.0.2+10/bin"
+  ],
+  "env" : {
+    "JAVA_HOME" : {
+      "Concat" : {
+        "values" : [
+          {
+            "SdkDirectory" : {
+              
+            }
+          },
+          {
+            "OfString" : {
+              "value" : "/jdk-12.0.2+10"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "configFileTemplates" : null
+}

@@ -1,0 +1,49 @@
+{
+  "implements" : [
+    "node"
+  ],
+  "version" : "12.7.0",
+  "os" : {
+    "Linux" : {
+      
+    }
+  },
+  "architecture" : {
+    "Aarch64" : {
+      
+    }
+  },
+  "setupSteps" : [
+    {
+      "SdkDownload" : {
+        "url" : "https://nodejs.org/dist/v12.7.0/node-v12.7.0-linux-arm64.tar.gz",
+        "fileName" : "node-v12.7.0-linux-arm64.tar.gz",
+        "hash" : {
+          "Sha256" : {
+            "value" : "4eb18db42c36ac535ab306894f0bd6bf1058e61ef9702108b11fca7c1b44a484"
+          }
+        }
+      }
+    },
+    {
+      "SdkExtract" : {
+        "fileName" : "node-v12.7.0-linux-arm64.tar.gz",
+        "directory" : "."
+      }
+    },
+    {
+      "SdkDelete" : {
+        "fileName" : "node-v12.7.0-linux-arm64.tar.gz"
+      }
+    }
+  ],
+  "pathDirs" : [
+    "node-v12.7.0-linux-arm64/bin"
+  ],
+  "env" : {
+    
+  },
+  "configFileTemplates" : {
+    "~/.npmrc" : "registry=http://localhost:9000/npm/\n"
+  }
+}

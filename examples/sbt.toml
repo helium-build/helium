@@ -1,0 +1,10 @@
+[build]
+command = ["sbt", "run"]
+
+[[sdk]]
+name = "jdk8"
+minVersion = "8.0.0"
+
+[[sdk]]
+name = "sbt"
+minVersion = "1.3.2"

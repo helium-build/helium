@@ -1,0 +1,63 @@
+{
+  "implements" : [
+    "jdk",
+    "jdk11"
+  ],
+  "version" : "11.0.4+11",
+  "os" : {
+    "Linux" : {
+      
+    }
+  },
+  "architecture" : {
+    "Ppc64le" : {
+      
+    }
+  },
+  "setupSteps" : [
+    {
+      "SdkDownload" : {
+        "url" : "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.4%2B11/OpenJDK11U-jdk_ppc64le_linux_hotspot_11.0.4_11.tar.gz",
+        "fileName" : "OpenJDK11U-jdk_ppc64le_linux_hotspot_11.0.4_11.tar.gz",
+        "hash" : {
+          "Sha256" : {
+            "value" : "fc6b616f83fea033edd836c934f3e70764b5aa1dac0446df8a8b49297ca40a5e"
+          }
+        }
+      }
+    },
+    {
+      "SdkExtract" : {
+        "fileName" : "OpenJDK11U-jdk_ppc64le_linux_hotspot_11.0.4_11.tar.gz",
+        "directory" : "."
+      }
+    },
+    {
+      "SdkDelete" : {
+        "fileName" : "OpenJDK11U-jdk_ppc64le_linux_hotspot_11.0.4_11.tar.gz"
+      }
+    }
+  ],
+  "pathDirs" : [
+    "jdk-11.0.4+11/bin"
+  ],
+  "env" : {
+    "JAVA_HOME" : {
+      "Concat" : {
+        "values" : [
+          {
+            "SdkDirectory" : {
+              
+            }
+          },
+          {
+            "OfString" : {
+              "value" : "/jdk-11.0.4+11"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "configFileTemplates" : null
+}

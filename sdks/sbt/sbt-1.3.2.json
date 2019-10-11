@@ -1,0 +1,41 @@
+{
+  "implements" : [
+    "sbt"
+  ],
+  "version" : "1.3.2",
+  "os" : null,
+  "architecture" : null,
+  "setupSteps" : [
+    {
+      "SdkDownload" : {
+        "url" : "https://piccolo.link/sbt-1.3.2.tgz",
+        "fileName" : "sbt-1.3.2.tgz",
+        "hash" : {
+          "Sha256" : {
+            "value" : "ed8cef399129895ad0d757eea812b3f95830a36fa838f8ede1c6cdc2294f326f"
+          }
+        }
+      }
+    },
+    {
+      "SdkExtract" : {
+        "fileName" : "sbt-1.3.2.tgz",
+        "directory" : "."
+      }
+    },
+    {
+      "SdkDelete" : {
+        "fileName" : "sbt-1.3.2.tgz"
+      }
+    }
+  ],
+  "pathDirs" : [
+    "sbt/bin"
+  ],
+  "env" : {
+    
+  },
+  "configFileTemplates" : {
+    "~/.sbt/repositories" : "\n[repositories]\n{{#repo_maven}}\n{{{name}}}: {{{url}}}\n{{/repo_maven}}\n"
+  }
+}

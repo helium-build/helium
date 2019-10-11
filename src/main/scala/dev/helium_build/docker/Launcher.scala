@@ -1,0 +1,50 @@
+package dev.helium_build.docker
+
+import java.io.File
+
+import zio.{IO, Task, ZIO}
+
+object Launcher {
+
+  private def buildEnvArgs(path: Seq[String], env: Map[String, String]): Seq[String] =
+    env.updated("PATH", path.mkString(":"))
+      .toSeq
+      .flatMap { case (name, value) => Seq("-e", s"$name=$value") }
+
+  private def buildSdkVolumes(sdkPaths: Seq[(String, File)]): Seq[String] =
+    sdkPaths.flatMap { case (containerDir, dir) => Seq("-v", dir.getAbsolutePath + ":" + containerDir + ":ro") }
+
+  def run(props: LaunchProperties): Task[Unit] =
+    IO.effect {
+      new ProcessBuilder(
+        Seq("sudo", "docker", "run", "--rm") ++
+          Seq("--network", "none", "--hostname", "helium-build-env") ++
+          props.sockets.flatMap {
+            case (outName, inName) =>
+              Seq("-v", outName + ":" + inName)
+          } ++
+          buildSdkVolumes(props.sdkDirs) ++
+          buildEnvArgs(props.pathDirs, props.env) ++
+          Seq("-v", props.workDir.getAbsolutePath + ":/work/") ++
+          props.configFiles.flatMap {
+            case (outName, inName) if inName startsWith "~/" =>
+              Seq("-v", outName + ":/helium/install/home" + inName.substring(1))
+
+            case (outName, inName) if inName startsWith "$CONFIG/" =>
+              Seq("-v", outName + ":/helium/install/home/.config" + inName.substring(7))
+
+            case (outName, inName) if inName startsWith "/" =>
+              Seq("-v", outName + ":/helium/install/root" + inName)
+
+            case (_, _) =>
+              throw new RuntimeException("Invalid config path.")
+          } ++
+          Seq("helium/build-env:debian-buster-20190708", "env") ++
+          props.command
+      : _*)
+        .inheritIO()
+        .start()
+    }
+    .flatMap(ProcessHelpers.waitForExit)
+
+}

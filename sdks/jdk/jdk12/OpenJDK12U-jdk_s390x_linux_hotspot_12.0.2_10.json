@@ -1,0 +1,63 @@
+{
+  "implements" : [
+    "jdk",
+    "jdk12"
+  ],
+  "version" : "12.0.2+10",
+  "os" : {
+    "Linux" : {
+      
+    }
+  },
+  "architecture" : {
+    "S390x" : {
+      
+    }
+  },
+  "setupSteps" : [
+    {
+      "SdkDownload" : {
+        "url" : "https://github.com/AdoptOpenJDK/openjdk12-binaries/releases/download/jdk-12.0.2%2B10/OpenJDK12U-jdk_s390x_linux_hotspot_12.0.2_10.tar.gz",
+        "fileName" : "OpenJDK12U-jdk_s390x_linux_hotspot_12.0.2_10.tar.gz",
+        "hash" : {
+          "Sha256" : {
+            "value" : "9897deeaf7a2c90374fbaca8b3eb8e63267d8fc1863b43b21c0bfc86e4783470"
+          }
+        }
+      }
+    },
+    {
+      "SdkExtract" : {
+        "fileName" : "OpenJDK12U-jdk_s390x_linux_hotspot_12.0.2_10.tar.gz",
+        "directory" : "."
+      }
+    },
+    {
+      "SdkDelete" : {
+        "fileName" : "OpenJDK12U-jdk_s390x_linux_hotspot_12.0.2_10.tar.gz"
+      }
+    }
+  ],
+  "pathDirs" : [
+    "jdk-12.0.2+10/bin"
+  ],
+  "env" : {
+    "JAVA_HOME" : {
+      "Concat" : {
+        "values" : [
+          {
+            "SdkDirectory" : {
+              
+            }
+          },
+          {
+            "OfString" : {
+              "value" : "/jdk-12.0.2+10"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "configFileTemplates" : null
+}

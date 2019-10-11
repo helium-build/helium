@@ -1,0 +1,63 @@
+{
+  "implements" : [
+    "jdk",
+    "jdk12"
+  ],
+  "version" : "12.0.2+10",
+  "os" : {
+    "Linux" : {
+      
+    }
+  },
+  "architecture" : {
+    "Amd64" : {
+      
+    }
+  },
+  "setupSteps" : [
+    {
+      "SdkDownload" : {
+        "url" : "https://github.com/AdoptOpenJDK/openjdk12-binaries/releases/download/jdk-12.0.2%2B10/OpenJDK12U-jdk_x64_linux_hotspot_12.0.2_10.tar.gz",
+        "fileName" : "OpenJDK12U-jdk_x64_linux_hotspot_12.0.2_10.tar.gz",
+        "hash" : {
+          "Sha256" : {
+            "value" : "1202f536984c28d68681d51207a84b6c76e5998579132d3fe1b8085aa6a5f21e"
+          }
+        }
+      }
+    },
+    {
+      "SdkExtract" : {
+        "fileName" : "OpenJDK12U-jdk_x64_linux_hotspot_12.0.2_10.tar.gz",
+        "directory" : "."
+      }
+    },
+    {
+      "SdkDelete" : {
+        "fileName" : "OpenJDK12U-jdk_x64_linux_hotspot_12.0.2_10.tar.gz"
+      }
+    }
+  ],
+  "pathDirs" : [
+    "jdk-12.0.2+10/bin"
+  ],
+  "env" : {
+    "JAVA_HOME" : {
+      "Concat" : {
+        "values" : [
+          {
+            "SdkDirectory" : {
+              
+            }
+          },
+          {
+            "OfString" : {
+              "value" : "/jdk-12.0.2+10"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "configFileTemplates" : null
+}

@@ -1,0 +1,49 @@
+{
+  "implements" : [
+    "node"
+  ],
+  "version" : "12.7.0",
+  "os" : {
+    "Linux" : {
+      
+    }
+  },
+  "architecture" : {
+    "S390x" : {
+      
+    }
+  },
+  "setupSteps" : [
+    {
+      "SdkDownload" : {
+        "url" : "https://nodejs.org/dist/v12.7.0/node-v12.7.0-linux-s390x.tar.gz",
+        "fileName" : "node-v12.7.0-linux-s390x.tar.gz",
+        "hash" : {
+          "Sha256" : {
+            "value" : "29fe167808963a861f048ad570bab767382b685ebc182e11cf458c12674662a6"
+          }
+        }
+      }
+    },
+    {
+      "SdkExtract" : {
+        "fileName" : "node-v12.7.0-linux-s390x.tar.gz",
+        "directory" : "."
+      }
+    },
+    {
+      "SdkDelete" : {
+        "fileName" : "node-v12.7.0-linux-s390x.tar.gz"
+      }
+    }
+  ],
+  "pathDirs" : [
+    "node-v12.7.0-linux-s390x/bin"
+  ],
+  "env" : {
+    
+  },
+  "configFileTemplates" : {
+    "~/.npmrc" : "registry=http://localhost:9000/npm/\n"
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "implements" : [
+    "jdk",
+    "jdk9"
+  ],
+  "version" : "9.0.4+11",
+  "os" : {
+    "Linux" : {
+      
+    }
+  },
+  "architecture" : {
+    "S390x" : {
+      
+    }
+  },
+  "setupSteps" : [
+    {
+      "SdkDownload" : {
+        "url" : "https://github.com/AdoptOpenJDK/openjdk9-binaries/releases/download/jdk-9.0.4%2B11/OpenJDK9U-jdk_s390x_linux_hotspot_9.0.4_11.tar.gz",
+        "fileName" : "OpenJDK9U-jdk_s390x_linux_hotspot_9.0.4_11.tar.gz",
+        "hash" : {
+          "Sha256" : {
+            "value" : "7bfdc389c25820e08a85eb3a32c4193189f13945847619b14966f7fd45a5c345"
+          }
+        }
+      }
+    },
+    {
+      "SdkExtract" : {
+        "fileName" : "OpenJDK9U-jdk_s390x_linux_hotspot_9.0.4_11.tar.gz",
+        "directory" : "."
+      }
+    },
+    {
+      "SdkDelete" : {
+        "fileName" : "OpenJDK9U-jdk_s390x_linux_hotspot_9.0.4_11.tar.gz"
+      }
+    }
+  ],
+  "pathDirs" : [
+    "jdk-9.0.4+11/bin"
+  ],
+  "env" : {
+    "JAVA_HOME" : {
+      "Concat" : {
+        "values" : [
+          {
+            "SdkDirectory" : {
+              
+            }
+          },
+          {
+            "OfString" : {
+              "value" : "/jdk-9.0.4+11"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "configFileTemplates" : null
+}

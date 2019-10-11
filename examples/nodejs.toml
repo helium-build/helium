@@ -1,0 +1,6 @@
+[build]
+command = ["node", "--version"]
+
+[[sdk]]
+name = "node"
+minVersion = "12.0.0"

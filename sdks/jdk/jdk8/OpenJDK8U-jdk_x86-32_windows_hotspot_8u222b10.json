@@ -1,0 +1,63 @@
+{
+  "implements" : [
+    "jdk",
+    "jdk8"
+  ],
+  "version" : "8.0.222+10",
+  "os" : {
+    "Windows" : {
+      
+    }
+  },
+  "architecture" : {
+    "X86" : {
+      
+    }
+  },
+  "setupSteps" : [
+    {
+      "SdkDownload" : {
+        "url" : "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u222-b10/OpenJDK8U-jdk_x86-32_windows_hotspot_8u222b10.zip",
+        "fileName" : "OpenJDK8U-jdk_x86-32_windows_hotspot_8u222b10.zip",
+        "hash" : {
+          "Sha256" : {
+            "value" : "fa7205a08a84474f591784849e89224eafdd7d3354d780db3a191534b787b5b8"
+          }
+        }
+      }
+    },
+    {
+      "SdkExtract" : {
+        "fileName" : "OpenJDK8U-jdk_x86-32_windows_hotspot_8u222b10.zip",
+        "directory" : "."
+      }
+    },
+    {
+      "SdkDelete" : {
+        "fileName" : "OpenJDK8U-jdk_x86-32_windows_hotspot_8u222b10.zip"
+      }
+    }
+  ],
+  "pathDirs" : [
+    "jdk8u222-b10/bin"
+  ],
+  "env" : {
+    "JAVA_HOME" : {
+      "Concat" : {
+        "values" : [
+          {
+            "SdkDirectory" : {
+              
+            }
+          },
+          {
+            "OfString" : {
+              "value" : "/jdk8u222-b10"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "configFileTemplates" : null
+}

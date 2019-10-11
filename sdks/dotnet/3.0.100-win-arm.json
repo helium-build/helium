@@ -1,0 +1,54 @@
+{
+  "implements" : [
+    "dotnet"
+  ],
+  "version" : "3.0.100",
+  "os" : {
+    "Windows" : {
+      
+    }
+  },
+  "architecture" : {
+    "Arm" : {
+      
+    }
+  },
+  "setupSteps" : [
+    {
+      "SdkDownload" : {
+        "url" : "https://dotnetcli.azureedge.net/dotnet/Sdk/3.0.100/dotnet-sdk-3.0.100-win-arm.zip",
+        "fileName" : "dotnet-sdk-3.0.100-win-arm.zip",
+        "hash" : {
+          "Sha512" : {
+            "value" : "e858f4db61937eb71eaa93b3382ea556ea8a22dee49767c642a38eb2ffca29c25f0676adf084fda233820e5bc5bb3f9f825e30afc41cc177ec50497a97077842"
+          }
+        }
+      }
+    },
+    {
+      "SdkExtract" : {
+        "fileName" : "dotnet-sdk-3.0.100-win-arm.zip",
+        "directory" : "dotnet-3.0.100"
+      }
+    },
+    {
+      "SdkDelete" : {
+        "fileName" : "dotnet-sdk-3.0.100-win-arm.zip"
+      }
+    }
+  ],
+  "pathDirs" : [
+    "dotnet-3.0.100"
+  ],
+  "env" : {
+    "DOTNET_CLI_TELEMETRY_OPTOUT" : {
+      "OfString" : {
+        "value" : "1"
+      }
+    }
+  },
+  "configFileTemplates" : {
+    "$CONFIG/NuGet/NuGet.Config" : "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<configuration>\n    <packageSources>\n        <clear/>\n{{#repo_nuget}}\n        <add key=\"{{name}}\" value=\"{{url}}\" />\n{{/repo_nuget}}\n    </packageSources>\n\n    <config>\n        <add key=\"defaultPushSource\" value=\"{{nuget_push_url}}\" />\n    </config>\n</configuration>\n",
+    "~/.nuget/NuGet/NuGet.Config" : "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<configuration>\n    <packageSources>\n        <clear/>\n{{#repo_nuget}}\n        <add key=\"{{name}}\" value=\"{{url}}\" />\n{{/repo_nuget}}\n    </packageSources>\n\n    <config>\n        <add key=\"defaultPushSource\" value=\"{{nuget_push_url}}\" />\n    </config>\n</configuration>\n"
+  }
+}

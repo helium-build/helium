@@ -1,0 +1,6 @@
+[build]
+command = ["./run.sh"]
+
+[[sdk]]
+name = "node"
+minVersion = "12.0.0"

@@ -1,0 +1,6 @@
+[build]
+command = ["dotnet", "--version"]
+
+[[sdk]]
+name = "dotnet"
+minVersion = "2.2.301"

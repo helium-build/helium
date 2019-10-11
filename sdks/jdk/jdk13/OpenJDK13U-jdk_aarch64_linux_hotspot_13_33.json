@@ -1,0 +1,63 @@
+{
+  "implements" : [
+    "jdk",
+    "jdk13"
+  ],
+  "version" : "13.0.0+33",
+  "os" : {
+    "Linux" : {
+      
+    }
+  },
+  "architecture" : {
+    "Aarch64" : {
+      
+    }
+  },
+  "setupSteps" : [
+    {
+      "SdkDownload" : {
+        "url" : "https://github.com/AdoptOpenJDK/openjdk13-binaries/releases/download/jdk-13%2B33/OpenJDK13U-jdk_aarch64_linux_hotspot_13_33.tar.gz",
+        "fileName" : "OpenJDK13U-jdk_aarch64_linux_hotspot_13_33.tar.gz",
+        "hash" : {
+          "Sha256" : {
+            "value" : "74f4110333ac4239564ed864b1d7d69b7af32af39efcfbde9816e1486cb5ae07"
+          }
+        }
+      }
+    },
+    {
+      "SdkExtract" : {
+        "fileName" : "OpenJDK13U-jdk_aarch64_linux_hotspot_13_33.tar.gz",
+        "directory" : "."
+      }
+    },
+    {
+      "SdkDelete" : {
+        "fileName" : "OpenJDK13U-jdk_aarch64_linux_hotspot_13_33.tar.gz"
+      }
+    }
+  ],
+  "pathDirs" : [
+    "jdk-13+33/bin"
+  ],
+  "env" : {
+    "JAVA_HOME" : {
+      "Concat" : {
+        "values" : [
+          {
+            "SdkDirectory" : {
+              
+            }
+          },
+          {
+            "OfString" : {
+              "value" : "/jdk-13+33"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "configFileTemplates" : null
+}

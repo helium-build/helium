@@ -1,0 +1,63 @@
+{
+  "implements" : [
+    "jdk",
+    "jdk8"
+  ],
+  "version" : "8.0.222+10",
+  "os" : {
+    "Linux" : {
+      
+    }
+  },
+  "architecture" : {
+    "S390x" : {
+      
+    }
+  },
+  "setupSteps" : [
+    {
+      "SdkDownload" : {
+        "url" : "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u222-b10/OpenJDK8U-jdk_s390x_linux_hotspot_8u222b10.tar.gz",
+        "fileName" : "OpenJDK8U-jdk_s390x_linux_hotspot_8u222b10.tar.gz",
+        "hash" : {
+          "Sha256" : {
+            "value" : "d56d6a128f8827e5baeae379bcb1b3ead2cfd5b1abb03befa4588f89f08ea626"
+          }
+        }
+      }
+    },
+    {
+      "SdkExtract" : {
+        "fileName" : "OpenJDK8U-jdk_s390x_linux_hotspot_8u222b10.tar.gz",
+        "directory" : "."
+      }
+    },
+    {
+      "SdkDelete" : {
+        "fileName" : "OpenJDK8U-jdk_s390x_linux_hotspot_8u222b10.tar.gz"
+      }
+    }
+  ],
+  "pathDirs" : [
+    "jdk8u222-b10/bin"
+  ],
+  "env" : {
+    "JAVA_HOME" : {
+      "Concat" : {
+        "values" : [
+          {
+            "SdkDirectory" : {
+              
+            }
+          },
+          {
+            "OfString" : {
+              "value" : "/jdk8u222-b10"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "configFileTemplates" : null
+}

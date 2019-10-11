@@ -1,0 +1,63 @@
+{
+  "implements" : [
+    "jdk",
+    "jdk11"
+  ],
+  "version" : "11.0.4+11",
+  "os" : {
+    "Linux" : {
+      
+    }
+  },
+  "architecture" : {
+    "Amd64" : {
+      
+    }
+  },
+  "setupSteps" : [
+    {
+      "SdkDownload" : {
+        "url" : "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.4%2B11/OpenJDK11U-jdk_x64_linux_hotspot_11.0.4_11.tar.gz",
+        "fileName" : "OpenJDK11U-jdk_x64_linux_hotspot_11.0.4_11.tar.gz",
+        "hash" : {
+          "Sha256" : {
+            "value" : "90c33cf3f2ed0bd773f648815de7347e69cfbb3416ef3bf41616ab1c4aa0f5a8"
+          }
+        }
+      }
+    },
+    {
+      "SdkExtract" : {
+        "fileName" : "OpenJDK11U-jdk_x64_linux_hotspot_11.0.4_11.tar.gz",
+        "directory" : "."
+      }
+    },
+    {
+      "SdkDelete" : {
+        "fileName" : "OpenJDK11U-jdk_x64_linux_hotspot_11.0.4_11.tar.gz"
+      }
+    }
+  ],
+  "pathDirs" : [
+    "jdk-11.0.4+11/bin"
+  ],
+  "env" : {
+    "JAVA_HOME" : {
+      "Concat" : {
+        "values" : [
+          {
+            "SdkDirectory" : {
+              
+            }
+          },
+          {
+            "OfString" : {
+              "value" : "/jdk-11.0.4+11"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "configFileTemplates" : null
+}

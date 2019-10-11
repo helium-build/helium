@@ -1,0 +1,63 @@
+{
+  "implements" : [
+    "jdk",
+    "jdk13"
+  ],
+  "version" : "13.0.0+33",
+  "os" : {
+    "Linux" : {
+      
+    }
+  },
+  "architecture" : {
+    "S390x" : {
+      
+    }
+  },
+  "setupSteps" : [
+    {
+      "SdkDownload" : {
+        "url" : "https://github.com/AdoptOpenJDK/openjdk13-binaries/releases/download/jdk-13%2B33/OpenJDK13U-jdk_s390x_linux_hotspot_13_33.tar.gz",
+        "fileName" : "OpenJDK13U-jdk_s390x_linux_hotspot_13_33.tar.gz",
+        "hash" : {
+          "Sha256" : {
+            "value" : "06caff38254cbcb3e407c81ddfc57933e75cc82d835cf6bf36859b42420e566c"
+          }
+        }
+      }
+    },
+    {
+      "SdkExtract" : {
+        "fileName" : "OpenJDK13U-jdk_s390x_linux_hotspot_13_33.tar.gz",
+        "directory" : "."
+      }
+    },
+    {
+      "SdkDelete" : {
+        "fileName" : "OpenJDK13U-jdk_s390x_linux_hotspot_13_33.tar.gz"
+      }
+    }
+  ],
+  "pathDirs" : [
+    "jdk-13+33/bin"
+  ],
+  "env" : {
+    "JAVA_HOME" : {
+      "Concat" : {
+        "values" : [
+          {
+            "SdkDirectory" : {
+              
+            }
+          },
+          {
+            "OfString" : {
+              "value" : "/jdk-13+33"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "configFileTemplates" : null
+}

@@ -1,0 +1,63 @@
+{
+  "implements" : [
+    "jdk",
+    "jdk10"
+  ],
+  "version" : "10.0.2+13",
+  "os" : {
+    "Linux" : {
+      
+    }
+  },
+  "architecture" : {
+    "Arm" : {
+      
+    }
+  },
+  "setupSteps" : [
+    {
+      "SdkDownload" : {
+        "url" : "https://github.com/AdoptOpenJDK/openjdk10-binaries/releases/download/jdk-10.0.2%2B13.1/OpenJDK10U-jdk_arm_linux_hotspot_10.0.2_13.tar.gz",
+        "fileName" : "OpenJDK10U-jdk_arm_linux_hotspot_10.0.2_13.tar.gz",
+        "hash" : {
+          "Sha256" : {
+            "value" : "3b2a7e8e28e6ac821ec2868884b3e3c496b010d54a2c9d37be8d7e899cd7f1a4"
+          }
+        }
+      }
+    },
+    {
+      "SdkExtract" : {
+        "fileName" : "OpenJDK10U-jdk_arm_linux_hotspot_10.0.2_13.tar.gz",
+        "directory" : "."
+      }
+    },
+    {
+      "SdkDelete" : {
+        "fileName" : "OpenJDK10U-jdk_arm_linux_hotspot_10.0.2_13.tar.gz"
+      }
+    }
+  ],
+  "pathDirs" : [
+    "jdk-10.0.2+13.1/bin"
+  ],
+  "env" : {
+    "JAVA_HOME" : {
+      "Concat" : {
+        "values" : [
+          {
+            "SdkDirectory" : {
+              
+            }
+          },
+          {
+            "OfString" : {
+              "value" : "/jdk-10.0.2+13.1"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "configFileTemplates" : null
+}
