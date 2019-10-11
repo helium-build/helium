@@ -18,9 +18,8 @@ final case class SdkInfo
   def matches(requiredSdk: RequiredSdk): Boolean =
     implements.contains(requiredSdk.name) && {
       try {
-        val reqVer = Version.valueOf(requiredSdk.minVersion)
         val currVer = Version.valueOf(version)
-        currVer.greaterThanOrEqualTo(reqVer)
+        currVer.satisfies(requiredSdk.version)
       }
       catch {
         case _: Exception => false

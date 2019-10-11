@@ -39,7 +39,7 @@
     }
   ],
   "pathDirs" : [
-    "jdk-10.0.2+13.1/bin"
+    "jdk-10.0.2+13/bin"
   ],
   "env" : {
     "JAVA_HOME" : {

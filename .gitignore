@@ -2,3 +2,8 @@
 target/
 cache/
 work/
+
+bin/
+obj/
+node_modules/
+output/

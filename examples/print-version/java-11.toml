@@ -3,4 +3,4 @@ command = ["java", "-version"]
 
 [[sdk]]
 name = "jdk"
-minVersion = "12.0.0"
+version = "^11"

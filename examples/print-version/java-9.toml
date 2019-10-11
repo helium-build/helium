@@ -1,0 +1,6 @@
+[build]
+command = ["java", "-version"]
+
+[[sdk]]
+name = "jdk"
+version = "^9"

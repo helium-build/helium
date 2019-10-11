@@ -3,4 +3,4 @@ command = ["./build.sh"]
 
 [[sdk]]
 name = "dotnet"
-minVersion = "3.0.100"
+version = "~3.0"

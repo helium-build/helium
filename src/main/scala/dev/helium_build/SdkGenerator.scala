@@ -131,7 +131,14 @@ object SdkGenerator extends App {
         SdkExtract(binary.binary_name, "."),
         SdkDelete(binary.binary_name),
       ),
-      pathDirs = Seq(release.release_name + "/bin"),
+      pathDirs = Seq(
+        (
+          if(binary.version == "10")
+            release.release_name.replace(binary.version_data.openjdk_version, binary.version_data.semver)
+          else
+            release.release_name
+        ) + "/bin"
+      ),
       env = Map(
         "JAVA_HOME" -> EnvValue.Concat(Seq(EnvValue.SdkDirectory, EnvValue.OfString("/" + release.release_name)))
       ),

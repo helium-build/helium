@@ -18,7 +18,7 @@ final case class BuildInfo
 final case class RequiredSdk
 (
   name: String,
-  minVersion: String,
+  version: String,
 )
 
 object BuildSchema {

@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 socat TCP-LISTEN:9000,reuseaddr,fork UNIX-CONNECT:/helium/helium.sock &
 SOCAT_PID=$!

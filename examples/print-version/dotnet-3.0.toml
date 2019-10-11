@@ -1,0 +1,6 @@
+[build]
+command = ["dotnet", "--version"]
+
+[[sdk]]
+name = "dotnet"
+version = "~3.0"

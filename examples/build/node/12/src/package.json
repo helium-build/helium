@@ -1,0 +1,15 @@
+{
+  "name": "ts-example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "bin/index.js",
+  "scripts": {
+    "build": "tsc --build tsconfig.json",
+    "run": "tsc --build tsconfig.json && node bin/index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^3.6.3"
+  }
+}

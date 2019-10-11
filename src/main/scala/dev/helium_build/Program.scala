@@ -13,13 +13,16 @@ import dev.helium_build.proxy.ProxyServer
 import dev.helium_build.record._
 import dev.helium_build.sdk._
 import dev.helium_build.util.Temp
-import org.apache.log4j.{BasicConfigurator, Level, Logger}
+import org.apache.log4j.{Appender, BasicConfigurator, Level, Logger}
 import org.fusesource.scalate.{TemplateEngine, TemplateSource}
 import zio.blocking.Blocking
 import zio.clock.Clock
 import zio._
 import zio.interop.catz._
 import io.circe.syntax._
+import org.apache.log4j.spi.{Filter, LoggingEvent}
+
+import scala.jdk.CollectionConverters._
 
 object Program extends App {
 
@@ -29,7 +32,21 @@ object Program extends App {
   private def runImpl(value: List[String]): ZIO[Environment, Int, Unit] = for {
     _ <- IO.effectTotal {
       BasicConfigurator.configure()
-      Logger.getRootLogger.setLevel(Level.WARN)
+      val logger = Logger.getRootLogger
+      logger.setLevel(Level.WARN)
+      logger.getAllAppenders.asScala.foreach {
+        case appender: Appender =>
+          appender.addFilter(new Filter {
+            override def decide(event: LoggingEvent): Int = {
+              if(event.getLoggerName == "org.fusesource.scalate.util.ClassPathBuilder")
+                Filter.DENY
+              else
+                Filter.NEUTRAL
+            }
+          })
+
+        case _ => ()
+      }
     }
     appDir <- IO.effectTotal { new File(".").getAbsoluteFile }
     confDir <- IO.effectTotal { new File(appDir, "conf") }
