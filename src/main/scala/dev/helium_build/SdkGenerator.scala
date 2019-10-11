@@ -161,19 +161,21 @@ object SdkGenerator extends App {
 
   private object SBT extends SDKCreator {
 
+    private val version = "1.3.2"
+
     override val name: String = "sbt"
 
     override def sdks: ZStream[Console, Throwable, (String, SdkInfo)] =
       ZStream(
         "sbt/sbt-1.3.2.json" -> SdkInfo(
           implements = Seq("sbt"),
-          version = "1.3.2",
+          version = version,
           os = None,
           architecture = None,
           setupSteps = Seq(
-            SdkDownload("https://piccolo.link/sbt-1.3.2.tgz", "sbt-1.3.2.tgz", SdkHash.Sha256("ed8cef399129895ad0d757eea812b3f95830a36fa838f8ede1c6cdc2294f326f")),
-            SdkExtract("sbt-1.3.2.tgz", "."),
-            SdkDelete("sbt-1.3.2.tgz"),
+            SdkDownload(s"https://piccolo.link/sbt-$version.tgz", s"sbt-$version.tgz", SdkHash.Sha256("ed8cef399129895ad0d757eea812b3f95830a36fa838f8ede1c6cdc2294f326f")),
+            SdkExtract(s"sbt-$version.tgz", "."),
+            SdkDelete(s"sbt-$version.tgz"),
           ),
           pathDirs = Seq("sbt/bin"),
           env = Map.empty,
@@ -196,80 +198,90 @@ object SdkGenerator extends App {
 
     private val SHA512 = "^([a-fA-F0-9]{128})\\s+(.+)".r.unanchored
 
+    private val channels = Seq(
+      "3.0",
+      "2.2",
+      "2.1"
+    )
 
-    private def latestVersionSdk: RIO[Console, String] =
-      makeSttpStringTask(uri"https://dotnetcli.blob.core.windows.net/dotnet/Sdk/Current/latest.version")(sttp.get(_).send())
+    private def latestVersionSdk(channel: String): RIO[Console, String] =
+      makeSttpStringTask(uri"https://dotnetcli.blob.core.windows.net/dotnet/Sdk/$channel/latest.version")(sttp.get(_).send())
         .map { _.linesIterator.drop(1).next().trim }
 
-    private def latestVersionRuntime: RIO[Console, String] =
-      makeSttpStringTask(uri"https://dotnetcli.blob.core.windows.net/dotnet/Runtime/Current/latest.version")(sttp.get(_).send())
+    private def latestVersionRuntime(channel: String): RIO[Console, String] =
+      makeSttpStringTask(uri"https://dotnetcli.blob.core.windows.net/dotnet/Runtime/$channel/latest.version")(sttp.get(_).send())
         .map { _.linesIterator.drop(1).next().trim }
 
     override def sdks: ZStream[Console, Throwable, (String, SdkInfo)] = for {
-      (ver, shaMap) <- ZStream.fromEffect(
+      channel <- ZStream.fromIterable(channels)
+
+      (os, osStr, ext) <- Stream(
+        (SdkOperatingSystem.Windows, "win", "zip"),
+        (SdkOperatingSystem.Linux, "linux", "tar.gz"),
+      )
+
+      (arch, archStr) <- Stream(
+        (SdkArch.Amd64, "x64"),
+        (SdkArch.X86, "x86"),
+        (SdkArch.Arm, "arm"),
+        (SdkArch.Aarch64, "arm64"),
+      )
+
+      (verSdk, verRuntime, shaMap) <- ZStream.fromEffect(
         for {
-          ver <- latestVersionSdk
-          verRuntime <- latestVersionRuntime
+          verSdk <- latestVersionSdk(channel)
+          verRuntime <- latestVersionRuntime(channel)
           shaFileContent <- makeSttpStringTask(uri"https://dotnetcli.blob.core.windows.net/dotnet/checksums/$verRuntime-sha.txt")(sttp.get(_).send())
           shaMap = shaFileContent.linesIterator.collect {
             case SHA512(sha512, fileName) => fileName -> sha512
           }.toMap
-        } yield (ver, shaMap)
-      )
-      (os, osStr, arch, archStr, ext) <- Stream(
-        (SdkOperatingSystem.Windows, "win", SdkArch.Amd64, "x64", "zip"),
-        (SdkOperatingSystem.Windows, "win", SdkArch.X86, "x86", "zip"),
-        (SdkOperatingSystem.Windows, "win", SdkArch.Arm, "arm", "zip"),
-        (SdkOperatingSystem.Linux, "linux", SdkArch.Amd64, "x64", "tar.gz"),
-        (SdkOperatingSystem.Linux, "linux", SdkArch.Arm, "arm", "tar.gz"),
-        (SdkOperatingSystem.Linux, "linux", SdkArch.Aarch64, "arm64", "tar.gz"),
+        } yield (verSdk, verRuntime, shaMap)
       )
 
-      sdkInfo <- ZStream.fromEffect({
-        val fileName = s"dotnet-sdk-$ver-$osStr-$archStr.$ext"
-        val outDir = s"dotnet-$ver"
-        for {
-          sha512 <- IO.fromEither(shaMap.get(fileName).toRight(new RuntimeException(s"Could not find hash for file $fileName")))
-        } yield SdkInfo(
-          implements = Seq("dotnet"),
-          version = ver,
-          os = Some(os),
-          architecture = Some(arch),
-          setupSteps = Seq(
-            SdkDownload(s"https://dotnetcli.azureedge.net/dotnet/Sdk/$ver/$fileName", fileName, SdkHash.Sha512(sha512)),
-            SdkExtract(fileName, outDir),
-            SdkDelete(fileName),
-          ),
-          pathDirs = Seq(outDir),
-          env = Map(
-            "DOTNET_CLI_TELEMETRY_OPTOUT" -> EnvValue.OfString("1"),
-          ),
-          configFileTemplates = {
-            val configFile =
-              """<?xml version="1.0" encoding="utf-8"?>
-                |<configuration>
-                |    <packageSources>
-                |        <clear/>
-                |{{#repo_nuget}}
-                |        <add key="{{name}}" value="{{url}}" />
-                |{{/repo_nuget}}
-                |    </packageSources>
-                |
-                |    <config>
-                |        <add key="defaultPushSource" value="{{nuget_push_url}}" />
-                |    </config>
-                |</configuration>
-                |""".stripMargin
+      fileName = s"dotnet-sdk-$verSdk-$osStr-$archStr.$ext"
+      outDir = s"dotnet-$verRuntime"
 
-            Some(Map(
-              "$CONFIG/NuGet/NuGet.Config" -> configFile,
-              "~/.nuget/NuGet/NuGet.Config" -> configFile,
-            ))
-          }
-        )
-      })
+      sha512 <- ZStream.fromIterable(shaMap.get(fileName).toList)
 
-    } yield s"dotnet/$ver-$osStr-$archStr.json" -> sdkInfo
+      sdkInfo = SdkInfo(
+        implements = Seq("dotnet"),
+        version = verRuntime,
+        os = Some(os),
+        architecture = Some(arch),
+        setupSteps = Seq(
+          SdkDownload(s"https://dotnetcli.azureedge.net/dotnet/Sdk/$verSdk/$fileName", fileName, SdkHash.Sha512(sha512)),
+          SdkExtract(fileName, outDir),
+          SdkDelete(fileName),
+        ),
+        pathDirs = Seq(outDir),
+        env = Map(
+          "DOTNET_CLI_TELEMETRY_OPTOUT" -> EnvValue.OfString("1"),
+        ),
+        configFileTemplates = {
+          val configFile =
+            """<?xml version="1.0" encoding="utf-8"?>
+              |<configuration>
+              |    <packageSources>
+              |        <clear/>
+              |{{#repo_nuget}}
+              |        <add key="{{name}}" value="{{url}}" />
+              |{{/repo_nuget}}
+              |    </packageSources>
+              |
+              |    <config>
+              |        <add key="defaultPushSource" value="{{nuget_push_url}}" />
+              |    </config>
+              |</configuration>
+              |""".stripMargin
+
+          Some(Map(
+            "$CONFIG/NuGet/NuGet.Config" -> configFile,
+            "~/.nuget/NuGet/NuGet.Config" -> configFile,
+          ))
+        }
+      )
+
+    } yield s"dotnet/$verRuntime-$osStr-$archStr.json" -> sdkInfo
 
   }
 

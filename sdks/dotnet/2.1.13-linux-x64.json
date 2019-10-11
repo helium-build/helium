@@ -2,43 +2,43 @@
   "implements" : [
     "dotnet"
   ],
-  "version" : "3.0.100",
+  "version" : "2.1.13",
   "os" : {
-    "Windows" : {
+    "Linux" : {
       
     }
   },
   "architecture" : {
-    "X86" : {
+    "Amd64" : {
       
     }
   },
   "setupSteps" : [
     {
       "SdkDownload" : {
-        "url" : "https://dotnetcli.azureedge.net/dotnet/Sdk/3.0.100/dotnet-sdk-3.0.100-win-x86.zip",
-        "fileName" : "dotnet-sdk-3.0.100-win-x86.zip",
+        "url" : "https://dotnetcli.azureedge.net/dotnet/Sdk/2.1.802/dotnet-sdk-2.1.802-linux-x64.tar.gz",
+        "fileName" : "dotnet-sdk-2.1.802-linux-x64.tar.gz",
         "hash" : {
           "Sha512" : {
-            "value" : "dc2bee9336aed555f42ed08205fbafbb8b30f2401bac8d506aa0c2fe4adb0167de67fbb06c47c4ec1ab43e9eee5ee4574ff21b72c7efbdf58a9edc46cbb27249"
+            "value" : "8601EC68FA8978C5A08A696CC69F5E0AA9DABF274BADE40E2FD9DED2E563F2CC7A1CB418A95C9B52E1FA9B6C4A30993BE68CB3B6BBDA4598C57B37EC9CE992AD"
           }
         }
       }
     },
     {
       "SdkExtract" : {
-        "fileName" : "dotnet-sdk-3.0.100-win-x86.zip",
-        "directory" : "dotnet-3.0.100"
+        "fileName" : "dotnet-sdk-2.1.802-linux-x64.tar.gz",
+        "directory" : "dotnet-2.1.13"
       }
     },
     {
       "SdkDelete" : {
-        "fileName" : "dotnet-sdk-3.0.100-win-x86.zip"
+        "fileName" : "dotnet-sdk-2.1.802-linux-x64.tar.gz"
       }
     }
   ],
   "pathDirs" : [
-    "dotnet-3.0.100"
+    "dotnet-2.1.13"
   ],
   "env" : {
     "DOTNET_CLI_TELEMETRY_OPTOUT" : {

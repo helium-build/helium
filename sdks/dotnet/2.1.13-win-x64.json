@@ -2,7 +2,7 @@
   "implements" : [
     "dotnet"
   ],
-  "version" : "3.0.100",
+  "version" : "2.1.13",
   "os" : {
     "Windows" : {
       
@@ -16,29 +16,29 @@
   "setupSteps" : [
     {
       "SdkDownload" : {
-        "url" : "https://dotnetcli.azureedge.net/dotnet/Sdk/3.0.100/dotnet-sdk-3.0.100-win-x64.zip",
-        "fileName" : "dotnet-sdk-3.0.100-win-x64.zip",
+        "url" : "https://dotnetcli.azureedge.net/dotnet/Sdk/2.1.802/dotnet-sdk-2.1.802-win-x64.zip",
+        "fileName" : "dotnet-sdk-2.1.802-win-x64.zip",
         "hash" : {
           "Sha512" : {
-            "value" : "c5f9a483bece13e3edd6fb2414191cf8b782767b21623d08a1c27578fac3798bd145e8a2b3867e74667accebf4353aa00920ed39298d7bc9790c0c82bbc3aa87"
+            "value" : "363C16BB3FB2FE7CE9E7FC874AA685F20A5DF6C24D784447C0EDE174B0A872B6BD1892D110FA42A7C4B0086176DA9076271F9AD3DF5102CB0A684AD619BD33B1"
           }
         }
       }
     },
     {
       "SdkExtract" : {
-        "fileName" : "dotnet-sdk-3.0.100-win-x64.zip",
-        "directory" : "dotnet-3.0.100"
+        "fileName" : "dotnet-sdk-2.1.802-win-x64.zip",
+        "directory" : "dotnet-2.1.13"
       }
     },
     {
       "SdkDelete" : {
-        "fileName" : "dotnet-sdk-3.0.100-win-x64.zip"
+        "fileName" : "dotnet-sdk-2.1.802-win-x64.zip"
       }
     }
   ],
   "pathDirs" : [
-    "dotnet-3.0.100"
+    "dotnet-2.1.13"
   ],
   "env" : {
     "DOTNET_CLI_TELEMETRY_OPTOUT" : {

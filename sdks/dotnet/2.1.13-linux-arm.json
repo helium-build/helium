@@ -1,0 +1,54 @@
+{
+  "implements" : [
+    "dotnet"
+  ],
+  "version" : "2.1.13",
+  "os" : {
+    "Linux" : {
+      
+    }
+  },
+  "architecture" : {
+    "Arm" : {
+      
+    }
+  },
+  "setupSteps" : [
+    {
+      "SdkDownload" : {
+        "url" : "https://dotnetcli.azureedge.net/dotnet/Sdk/2.1.802/dotnet-sdk-2.1.802-linux-arm.tar.gz",
+        "fileName" : "dotnet-sdk-2.1.802-linux-arm.tar.gz",
+        "hash" : {
+          "Sha512" : {
+            "value" : "12717F5B37D689EABA49FC9C3C40A8FAC097022390C19D348B388456E73819C3E0442C3BC06CC49259404DC6D46D63CD951ABB232AA1244F2DE0763B785BDB42"
+          }
+        }
+      }
+    },
+    {
+      "SdkExtract" : {
+        "fileName" : "dotnet-sdk-2.1.802-linux-arm.tar.gz",
+        "directory" : "dotnet-2.1.13"
+      }
+    },
+    {
+      "SdkDelete" : {
+        "fileName" : "dotnet-sdk-2.1.802-linux-arm.tar.gz"
+      }
+    }
+  ],
+  "pathDirs" : [
+    "dotnet-2.1.13"
+  ],
+  "env" : {
+    "DOTNET_CLI_TELEMETRY_OPTOUT" : {
+      "OfString" : {
+        "value" : "1"
+      }
+    }
+  },
+  "configFileTemplates" : {
+    "$CONFIG/NuGet/NuGet.Config" : "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<configuration>\n    <packageSources>\n        <clear/>\n{{#repo_nuget}}\n        <add key=\"{{name}}\" value=\"{{url}}\" />\n{{/repo_nuget}}\n    </packageSources>\n\n    <config>\n        <add key=\"defaultPushSource\" value=\"{{nuget_push_url}}\" />\n    </config>\n</configuration>\n",
+    "~/.nuget/NuGet/NuGet.Config" : "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<configuration>\n    <packageSources>\n        <clear/>\n{{#repo_nuget}}\n        <add key=\"{{name}}\" value=\"{{url}}\" />\n{{/repo_nuget}}\n    </packageSources>\n\n    <config>\n        <add key=\"defaultPushSource\" value=\"{{nuget_push_url}}\" />\n    </config>\n</configuration>\n"
+  }
+}
