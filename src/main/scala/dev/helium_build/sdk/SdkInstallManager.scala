@@ -1,6 +1,7 @@
 package dev.helium_build.sdk
 
 import java.io.{BufferedInputStream, File, FileInputStream, FileOutputStream}
+import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
 import java.nio.file.attribute.PosixFilePermission
 import java.util
@@ -20,7 +21,6 @@ import org.apache.commons.codec.digest.DigestUtils
 import org.apache.commons.compress.archivers.tar.{TarArchiveEntry, TarArchiveInputStream}
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
-import org.apache.commons.compress.utils.IOUtils
 import zio.stream.ZStream
 
 trait SdkInstallManager {
@@ -99,6 +99,33 @@ object SdkInstallManager {
           for {
             nFileName <- ArchiveUtil.normalizePath(fileName)
             _ <- ZIO.accessM[Blocking] { _.blocking.effectBlocking { new File(installDir, nFileName).delete() } }
+          } yield ()
+
+        case SdkCreateDirectory(fileName) =>
+          for {
+            nFileName <- ArchiveUtil.normalizePath(fileName)
+            _ <- ZIO.accessM[Blocking] { _.blocking.effectBlocking {
+              new File(installDir, nFileName).mkdirs()
+            } }
+          } yield ()
+
+        case SdkCreateFile(fileName, isExecutable, content) =>
+          for {
+            nFileName <- ArchiveUtil.normalizePath(fileName)
+            _ <- ZIO.accessM[Blocking] { _.blocking.effectBlocking {
+              val outFile = new File(installDir, nFileName).toPath
+              Files.writeString(outFile, content, StandardCharsets.UTF_8)
+              if(isExecutable) {
+                try {
+                  val perms = Files.getPosixFilePermissions(outFile)
+                  perms.add(PosixFilePermission.OWNER_EXECUTE)
+                  Files.setPosixFilePermissions(outFile, perms)
+                }
+                catch {
+                  case _: UnsupportedOperationException => ()
+                }
+              }
+            } }
           } yield ()
 
       }

@@ -17,7 +17,7 @@ object Launcher {
   def run(props: LaunchProperties): Task[Unit] =
     IO.effect {
       new ProcessBuilder(
-        Seq("sudo", "docker", "run", "--rm") ++
+        Seq("sudo", "docker", "run", "--rm", "-it") ++
           Seq("--network", "none", "--hostname", "helium-build-env") ++
           props.sockets.flatMap {
             case (outName, inName) =>
@@ -26,19 +26,27 @@ object Launcher {
           buildSdkVolumes(props.sdkDirs) ++
           buildEnvArgs(props.pathDirs, props.env) ++
           Seq("-v", props.workDir.getAbsolutePath + ":/work/") ++
-          props.configFiles.flatMap {
-            case (outName, inName) if inName startsWith "~/" =>
-              Seq("-v", outName + ":/helium/install/home" + inName.substring(1))
+          props.configFiles
+            .map {
+              case (outName, inName) if inName startsWith "~/" =>
+                (outName, "/helium/install/home" + inName.substring(1))
 
-            case (outName, inName) if inName startsWith "$CONFIG/" =>
-              Seq("-v", outName + ":/helium/install/home/.config" + inName.substring(7))
+              case (outName, inName) if inName startsWith "$CONFIG/" =>
+                (outName, "/helium/install/home/.config" + inName.substring(7))
 
-            case (outName, inName) if inName startsWith "/" =>
-              Seq("-v", outName + ":/helium/install/root" + inName)
+              case (outName, inName) if inName startsWith "/" =>
+                (outName, "/helium/install/root" + inName)
 
-            case (_, _) =>
-              throw new RuntimeException("Invalid config path.")
-          } ++
+              case (_, _) =>
+                throw new RuntimeException("Invalid config path.")
+            }
+            .distinctBy {
+              case (_, inName) => inName
+            }
+            .flatMap {
+              case (outName, inName) =>
+                Seq("-v", outName + ":" + inName)
+            } ++
           Seq("helium/build-env:debian-buster-20190708", "env") ++
           props.command
       : _*)

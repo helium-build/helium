@@ -27,6 +27,7 @@ object SdkGenerator extends App {
           SBT,
 
           DotNet,
+          DotNetMerge,
 
           NodeJS,
 
@@ -174,7 +175,7 @@ object SdkGenerator extends App {
 
     override def sdks: ZStream[Console, Throwable, (String, SdkInfo)] =
       ZStream(
-        "sbt/sbt-1.3.2.json" -> SdkInfo(
+        s"sbt/sbt-$version.json" -> SdkInfo(
           implements = Seq("sbt"),
           version = version,
           os = None,
@@ -290,6 +291,45 @@ object SdkGenerator extends App {
 
     } yield s"dotnet/$verRuntime-$osStr-$archStr.json" -> sdkInfo
 
+  }
+
+  private object DotNetMerge extends SDKCreator {
+
+    private val version = "1.0"
+
+    override val name: String = "dotnet-merge"
+
+    override def sdks: ZStream[Console, Throwable, (String, SdkInfo)] =
+      ZStream(
+        s"dotnet-merge/dotnet-merge-$version-linux.json" -> SdkInfo(
+          implements = Seq("dotnet-merge"),
+          version = "1.0.0",
+          os = Some(SdkOperatingSystem.Linux),
+          architecture = None,
+          setupSteps = Seq(
+            SdkCreateDirectory("dotnet-merge/"),
+            SdkCreateFile("dotnet-merge/dotnet",
+              isExecutable = true,
+              """#!/bin/bash
+                |
+                |if [ ! -d /sdk/dotnet-sdk ]; then
+                |  mkdir /sdk/dotnet-sdk
+                |  IFS=:
+                |  for dir in $PATH; do
+                |    if [ "$dir" != "" ] && [ "$dir" != "$(dirname "$0")" ] && [ -f "$dir/dotnet" ]; then
+                |      cp -n "$dir/dotnet" /sdk/dotnet-sdk/
+                |      cp -rnsT "$dir/" /sdk/dotnet-sdk
+                |    fi
+                |  done
+                |fi
+                |
+                |exec /sdk/dotnet-sdk/dotnet "$@"
+                |""".stripMargin)
+          ),
+          pathDirs = Seq("dotnet-merge"),
+          env = Map.empty
+        )
+      )
   }
 
   private object NodeJS extends SDKCreator {

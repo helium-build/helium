@@ -3,10 +3,11 @@ FROM debian:buster-20190708
 
 RUN apt-get update && apt-get install -y libicu63 socat wget
 
-
 RUN useradd -m helium
 
 COPY helium /helium/
+
+RUN mkdir /sdk/ && chown -R helium:helium /sdk/ /helium/
 
 USER helium
 

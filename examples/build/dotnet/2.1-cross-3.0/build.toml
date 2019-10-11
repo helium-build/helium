@@ -1,0 +1,19 @@
+[build]
+command = ["./build.sh"]
+
+# It is important to list the sdks in this order because
+# later sdks are earlier in the path
+[[sdk]]
+name = "dotnet"
+version = "~2.1"
+
+[[sdk]]
+name = "dotnet"
+version = "~3.0"
+
+# dotnet-merge is a simple sdk that creates an sdk installation by
+# simlinking other dotnet sdks in the path into a new directory.
+# This results in a single directory with multiple sdks enabled.
+[[sdk]]
+name = "dotnet-merge"
+version = "1.0"

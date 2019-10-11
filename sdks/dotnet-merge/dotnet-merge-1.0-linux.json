@@ -1,0 +1,33 @@
+{
+  "implements" : [
+    "dotnet-merge"
+  ],
+  "version" : "1.0.0",
+  "os" : {
+    "Linux" : {
+      
+    }
+  },
+  "architecture" : null,
+  "setupSteps" : [
+    {
+      "SdkCreateDirectory" : {
+        "fileName" : "dotnet-merge/"
+      }
+    },
+    {
+      "SdkCreateFile" : {
+        "fileName" : "dotnet-merge/dotnet",
+        "isExecutable" : true,
+        "content" : "#!/bin/bash\n\nif [ ! -d /sdk/dotnet-sdk ]; then\n  mkdir /sdk/dotnet-sdk\n  IFS=:\n  for dir in $PATH; do\n    if [ \"$dir\" != \"\" ] && [ \"$dir\" != \"$(dirname \"$0\")\" ] && [ -f \"$dir/dotnet\" ]; then\n      cp -n \"$dir/dotnet\" /sdk/dotnet-sdk/\n      cp -rnsT \"$dir/\" /sdk/dotnet-sdk\n    fi\n  done\nfi\n\nexec /sdk/dotnet-sdk/dotnet \"$@\"\n"
+      }
+    }
+  ],
+  "pathDirs" : [
+    "dotnet-merge"
+  ],
+  "env" : {
+    
+  },
+  "configFileTemplates" : null
+}
