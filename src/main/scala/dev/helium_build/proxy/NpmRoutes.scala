@@ -7,7 +7,7 @@ import cats.implicits._
 import cats.effect.{Async, Blocker, ContextShift, Sync}
 import cats.effect.concurrent.Semaphore
 import com.github.zafarkhaja.semver.Version
-import dev.helium_build.record.{ArtifactSaver, Recorder}
+import dev.helium_build.record.{ArtifactAlreadyExistsException, ArtifactSaver, Recorder}
 import com.softwaremill.sttp.SttpBackend
 import org.http4s.{HttpRoutes, Request, Response, StaticFile}
 import org.http4s.dsl.Http4sDsl
@@ -71,9 +71,17 @@ object NpmRoutes {
 
       case request @ PUT -> Root / "npm" / packageName if validateName(packageName) =>
         publishArtifact(request)(artifact)(Ok())
+          .recoverWith {
+            case _: ArtifactAlreadyExistsException =>
+              Conflict()
+          }
 
       case request @ PUT -> Root / "npm" / scope / packageName if validateName(scope) && validateName(packageName) =>
         publishArtifact(request)(artifact)(Ok())
+          .recoverWith {
+            case _: ArtifactAlreadyExistsException =>
+              Conflict()
+          }
 
     }
   }

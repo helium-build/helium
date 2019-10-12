@@ -7,7 +7,7 @@ import java.util.zip.ZipFile
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Sync}
 import cats.implicits._
-import dev.helium_build.record.{ArtifactSaver, Recorder}
+import dev.helium_build.record.{ArtifactAlreadyExistsException, ArtifactSaver, Recorder}
 import io.circe.Json
 import org.http4s.{HttpRoutes, MediaType, StaticFile}
 import org.http4s.dsl.Http4sDsl
@@ -122,6 +122,10 @@ object NuGetRoutes {
                 }
               }
                 .flatMap { _ => Ok() }
+                .recoverWith {
+                  case _: ArtifactAlreadyExistsException =>
+                    Conflict()
+                }
 
             case None => BadRequest()
           }
