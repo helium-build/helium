@@ -1,7 +1,7 @@
 .idea/
 target/
 cache/
-work/
+docker/helium-engine/example/realpaths/
 
 bin/
 obj/

@@ -1,10 +1,7 @@
-#!/bin/bash
+#!/bin/bash -x
 
-mkdir -p build-env/helium/install/root
-mkdir -p build-env/helium/install/home
+mkdir -p helium-build-env/linux/helium/install/root
+mkdir -p helium-build-env/linux/helium/install/home
 
-chown -R 1000:1000 build-env/helium/
-
-pushd build-env
-docker build -t helium/build-env:debian-buster-20190708 -f Dockerfile.linux-x86_64 .
-popd
+docker build -t helium-build/build-env:debian-buster-20190708 -f helium-build-env/linux/Dockerfile ../
+docker build -t helium-build/engine -f helium-engine/linux/Dockerfile ../

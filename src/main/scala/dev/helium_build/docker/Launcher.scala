@@ -12,12 +12,13 @@ object Launcher {
       .flatMap { case (name, value) => Seq("-e", s"$name=$value") }
 
   private def buildSdkVolumes(sdkPaths: Seq[(String, File)]): Seq[String] =
-    sdkPaths.flatMap { case (containerDir, dir) => Seq("-v", dir.getAbsolutePath + ":" + containerDir + ":ro") }
+    sdkPaths.flatMap { case (containerDir, dir) => Seq("-v", dir.getCanonicalPath + ":" + containerDir + ":ro") }
 
   def run(props: LaunchProperties): Task[Unit] =
     IO.effect {
       new ProcessBuilder(
-        Seq("sudo", "docker", "run", "--rm", "-it") ++
+        dockerCommand ++
+          Seq("run", "--rm") ++
           Seq("--network", "none", "--hostname", "helium-build-env") ++
           props.sockets.flatMap {
             case (outName, inName) =>
@@ -47,12 +48,18 @@ object Launcher {
               case (outName, inName) =>
                 Seq("-v", outName + ":" + inName)
             } ++
-          Seq("helium/build-env:debian-buster-20190708", "env") ++
+          Seq("helium-build/build-env:debian-buster-20190708", "env") ++
           props.command
       : _*)
         .inheritIO()
         .start()
     }
     .flatMap(ProcessHelpers.waitForExit)
+
+  private def dockerCommand: Seq[String] =
+    if(sys.env.contains("HELIUM_DEV_MODE"))
+      Seq("sudo", "docker")
+    else
+      Seq("/helium/docker-launcher")
 
 }

@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y libicu63 socat wget curl
 
 RUN useradd -m helium
 
-COPY helium /helium/
+COPY --chown=helium:helium docker/helium-build-env/linux/helium /helium/
 
 RUN mkdir /sdk/ && chown -R helium:helium /sdk/ /helium/
 
