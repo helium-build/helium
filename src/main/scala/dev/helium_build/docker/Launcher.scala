@@ -60,6 +60,6 @@ object Launcher {
     if(sys.env.contains("HELIUM_DEV_MODE"))
       Seq("sudo", "docker")
     else
-      Seq("/helium/docker-launcher")
+      Seq("/helium/bin/docker-launcher")
 
 }

@@ -7,3 +7,5 @@ bin/
 obj/
 node_modules/
 output/
+
+*.gen

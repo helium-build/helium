@@ -17,4 +17,4 @@ docker run --rm -it \
   -v "$WORKSPACE/conf:/helium/conf" \
   -v "$WORKSPACE/cache:/helium/cache" \
   -v "$EXAMPLE/realpaths:/helium/realpaths:ro" \
-  helium-build/engine build-once $DIR/build.toml $DIR/src/ $DIR/output/
+  helium-build/engine helium build-once $DIR/build.toml $DIR/src/ $DIR/output/

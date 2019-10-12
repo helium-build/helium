@@ -48,7 +48,12 @@ object Program extends App {
         case _ => ()
       }
     }
-    appDir <- IO.effectTotal { new File(".").getAbsoluteFile }
+    appDir <- IO.effectTotal {
+      if(sys.env.contains("HELIUM_DEV_MODE"))
+        new File(".").getCanonicalFile
+      else
+        new File("/helium/")
+    }
     confDir <- IO.effectTotal { new File(appDir, "conf") }
     cacheDir <- IO.effectTotal { new File(appDir, "cache") }
     sdkDir <- IO.effectTotal { new File(appDir, "sdks") }
