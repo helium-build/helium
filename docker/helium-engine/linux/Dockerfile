@@ -40,6 +40,7 @@ RUN apt-get update && \
 	chown helium:helium /helium/cache/
 
 COPY --chown=root:root docker/helium-engine/linux/helium/ /helium/
+COPY --chown=root:root sdks /helium/sdks/
 COPY --from=build --chown=root:root /helium-src/target/scala-2.13/Helium-assembly-0.1.0-SNAPSHOT.jar /helium/helium.jar
 COPY --from=build --chown=root:root /docker-launcher/docker-launcher /helium/docker-launcher
 
