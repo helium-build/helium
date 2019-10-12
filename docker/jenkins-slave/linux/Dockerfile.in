@@ -1,6 +1,8 @@
-#include "Dockerfile.build.in"
+#include "../../helium-engine/linux/Dockerfile.build.in"
 
-FROM openjdk:11.0.4-jdk-stretch
+FROM jenkins/jnlp-slave:3.35-5-jdk11
+
+USER root
 
 RUN apt-get update && \
 	apt-get install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common && \
@@ -8,11 +10,9 @@ RUN apt-get update && \
 	add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" && \
 	apt-get update && \
 	apt-get install -y docker-ce-cli socat && \
-	useradd -m helium && \
 	mkdir -p /helium/cache/ && \
-	chown helium:helium /helium/cache/
+	chown jenkins:jenkins /helium/cache/
 
-#include "Dockerfile.install.in"
+#include "../../helium-engine/linux/Dockerfile.install.in"
 
-USER helium
-
+USER jenkins

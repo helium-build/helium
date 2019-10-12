@@ -5,3 +5,5 @@ COPY --from=build --chown=root:root /helium-src/target/scala-2.13/Helium-assembl
 COPY --from=build --chown=root:root /docker-launcher/docker-launcher /helium/bin/docker-launcher
 
 RUN chmod u+s /helium/bin/docker-launcher
+
+ENV PATH "/helium/bin:${PATH}"
