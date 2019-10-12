@@ -62,7 +62,12 @@ object ProxyServer {
           } yield NpmRoutes.routes[F](recorder, artifact, blocker, lock, cacheDir, parsedUri)
         }
 
-      } yield (mavenRoutes ++ nugetRoutes ++ npmRoutes).reduceOption(_.combineK(_)).getOrElse { HttpRoutes.of[F](PartialFunction.empty) }
+        artifactRoutes = ArtifactRoutes.routes[F](artifact)
+
+      } yield (mavenRoutes ++ nugetRoutes ++ npmRoutes :+ artifactRoutes)
+        .reduceOption(_.combineK(_))
+        .getOrElse { HttpRoutes.of[F](PartialFunction.empty) }
+
     ).flatMap { httpRoutes =>
       import org.http4s.implicits._
 
