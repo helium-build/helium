@@ -23,7 +23,7 @@ import scala.jdk.CollectionConverters._
 
 object NuGetRoutes {
 
-  def routes[F[_]: Sync : ContextShift](recorder: Recorder[F], artifact: ArtifactSaver[F], blocker: Blocker, lock: Semaphore[F], cacheDir: File, name: String, nugetUri: SttpUri)(implicit sttpBackend: SttpBackend[F, Nothing]): HttpRoutes[F] = {
+  def routes[F[_]: Sync : ContextShift](recorder: Recorder[F], artifact: ArtifactSaver[F], blocker: Blocker, lock: Semaphore[F], name: String, nugetUri: SttpUri)(implicit sttpBackend: SttpBackend[F, Nothing]): HttpRoutes[F] = {
     val dsl = new Http4sDsl[F]{}
     import dsl._
 
@@ -63,9 +63,9 @@ object NuGetRoutes {
         if isValidName(packageId) &&
           isValidName(packageVersion) &&
           fileName == packageId + "." + packageVersion =>
-        recorder.recordArtifact("nuget/" + name + "/" + packageId + "/" + packageVersion + "/" + fileName + ".nupkg")(
+        recorder.recordArtifact("nuget/" + name + "/" + packageId + "/" + packageVersion + "/" + fileName + ".nupkg") { cacheDir =>
           getNupkg(lock, cacheDir, name, packageId, packageVersion, nugetUri)
-        )
+        }
           .flatMap { nupkg =>
             StaticFile.fromFile(nupkg, blocker, Some(request)).getOrElseF(NotFound())
           }
@@ -74,9 +74,9 @@ object NuGetRoutes {
         if isValidName(packageId) &&
           isValidName(packageVersion) &&
           fileName == packageId + "." + packageVersion =>
-        recorder.recordArtifact("nuget/" + name + "/" + packageId + "/" + packageVersion + "/" + fileName + ".nupkg")(
+        recorder.recordArtifact("nuget/" + name + "/" + packageId + "/" + packageVersion + "/" + fileName + ".nupkg") { cacheDir =>
           getNupkg(lock, cacheDir, name, packageId, packageVersion, nugetUri)
-        )
+        }
           .flatMap { _ =>
             Ok()
           }
@@ -85,9 +85,9 @@ object NuGetRoutes {
         if isValidName(packageId) &&
           isValidName(packageVersion) &&
           fileName == packageId =>
-        recorder.recordArtifact("nuget/" + name + "/" + packageId + "/" + packageVersion + "/" + fileName + ".nupkg")(
+        recorder.recordArtifact("nuget/" + name + "/" + packageId + "/" + packageVersion + "/" + fileName + ".nupkg") { cacheDir =>
           getNupkg(lock, cacheDir, name, packageId, packageVersion, nugetUri)
-        )
+        }
           .flatMap { nupkg =>
             readNuSpec(blocker, nupkg, removeBom = false).flatMap(Ok(_))
           }
@@ -96,9 +96,9 @@ object NuGetRoutes {
         if isValidName(packageId) &&
           isValidName(packageVersion) &&
           fileName == packageId =>
-        recorder.recordArtifact("nuget/" + name + "/" + packageId + "/" + packageVersion + "/" + fileName + ".nupkg")(
+        recorder.recordArtifact("nuget/" + name + "/" + packageId + "/" + packageVersion + "/" + fileName + ".nupkg") { cacheDir =>
           getNupkg(lock, cacheDir, name, packageId, packageVersion, nugetUri)
-        )
+        }
           .flatMap { _ =>
             Ok()
           }

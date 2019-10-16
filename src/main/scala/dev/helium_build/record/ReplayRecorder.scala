@@ -4,7 +4,9 @@ import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 
+import cats.implicits._
 import dev.helium_build.build.BuildSchema
+import dev.helium_build.conf.RepoConfig
 import dev.helium_build.sdk.{SdkInfo, SdkInstallManager, SdkLoader}
 import dev.helium_build.util.{ArchiveUtil, Temp}
 import io.circe.{Json, JsonObject}
@@ -18,21 +20,29 @@ final class ReplayRecorder[R <: Blocking] private
   extractedDir: File,
   dependencyMetadata: Map[String, Json]
 )  extends ZIORecorder[R] {
+  import ArchiveRecorder._
 
   override def schema: ZIO[R, Throwable, BuildSchema] =
     ZIO.accessM[Blocking] { _.blocking.effectBlocking {
-      FileUtils.readFileToString(new File(extractedDir, "build.toml"), StandardCharsets.UTF_8)
+      FileUtils.readFileToString(new File(extractedDir, buildSchemaPath), StandardCharsets.UTF_8)
     } }
       .flatMap(BuildSchema.parse)
 
-  override def workDir: File = new File(extractedDir, "work")
+  override def workDir: File = new File(extractedDir, workDirPath)
 
+  override def repoConfig: ZIO[R, Throwable, RepoConfig] =
+    ZIO.accessM[Blocking] { _.blocking.effectBlocking {
+      FileUtils.readFileToString(new File(extractedDir, repoConfigPath), StandardCharsets.UTF_8)
+    } }
+      .flatMap { confData =>
+        IO.fromEither(RepoConfig.parse(confData).leftMap { new RuntimeException(_) })
+      }
 
   override def sdkInstallManager: ZIO[R, Throwable, SdkInstallManager] = IO.succeed(
     new SdkInstallManager {
       override def getInstalledSdkDir(sdk: SdkInfo): RIO[Blocking, (String, File)] = {
         val sdkHash = SdkLoader.sdkSha256(sdk)
-        val sdkDir = new File(new File(extractedDir, "sdks"), sdkHash)
+        val sdkDir = new File(extractedDir, sdkPath(sdkHash))
 
         ZIO.accessM[Blocking] { _.blocking.effectBlocking {
           sdkDir.exists()
@@ -59,8 +69,8 @@ final class ReplayRecorder[R <: Blocking] private
       }
 
 
-  override def recordArtifact(path: String)(fetch: ZIO[R, Throwable, File]): ZIO[R, Throwable, File] = {
-    val file = new File(new File(extractedDir, "dependencies"), path)
+  override def recordArtifact(path: String)(fetch: File => ZIO[R, Throwable, File]): ZIO[R, Throwable, File] = {
+    val file = new File(extractedDir, artifactPath(path))
     ZIO.accessM[Blocking] { _.blocking.effectBlocking {
       file.exists()
     } }.flatMap {
@@ -77,7 +87,7 @@ final class ReplayRecorder[R <: Blocking] private
 }
 
 object ReplayRecorder {
-
+  import ArchiveRecorder._
 
   def apply[R <: Blocking](archiveFile: File): ZManaged[R, Throwable, ReplayRecorder[R]] =
     for {
@@ -89,7 +99,7 @@ object ReplayRecorder {
 
       metadata <- ZManaged.fromEffect(
         ZIO.accessM[Blocking] { _.blocking.effectBlocking {
-          FileUtils.readFileToString(new File(extractDir.toFile, "dependencies-metadata.json"), StandardCharsets.UTF_8)
+          FileUtils.readFileToString(new File(extractDir.toFile, transientMetadataPath), StandardCharsets.UTF_8)
         } }
           .flatMap { metadataStr =>
             IO.fromEither(io.circe.parser.decode[JsonObject](metadataStr))

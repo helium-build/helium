@@ -3,7 +3,7 @@ package dev.helium_build.conf
 import toml.Toml
 import toml.Codecs._
 
-final case class Config
+final case class RepoConfig
 (
   repo: Option[Repos]
 ) {
@@ -17,9 +17,9 @@ final case class Config
 
 }
 
-object Config {
+object RepoConfig {
 
-  def parse(data: String): Either[String, Config] =
-    Toml.parseAs[Config](data).left.map { case (addr, msg) => addr.toString + " " + msg }
+  def parse(data: String): Either[String, RepoConfig] =
+    Toml.parseAs[RepoConfig](data).left.map { case (addr, msg) => addr.toString + " " + msg }
 
 }

@@ -7,7 +7,7 @@ import java.nio.file.Files
 import cats.effect.Blocker
 import cats.implicits._
 import dev.helium_build.build.BuildSchema
-import dev.helium_build.conf.Config
+import dev.helium_build.conf.RepoConfig
 import dev.helium_build.docker._
 import dev.helium_build.proxy.ProxyServer
 import dev.helium_build.record._
@@ -60,28 +60,34 @@ object Program extends App {
     _ <- (value match {
       case "build-once" :: schemaFile :: workDir :: outputDir :: Nil =>
         runBuild(
-          recordMode = RecordMode.Null(new File(workDir), new File(schemaFile)),
-          confDir = confDir,
-          cacheDir = cacheDir,
-          sdkDir = sdkDir,
+          recorderManaged = NullRecorder(
+            cacheDir = cacheDir,
+            sdkDir = sdkDir,
+            schemaFile = new File(schemaFile),
+            workDir = new File(workDir),
+            confDir = confDir,
+          ),
           outputDir = new File(outputDir),
         )
 
       case "build" :: archiveFile :: schemaFile :: workDir :: outputDir :: Nil =>
         runBuild(
-          recordMode = RecordMode.Archive(new File(workDir), new File(schemaFile), new File(archiveFile)),
-          confDir = confDir,
-          cacheDir = cacheDir,
-          sdkDir = sdkDir,
+          recorderManaged = ArchiveRecorder(
+            cacheDir = cacheDir,
+            sdkDir = sdkDir,
+            schemaFile = new File(schemaFile),
+            archiveFile = new File(archiveFile),
+            workDir = new File(workDir),
+            confDir = confDir,
+          ),
           outputDir = new File(outputDir),
         )
 
       case "replay" :: archiveFile :: outputDir :: Nil =>
         runBuild(
-          recordMode = RecordMode.Replay(new File(archiveFile)),
-          confDir = confDir,
-          cacheDir = cacheDir,
-          sdkDir = sdkDir,
+          recorderManaged = ReplayRecorder(
+            archiveFile = new File(archiveFile),
+          ),
           outputDir = new File(outputDir),
         )
 
@@ -100,21 +106,10 @@ object Program extends App {
     }
 
 
-  private def runBuild(recordMode: RecordMode, confDir: File, cacheDir: File, sdkDir: File, outputDir: File): ZIO[Blocking with Clock, Throwable, Unit] =
+  private def runBuild(recorderManaged: ZManaged[Blocking with Clock, Throwable, ZIORecorder[Blocking with Clock]], outputDir: File): ZIO[Blocking with Clock, Throwable, Unit] =
     (
       for {
-        conf <- ZManaged.fromEffect(
-          ZIO.accessM[Blocking] { _.blocking.effectBlocking { Files.readString(new File(confDir, "helium-conf.toml").toPath) } }
-            .flatMap { confData =>
-              IO.fromEither(Config.parse(confData).leftMap { new RuntimeException(_) })
-            }
-        )
-
-        recorder <- Recorder.from[Blocking with Clock](
-          cacheDir = cacheDir,
-          sdkDir = sdkDir,
-          recordMode
-        )
+        recorder <- recorderManaged
 
         artifact = new FSArtifactSaver[Blocking with Clock](outputDir)
 
@@ -123,9 +118,11 @@ object Program extends App {
         sdks <- ZManaged.fromEffect(recorder.availableSdks.runCollect)
         sdkInstallManager <- ZManaged.fromEffect(recorder.sdkInstallManager)
 
+
+        conf <- ZManaged.fromEffect(recorder.repoConfig)
         launchProps <- getDockerLaunchProps(sdks = sdks, workDir = recorder.workDir, conf)(sdkInstallManager)(buildSchema)
 
-        port <- runProxyServer(recorder, artifact, cacheDir, confDir)
+        port <- runProxyServer(recorder, artifact)
 
         socketFile <- runSocatProxy(port)
 
@@ -135,7 +132,7 @@ object Program extends App {
     ).use(Launcher.run)
 
 
-  private def getDockerLaunchProps(sdks: List[SdkInfo], workDir: File, config: Config)(sdkInstallManager: SdkInstallManager)(schema: BuildSchema): ZManaged[Blocking, Throwable, LaunchProperties] =
+  private def getDockerLaunchProps(sdks: List[SdkInfo], workDir: File, config: RepoConfig)(sdkInstallManager: SdkInstallManager)(schema: BuildSchema): ZManaged[Blocking, Throwable, LaunchProperties] =
     ZManaged.fromEffect(PlatformInfo.current)
       .flatMap { currentPlatform =>
         schema.sdk
@@ -195,7 +192,7 @@ object Program extends App {
           }
       }
 
-  private def runProxyServer[R <: Blocking with Clock](recorder: ZIORecorder[R], artifact: ZIOArtifactSaver[R], cacheDir: File, confDir: File): ZManaged[R, Throwable, Int] =
+  private def runProxyServer[R <: Blocking with Clock](recorder: ZIORecorder[R], artifact: ZIOArtifactSaver[R]): ZManaged[R, Throwable, Int] =
     for {
       executor <- ZManaged.fromEffect(ZIO.accessM[R] { _.blocking.blockingExecutor })
       runtime <- ZManaged.fromEffect(ZIO.runtime[R])
@@ -206,7 +203,7 @@ object Program extends App {
         implicit val timerInstance = zio.interop.catz.zioTimer[R, Throwable]
 
 
-        ProxyServer.serverResource[RIO[R, *]](recorder, artifact, blocker, cacheDir, confDir).toManaged
+        ProxyServer.serverResource[RIO[R, *]](recorder, artifact, blocker).toManaged
       }
 
 

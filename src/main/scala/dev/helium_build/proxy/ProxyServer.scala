@@ -7,7 +7,7 @@ import cats.data.Kleisli
 import cats.effect.concurrent.Semaphore
 import cats.effect.{Blocker, ConcurrentEffect, ContextShift, Resource, Sync, Timer}
 import cats.implicits._
-import dev.helium_build.conf.Config
+import dev.helium_build.conf.RepoConfig
 import dev.helium_build.record.{ArtifactSaver, Recorder}
 import com.softwaremill.sttp.Uri
 import com.softwaremill.sttp.asynchttpclient.cats.AsyncHttpClientCatsBackend
@@ -24,13 +24,12 @@ import scala.concurrent.ExecutionContext.global
 
 object ProxyServer {
 
-  def serverResource[F[_]: ConcurrentEffect](recorder: Recorder[F], artifact: ArtifactSaver[F], blocker: Blocker, cacheDir: File, confDir: File)(implicit T: Timer[F], C: ContextShift[F]): Resource[F, Server[F]] = {
+  def serverResource[F[_]: ConcurrentEffect](recorder: Recorder[F], artifact: ArtifactSaver[F], blocker: Blocker)(implicit T: Timer[F], C: ContextShift[F]): Resource[F, Server[F]] = {
     implicit val sttpBackend = AsyncHttpClientCatsBackend()
 
     Resource.liftF(
       for {
-        confFile <- Sync[F].delay { Files.readString(new File(confDir, "helium-conf.toml").toPath) }
-        conf <- Sync[F].fromEither(Config.parse(confFile).leftMap { new RuntimeException(_) })
+        conf <- recorder.repoConfig
 
         mavenRoutes <- conf.repo.flatMap { _.maven }.getOrElse(Nil).traverse { mavenRepo =>
           for {
@@ -39,7 +38,7 @@ object ProxyServer {
               import com.softwaremill.sttp._
               uri"${mavenRepo.url}"
             }
-          } yield MavenIvyRoutes.routes[F](recorder, blocker, lock, "maven", cacheDir, mavenRepo.name, parsedUri)
+          } yield MavenIvyRoutes.routes[F](recorder, blocker, lock, "maven", mavenRepo.name, parsedUri)
         }
 
         nugetRoutes <- conf.repo.flatMap { _.nuget }.getOrElse(Nil).traverse { nugetRepo =>
@@ -49,7 +48,7 @@ object ProxyServer {
               import com.softwaremill.sttp._
               uri"${nugetRepo.url}"
             }
-          } yield NuGetRoutes.routes[F](recorder, artifact, blocker, lock, cacheDir, nugetRepo.name, parsedUri)
+          } yield NuGetRoutes.routes[F](recorder, artifact, blocker, lock, nugetRepo.name, parsedUri)
         }
 
         npmRoutes <- conf.repo.flatMap { _.npm }.toList.traverse { npmRepo =>
@@ -59,7 +58,7 @@ object ProxyServer {
               import com.softwaremill.sttp._
               uri"${npmRepo.registry}"
             }
-          } yield NpmRoutes.routes[F](recorder, artifact, blocker, lock, cacheDir, parsedUri)
+          } yield NpmRoutes.routes[F](recorder, artifact, blocker, lock, parsedUri)
         }
 
         artifactRoutes = ArtifactRoutes.routes[F](artifact)

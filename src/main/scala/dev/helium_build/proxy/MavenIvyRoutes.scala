@@ -19,14 +19,14 @@ import scala.jdk.CollectionConverters._
 
 object MavenIvyRoutes {
 
-  def routes[F[_]: Async : ContextShift](recorder: Recorder[F], blocker: Blocker, lock: Semaphore[F], mode: String, cacheDir: File, name: String, baseUrl: sttpUri)(implicit sttpBackend: SttpBackend[F, Nothing]): HttpRoutes[F] = {
+  def routes[F[_]: Async : ContextShift](recorder: Recorder[F], blocker: Blocker, lock: Semaphore[F], mode: String, name: String, baseUrl: sttpUri)(implicit sttpBackend: SttpBackend[F, Nothing]): HttpRoutes[F] = {
     val dsl = new Http4sDsl[F]{}
     import dsl._
     HttpRoutes.of[F] {
       case request @ GET -> `mode` /: `name` /: path if validatePath(path) =>
-        recorder.recordArtifact(mode + "/" + name + "/" + path.toList.mkString("/"))(
+        recorder.recordArtifact(mode + "/" + name + "/" + path.toList.mkString("/")) { cacheDir =>
           resolveArtifact(mode, lock, cacheDir, name, baseUrl, path)
-        )
+        }
           .flatMap { file =>
             StaticFile.fromFile(file, blocker, Some(request)).getOrElseF(NotFound())
           }
@@ -38,9 +38,9 @@ object MavenIvyRoutes {
           }
 
       case HEAD -> `mode` /: `name` /: path if validatePath(path) =>
-        recorder.recordArtifact(mode + "/" + name + "/" + path.toList.mkString("/"))(
+        recorder.recordArtifact(mode + "/" + name + "/" + path.toList.mkString("/")) { cacheDir =>
           resolveArtifact(mode, lock, cacheDir, name, baseUrl, path)
-        )
+        }
           .flatMap { _ =>
             Ok()
           }

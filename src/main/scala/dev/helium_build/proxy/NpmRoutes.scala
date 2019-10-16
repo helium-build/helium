@@ -21,7 +21,7 @@ import org.http4s.multipart.Multipart
 object NpmRoutes {
 
 
-  def routes[F[_]: Async : ContextShift](recorder: Recorder[F], artifact: ArtifactSaver[F], blocker: Blocker, lock: Semaphore[F], cacheDir: File, registry: SttpUri)(implicit sttpBackend: SttpBackend[F, Nothing]): HttpRoutes[F] = {
+  def routes[F[_]: Async : ContextShift](recorder: Recorder[F], artifact: ArtifactSaver[F], blocker: Blocker, lock: Semaphore[F], registry: SttpUri)(implicit sttpBackend: SttpBackend[F, Nothing]): HttpRoutes[F] = {
     val dsl = new Http4sDsl[F]{}
     import dsl._
     HttpRoutes.of[F] {
@@ -53,18 +53,18 @@ object NpmRoutes {
 
       case request @ GET -> Root / "npm" / packageName / "-" / version ~ "tgz"
         if validateName(packageName) && validateVersion(version) =>
-        recorder.recordArtifact("npm/" + packageName + "/" + version + ".tgz")(
+        recorder.recordArtifact("npm/" + packageName + "/" + version + ".tgz") { cacheDir =>
           resolveArtifact(lock, cacheDir, registry, Seq(packageName), version)
-        )
+        }
           .flatMap { file =>
             StaticFile.fromFile(file, blocker, Some(request)).getOrElseF(NotFound())
           }
 
       case request @ GET -> Root / "npm" / scope / packageName / "-" / version ~ "tgz"
         if scope.startsWith("@") && validateName(scope) && validateName(packageName) && validateVersion(version) =>
-        recorder.recordArtifact("npm/" + scope + "/" + packageName + "/" + version + ".tgz")(
+        recorder.recordArtifact("npm/" + scope + "/" + packageName + "/" + version + ".tgz") { cacheDir =>
           resolveArtifact(lock, cacheDir, registry, Seq(scope, packageName), version)
-        )
+        }
           .flatMap { file =>
             StaticFile.fromFile(file, blocker, Some(request)).getOrElseF(NotFound())
           }
