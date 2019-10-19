@@ -1,0 +1,23 @@
+# Note: you may need to manually specify the PWD variable.
+# For instance:
+# sudo env PWD="$(pwd)" docker-compose up -d
+
+# Alternatively, create a .env file.
+
+version: "2"
+services:
+
+  helium-linux-worker:
+    image: helium-build/jenkins-slave
+    environment:
+      JENKINS_URL: ${JENKINS_URL}
+      JENKINS_AGENT_NAME: ${JENKINS_AGENT_NAME}
+      JENKINS_SECRET: ${JENKINS_SECRET}
+      JENKINS_WORKDIR: /workspace/jenkins-workdir/
+      HELIUM_REALPATH_CACHE: ${PWD}/cache/
+      HELIUM_REALPATH_WORKSPACE: ${PWD}/workspace/
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./cache:/helium/cache
+      - ../../../conf:/helium/conf:ro
+      - ./workspace:/workspace

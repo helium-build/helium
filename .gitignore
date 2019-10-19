@@ -1,7 +1,7 @@
 .idea/
 target/
 cache/
-docker/helium-engine/example/realpaths/
+workspace/
 
 bin/
 obj/
@@ -10,3 +10,5 @@ output/
 !docker/helium-*/*/helium/bin/
 
 *.gen
+
+.env
