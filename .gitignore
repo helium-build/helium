@@ -7,5 +7,6 @@ bin/
 obj/
 node_modules/
 output/
+!docker/helium-*/*/helium/bin/
 
 *.gen

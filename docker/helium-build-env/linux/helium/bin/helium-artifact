@@ -1,0 +1,4 @@
+#!/bin/bash
+
+echo "Uploading Artifact"
+curl -X PUT -F "file=@$1" http://localhost:9000/artifact/"$(basename "$1")"

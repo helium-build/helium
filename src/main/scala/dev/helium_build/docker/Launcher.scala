@@ -16,7 +16,8 @@ object Launcher {
 
   def run(props: LaunchProperties): Task[Unit] =
     IO.effect {
-      new ProcessBuilder(
+
+      val command =
         dockerCommand ++
           Seq("run", "--rm") ++
           Seq("--network", "none", "--hostname", "helium-build-env") ++
@@ -50,7 +51,8 @@ object Launcher {
             } ++
           Seq("helium-build/build-env:debian-buster-20190708", "env") ++
           props.command
-      : _*)
+
+      new ProcessBuilder(command: _*)
         .inheritIO()
         .start()
     }
