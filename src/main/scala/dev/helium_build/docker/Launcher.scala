@@ -57,9 +57,7 @@ object Launcher {
     .flatMap(ProcessHelpers.waitForExit)
 
   private def dockerCommand: Seq[String] =
-    if(sys.env.contains("HELIUM_DEV_MODE"))
-      Seq("sudo", "docker")
-    else
-      Seq("/helium/bin/docker-launcher")
+    sys.env.get("HELIUM_SUDO_COMMAND").toList :+
+      sys.env.getOrElse("HELIUM_DOCKER_COMMAND", "docker")
 
 }

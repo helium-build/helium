@@ -7,3 +7,6 @@ COPY --from=build --chown=root:root /docker-launcher/docker-launcher /helium/bin
 RUN chmod u+s /helium/bin/docker-launcher
 
 ENV PATH "/helium/bin:${PATH}"
+ENV HELIUM_BASE_DIR /helium/
+ENV HELIUM_DOCKER_COMMAND /helium/bin/docker-launcher
+

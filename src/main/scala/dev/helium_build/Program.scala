@@ -50,10 +50,10 @@ object Program extends App {
       }
     }
     appDir <- IO.effectTotal {
-      if(sys.env.contains("HELIUM_DEV_MODE"))
-        new File(".").getCanonicalFile
-      else
-        new File("/helium/")
+      sys.env.get("HELIUM_BASE_DIR")
+        .map { new File(_) }
+        .getOrElse { new File(".") }
+        .getCanonicalFile
     }
     confDir <- IO.effectTotal { new File(appDir, "conf") }
     cacheDir <- IO.effectTotal { new File(appDir, "cache") }
