@@ -11,6 +11,6 @@ RUN mkdir /sdk/ && chown -R helium:helium /sdk/ /helium/
 
 USER helium
 
-WORKDIR /work
+WORKDIR /sources
 
 ENTRYPOINT ["/helium/launch.sh"]

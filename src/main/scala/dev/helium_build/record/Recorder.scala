@@ -13,7 +13,7 @@ import zio.blocking.Blocking
 trait Recorder[F[_]] {
 
   def schema: F[BuildSchema]
-  def workDir: File
+  def sourcesDir: File
   def repoConfig: F[RepoConfig]
 
   def recordTransientMetadata(path: String)(fetch: F[Json]): F[Json]

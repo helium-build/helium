@@ -21,6 +21,7 @@ import zio._
 import zio.interop.catz._
 import io.circe.syntax._
 import org.apache.log4j.spi.{Filter, LoggingEvent}
+import zio.console._
 
 import scala.jdk.CollectionConverters._
 
@@ -57,45 +58,175 @@ object Program extends App {
     confDir <- IO.effectTotal { new File(appDir, "conf") }
     cacheDir <- IO.effectTotal { new File(appDir, "cache") }
     sdkDir <- IO.effectTotal { new File(appDir, "sdks") }
-    _ <- (value match {
-      case "build-once" :: schemaFile :: workDir :: outputDir :: Nil =>
-        runBuild(
-          recorderManaged = NullRecorder(
-            cacheDir = cacheDir,
-            sdkDir = sdkDir,
-            schemaFile = new File(schemaFile),
-            workDir = new File(workDir),
-            confDir = confDir,
-          ),
-          outputDir = new File(outputDir),
-        )
+    _ <- {
+      def invalidArguments = IO.fail(new RuntimeException("Invalid arguments."))
 
-      case "build" :: archiveFile :: schemaFile :: workDir :: outputDir :: Nil =>
-        runBuild(
-          recorderManaged = ArchiveRecorder(
-            cacheDir = cacheDir,
-            sdkDir = sdkDir,
-            schemaFile = new File(schemaFile),
-            archiveFile = new File(archiveFile),
-            workDir = new File(workDir),
-            confDir = confDir,
-          ),
-          outputDir = new File(outputDir),
-        )
+      def handleBuildArgs(args: List[String], schemaFileOpt: Option[File], sourcesDirOpt: Option[File], outputDirOpt: Option[File], archiveFileOpt: Option[File]): RIO[Blocking with Clock with Console, Unit] =
+        args match {
+          case ("-h" | "--help") :: _ =>
+            for {
+              _ <- putStrLn("Usage: helium build [options] workDir")
+              _ <- putStrLn("")
+              _ <- putStrLn("Options:")
+              _ <- putStrLn("    --schema file (default: workDir/build.toml or workDir/sources/build.toml)")
+              _ <- putStrLn("    --sources dir (default: workDir/sources/)")
+              _ <- putStrLn("    --output dir (default: workDir/output/)")
+              _ <- putStrLn("    --archive file")
+            } yield ()
 
-      case "replay" :: archiveFile :: outputDir :: Nil =>
-        runBuild(
-          recorderManaged = ReplayRecorder(
-            archiveFile = new File(archiveFile),
-          ),
-          outputDir = new File(outputDir),
-        )
+          case "--schema" :: _ :: _ if schemaFileOpt.isDefined =>
+            for {
+              _ <- putStrLn("Error: Schema is specified multiple times.")
+              _ <- invalidArguments
+            } yield ()
 
-      case _ => IO.fail(new RuntimeException("Build env file not specified."))
-    })
-      .flatMapError { error =>
-        IO.effectTotal { error.printStackTrace() }.as(1)
-      }
+          case "--schema" :: Nil =>
+            for {
+              _ <- putStrLn("Error: Schema requires an argument.")
+              _ <- invalidArguments
+            } yield ()
+
+          case "--schema" :: file :: tail =>
+            handleBuildArgs(
+              args = tail,
+              schemaFileOpt = Some(new File(file)),
+              sourcesDirOpt = sourcesDirOpt,
+              outputDirOpt = outputDirOpt,
+              archiveFileOpt = archiveFileOpt,
+            )
+
+          case "--sources" :: _ :: _ if sourcesDirOpt.isDefined =>
+            for {
+              _ <- putStrLn("Error: Sources is specified multiple times.")
+              _ <- invalidArguments
+            } yield ()
+
+          case "--sources" :: Nil =>
+            for {
+              _ <- putStrLn("Error: Sources requires an argument.")
+              _ <- invalidArguments
+            } yield ()
+
+          case "--sources" :: dir :: tail =>
+            handleBuildArgs(
+              args = tail,
+              schemaFileOpt = schemaFileOpt,
+              sourcesDirOpt = Some(new File(dir)),
+              outputDirOpt = outputDirOpt,
+              archiveFileOpt = archiveFileOpt,
+            )
+
+          case "--output" :: _ :: _ if outputDirOpt.isDefined =>
+            for {
+              _ <- putStrLn("Error: Output is specified multiple times.")
+              _ <- invalidArguments
+            } yield ()
+
+          case "--output" :: Nil =>
+            for {
+              _ <- putStrLn("Error: Output requires an argument.")
+              _ <- invalidArguments
+            } yield ()
+
+          case "--output" :: dir :: tail =>
+            handleBuildArgs(
+              args = tail,
+              schemaFileOpt = schemaFileOpt,
+              sourcesDirOpt = sourcesDirOpt,
+              outputDirOpt = Some(new File(dir)),
+              archiveFileOpt = archiveFileOpt,
+            )
+
+          case "--archive" :: _ :: _ if archiveFileOpt.isDefined =>
+            for {
+              _ <- putStrLn("Error: Archive is specified multiple times.")
+              _ <- invalidArguments
+            } yield ()
+
+          case "--archive" :: Nil =>
+            for {
+              _ <- putStrLn("Error: Archive requires an argument.")
+              _ <- invalidArguments
+            } yield ()
+
+          case "--archive" :: file :: tail =>
+            handleBuildArgs(
+              args = tail,
+              schemaFileOpt = schemaFileOpt,
+              sourcesDirOpt = sourcesDirOpt,
+              outputDirOpt = outputDirOpt,
+              archiveFileOpt = Some(new File(file)),
+            )
+
+          case sw :: _ if sw startsWith "-" =>
+            for {
+              _ <- putStrLn(s"Error: Unknown option $sw")
+              _ <- invalidArguments
+            } yield ()
+
+          case workDirStr :: Nil =>
+            val workDir = new File(workDirStr)
+            val outputDir = outputDirOpt.getOrElse { new File(workDir, "output") }
+            val sourcesDir = sourcesDirOpt.getOrElse { new File(workDir, "sources") }
+
+            for {
+              schemaFile <- ZIO.accessM[Blocking] { _.blocking.effectBlocking {
+                schemaFileOpt.getOrElse {
+                  val schemaFile1 = new File(workDir, "build.toml")
+                  if(schemaFile1.exists())
+                    schemaFile1
+                  else
+                    new File(workDir, "sources/build.toml")
+                }
+              } }
+
+              recorderManaged = archiveFileOpt match {
+                case Some(archiveFile) =>
+                  ArchiveRecorder[Blocking with Clock](
+                    cacheDir = cacheDir,
+                    sdkDir = sdkDir,
+                    schemaFile = schemaFile,
+                    archiveFile = archiveFile,
+                    sourcesDir = sourcesDir,
+                    confDir = confDir,
+                  )
+
+                case None =>
+                  NullRecorder[Blocking with Clock](
+                    cacheDir = cacheDir,
+                    sdkDir = sdkDir,
+                    schemaFile = schemaFile,
+                    sourcesDir = sourcesDir,
+                    confDir = confDir,
+                  )
+              }
+
+              _ <- runBuild(recorderManaged, outputDir = outputDir, workDir = workDir)
+
+            } yield ()
+        }
+
+      (value match {
+        case "build" :: tail =>
+          handleBuildArgs(tail, None, None, None, None)
+
+        case "replay" :: archiveFile :: workDirStr :: outputDir :: Nil =>
+          val workDir = new File(workDirStr)
+          runBuild(
+            recorderManaged = ReplayRecorder(
+              archiveFile = new File(archiveFile),
+              workDir = workDir,
+            ),
+            outputDir = new File(outputDir),
+            workDir = workDir,
+          )
+
+        case _ => IO.fail(new RuntimeException("Build env file not specified."))
+      })
+        .flatMapError { error =>
+          IO.effectTotal { error.printStackTrace() }.as(1)
+        }
+    }
   } yield ()
 
   private def resolveSdkEnv(containerSdkDir: String)(envValue: EnvValue): String =
@@ -106,7 +237,7 @@ object Program extends App {
     }
 
 
-  private def runBuild(recorderManaged: ZManaged[Blocking with Clock, Throwable, ZIORecorder[Blocking with Clock]], outputDir: File): ZIO[Blocking with Clock, Throwable, Unit] =
+  private def runBuild(recorderManaged: ZManaged[Blocking with Clock, Throwable, ZIORecorder[Blocking with Clock]], outputDir: File, workDir: File): ZIO[Blocking with Clock, Throwable, Unit] =
     (
       for {
         recorder <- recorderManaged
@@ -120,11 +251,11 @@ object Program extends App {
 
 
         conf <- ZManaged.fromEffect(recorder.repoConfig)
-        launchProps <- getDockerLaunchProps(sdks = sdks, workDir = recorder.workDir, conf)(sdkInstallManager)(buildSchema)
+        launchProps <- getDockerLaunchProps(sdks = sdks, workDir = workDir, sourcesDir = recorder.sourcesDir, conf)(sdkInstallManager)(buildSchema)
 
         port <- runProxyServer(recorder, artifact)
 
-        socketFile <- runSocatProxy(port)
+        socketFile <- runSocatProxy(workDir, port)
 
       } yield launchProps.copy(
         sockets = launchProps.sockets :+ (socketFile.toString -> "/helium/helium.sock"),
@@ -132,7 +263,7 @@ object Program extends App {
     ).use(Launcher.run)
 
 
-  private def getDockerLaunchProps(sdks: List[SdkInfo], workDir: File, config: RepoConfig)(sdkInstallManager: SdkInstallManager)(schema: BuildSchema): ZManaged[Blocking, Throwable, LaunchProperties] =
+  private def getDockerLaunchProps(sdks: List[SdkInfo], workDir: File, sourcesDir: File, config: RepoConfig)(sdkInstallManager: SdkInstallManager)(schema: BuildSchema): ZManaged[Blocking, Throwable, LaunchProperties] =
     ZManaged.fromEffect(PlatformInfo.current)
       .flatMap { currentPlatform =>
         schema.sdk
@@ -142,7 +273,7 @@ object Program extends App {
             env = Map(),
             pathDirs = Seq("/usr/local/bin", "/usr/bin", "/bin", "/helium/bin"),
             sdkDirs = Seq(),
-            workDir = workDir,
+            sourcesDir = sourcesDir,
             configFiles = Seq(),
             sockets = Seq(),
           )) { (props, requiredSdk) =>
@@ -163,22 +294,21 @@ object Program extends App {
                     ZManaged.fail(new RuntimeException("SDK config filenames may not contain colons"))
 
                   case (fileName, template) =>
-                    ZManaged.make(
-                      ZIO.accessM[Blocking] { _.blocking.effectBlocking { File.createTempFile("helium-conf-", null) } }
-                    ) { file =>
-                      ZIO.accessM[Blocking] { _.blocking.effectBlocking { file.delete() }.orDie }
-                    }.flatMap { file =>
-                      val templateEngine = new TemplateEngine()
-                      val templatedData = templateEngine.layout(
-                        TemplateSource.fromText("config.mustache", template),
-                        config.createMap
-                      )
+                    Temp.createTemp(ZIO.accessM[Blocking] { _.blocking.effectBlocking {
+                      File.createTempFile("helium-conf-", null, workDir)
+                    } })
+                      .flatMap { file =>
+                        val templateEngine = new TemplateEngine()
+                        val templatedData = templateEngine.layout(
+                          TemplateSource.fromText("config.mustache", template),
+                          config.createMap
+                        )
 
-                      ZManaged.fromEffect(ZIO.accessM[Blocking] { _.blocking.effectBlocking {
-                        Files.writeString(file.toPath, templatedData, StandardCharsets.UTF_8)
-                        file.toString -> fileName
-                      } })
-                    }
+                        ZManaged.fromEffect(ZIO.accessM[Blocking] { _.blocking.effectBlocking {
+                          Files.writeString(file.toPath, templatedData, StandardCharsets.UTF_8)
+                          file.getAbsolutePath -> fileName
+                        } })
+                      }
                 }
 
 
@@ -209,9 +339,9 @@ object Program extends App {
 
     } yield server.address.getPort
 
-  private def runSocatProxy(port: Int): ZManaged[Blocking, Throwable, File] =
+  private def runSocatProxy(workDir: File, port: Int): ZManaged[Blocking, Throwable, File] =
     Temp.createTempPath(
-      ZIO.accessM[Blocking] { _.blocking.effectBlocking { Files.createTempDirectory("helium-socket-") } }
+      ZIO.accessM[Blocking] { _.blocking.effectBlocking { Files.createTempDirectory(workDir.toPath, "helium-socket-") } }
     )
       .flatMap { socketDir =>
         ZManaged.make(
@@ -223,8 +353,10 @@ object Program extends App {
           }
         ) { process =>
           IO.effectTotal { process.destroy() }
-        }.map { _ =>
-          new File(socketDir.toFile, "helium.sock")
+        }.flatMap { _ =>
+          ZManaged.fromEffect(ZIO.accessM[Blocking] { _.blocking.effectBlocking {
+            new File(socketDir.toAbsolutePath.toFile, "helium.sock")
+          } })
         }
       }
 

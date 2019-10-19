@@ -21,7 +21,7 @@ final class NullRecorder[R <: Blocking] private
   cacheDir: File,
   protected override val sdkDir: File,
   protected override val schemaFile: File,
-  override val workDir: File,
+  override val sourcesDir: File,
   protected override val confDir: File,
 ) extends LiveRecorder[R] {
 
@@ -46,7 +46,7 @@ object NullRecorder {
     cacheDir: File,
     sdkDir: File,
     schemaFile: File,
-    workDir: File,
+    sourcesDir: File,
     confDir: File,
   ): ZManaged[R, Throwable, NullRecorder[R]] =
     ZManaged.fromEffect(
@@ -57,7 +57,7 @@ object NullRecorder {
         cacheDir = cacheDir,
         sdkDir = sdkDir,
         schemaFile = schemaFile,
-        workDir = workDir,
+        sourcesDir = sourcesDir,
         confDir = confDir,
       )
     )

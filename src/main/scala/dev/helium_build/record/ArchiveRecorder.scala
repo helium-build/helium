@@ -29,7 +29,7 @@ final class ArchiveRecorder[R <: Blocking] private
   cacheDir: File,
   protected override val sdkDir: File,
   protected override val schemaFile: File,
-  override val workDir: File,
+  override val sourcesDir: File,
   protected override val confDir: File,
 ) extends LiveRecorder[R] {
   import ArchiveRecorder._
@@ -146,14 +146,14 @@ object ArchiveRecorder {
     sdkDir: File,
     schemaFile: File,
     archiveFile: File,
-    workDir: File,
+    sourcesDir: File,
     confDir: File,
   ): ZManaged[R, Throwable, ArchiveRecorder[R]] =
     for {
       outStream <- ZManaged.fromAutoCloseable(ZIO.accessM[R] { _.blocking.effectBlocking { new FileOutputStream(archiveFile) }})
       tarStream <- ZManaged.fromAutoCloseable(ZIO.accessM[R] { _.blocking.effectBlocking { new TarArchiveOutputStream(outStream) }})
       _ <- ZManaged.fromEffect(IO.effect { tarStream.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX) })
-      _ <- ZManaged.fromEffect(ArchiveUtil.addDirToArchive(tarStream, workDirPath, workDir))
+      _ <- ZManaged.fromEffect(ArchiveUtil.addDirToArchive(tarStream, sourcesPath, sourcesDir))
       recorder <- ZManaged.make[R, Throwable, ArchiveRecorder[R]](
         for {
           lock <- Semaphore.make(1)
@@ -173,7 +173,7 @@ object ArchiveRecorder {
           cacheDir = cacheDir,
           sdkDir = sdkDir,
           schemaFile = schemaFile,
-          workDir = workDir,
+          sourcesDir = sourcesDir,
           confDir = confDir,
         )
       )(_.writeMetadata.orDie)
@@ -183,7 +183,7 @@ object ArchiveRecorder {
   val buildSchemaPath = "build.toml"
   val repoConfigPath = "conf/repos.toml"
   val transientMetadataPath = "dependencies-metadata.json"
-  val workDirPath = "work"
+  val sourcesPath = "sources"
   def sdkPath(hash: String) = "sdks/" + hash
   def artifactPath(path: String) = "dependencies/" + path
 

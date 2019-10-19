@@ -9,7 +9,7 @@ final case class LaunchProperties
   env: Map[String, String],
   pathDirs: Seq[String],
   sdkDirs: Seq[(String, File)],
-  workDir: File,
+  sourcesDir: File,
   configFiles: Seq[(String, String)],
   sockets: Seq[(String, String)],
 )

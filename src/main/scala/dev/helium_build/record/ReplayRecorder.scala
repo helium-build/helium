@@ -28,7 +28,7 @@ final class ReplayRecorder[R <: Blocking] private
     } }
       .flatMap(BuildSchema.parse)
 
-  override def workDir: File = new File(extractedDir, workDirPath)
+  override def sourcesDir: File = new File(extractedDir, sourcesPath)
 
   override def repoConfig: ZIO[R, Throwable, RepoConfig] =
     ZIO.accessM[Blocking] { _.blocking.effectBlocking {
@@ -89,10 +89,11 @@ final class ReplayRecorder[R <: Blocking] private
 object ReplayRecorder {
   import ArchiveRecorder._
 
-  def apply[R <: Blocking](archiveFile: File): ZManaged[R, Throwable, ReplayRecorder[R]] =
+  def apply[R <: Blocking](archiveFile: File, workDir: File): ZManaged[R, Throwable, ReplayRecorder[R]] =
     for {
+      _ <- ZManaged.fromEffect(ZIO.accessM[Blocking] { _.blocking.effectBlocking { workDir.mkdirs() } })
       extractDir <- Temp.createTempPath(
-        ZIO.accessM[Blocking] { _.blocking.effectBlocking { Files.createTempDirectory("helium-replay-") } }
+        ZIO.accessM[Blocking] { _.blocking.effectBlocking { Files.createTempDirectory(workDir.toPath, "helium-replay-") } }
       )
 
       _ <- ZManaged.fromEffect(ArchiveUtil.extractArchive(archiveFile, extractDir.toFile))

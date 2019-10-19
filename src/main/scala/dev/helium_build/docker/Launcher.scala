@@ -26,7 +26,7 @@ object Launcher {
           } ++
           buildSdkVolumes(props.sdkDirs) ++
           buildEnvArgs(props.pathDirs, props.env) ++
-          Seq("-v", props.workDir.getAbsolutePath + ":/work/") ++
+          Seq("-v", props.sourcesDir.getAbsolutePath + ":/sources/") ++
           props.configFiles
             .map {
               case (outName, inName) if inName startsWith "~/" =>
