@@ -184,9 +184,6 @@ bool check_mount(char** mountSpec) {
 		fprintf(stderr, "Mount spec %s did not pass regular expression\n", *mountSpec);
 		return false;
 	}
-	else if(updatePrefix(mountSpec, "/tmp/", "/helium/realpaths/tmp")) {
-		return true;
-	}
 	else if(updatePrefix(mountSpec, "/workspace/", "/helium/realpaths/workspace")) {
 		return true;
 	}
