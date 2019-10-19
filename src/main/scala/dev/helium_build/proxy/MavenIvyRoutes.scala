@@ -8,18 +8,20 @@ import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Sync}
 import cats.implicits._
 import dev.helium_build.record.Recorder
-import com.softwaremill.sttp.{SttpBackend, asFile, sttp, Uri => sttpUri}
+import sttp.client.{SttpBackend, asFile, basicRequest}
+import sttp.model.{Uri => sttpUri}
+import sttp.client.asynchttpclient.cats._
 import org.apache.commons.io.{FileUtils, FilenameUtils}
 import org.http4s.{HttpRoutes, StaticFile, Uri}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.dsl.impl.Path
-import com.softwaremill.sttp.asynchttpclient.cats._
+import sttp.client.asynchttpclient.WebSocketHandler
 
 import scala.jdk.CollectionConverters._
 
 object MavenIvyRoutes {
 
-  def routes[F[_]: Async : ContextShift](recorder: Recorder[F], blocker: Blocker, lock: Semaphore[F], mode: String, name: String, baseUrl: sttpUri)(implicit sttpBackend: SttpBackend[F, Nothing]): HttpRoutes[F] = {
+  def routes[F[_]: Async : ContextShift](recorder: Recorder[F], blocker: Blocker, lock: Semaphore[F], mode: String, name: String, baseUrl: sttpUri)(implicit sttpBackend: SttpBackend[F, Nothing, WebSocketHandler]): HttpRoutes[F] = {
     val dsl = new Http4sDsl[F]{}
     import dsl._
     HttpRoutes.of[F] {
@@ -59,14 +61,14 @@ object MavenIvyRoutes {
     parts.nonEmpty && parts.forall { part => part.matches("[a-zA-Z0-9\\-_][a-zA-Z0-9\\-_\\.]*") }
   }
 
-  private def resolveArtifact[F[_]: Sync](mode: String, lock: Semaphore[F], cacheDir: File, name: String, baseUrl: sttpUri, path: Path)(implicit sttpBackend: SttpBackend[F, Nothing]): F[File] = {
+  private def resolveArtifact[F[_]: Sync](mode: String, lock: Semaphore[F], cacheDir: File, name: String, baseUrl: sttpUri, path: Path)(implicit sttpBackend: SttpBackend[F, Nothing, WebSocketHandler]): F[File] = {
     val ivyCache = new File(new File(new File(cacheDir, "dependencies"), mode), name)
 
     val outFile = path.toList.foldLeft(ivyCache)(new File(_, _))
 
     Cache.cacheDownload(ivyCache, outFile, lock) { tempFile =>
-      sttp.get(baseUrl.path((baseUrl.path.filter(_.nonEmpty) ++ path.toList)))
-        .response(asFile(tempFile, overwrite = true))
+      basicRequest.get(baseUrl.path((baseUrl.path.filter(_.nonEmpty) ++ path.toList)))
+        .response(asFile(tempFile))
         .send()
         .map { _ => () }
     }

@@ -12,18 +12,20 @@ import io.circe.Json
 import org.http4s.{HttpRoutes, MediaType, StaticFile}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.circe._
-import com.softwaremill.sttp.{SttpBackend, asFile, sttp, Uri => SttpUri}
-import com.softwaremill.sttp.circe._
+import sttp.client.{SttpBackend, asFile, basicRequest}
+import sttp.model.{Uri => SttpUri}
+import sttp.client.circe._
 import io.circe.generic.JsonCodec
 import org.apache.commons.io.IOUtils
 import org.apache.commons.io.input.BOMInputStream
 import org.http4s.multipart.Multipart
+import sttp.client.asynchttpclient.WebSocketHandler
 
 import scala.jdk.CollectionConverters._
 
 object NuGetRoutes {
 
-  def routes[F[_]: Sync : ContextShift](recorder: Recorder[F], artifact: ArtifactSaver[F], blocker: Blocker, lock: Semaphore[F], name: String, nugetUri: SttpUri)(implicit sttpBackend: SttpBackend[F, Nothing]): HttpRoutes[F] = {
+  def routes[F[_]: Sync : ContextShift](recorder: Recorder[F], artifact: ArtifactSaver[F], blocker: Blocker, lock: Semaphore[F], name: String, nugetUri: SttpUri)(implicit sttpBackend: SttpBackend[F, Nothing, WebSocketHandler]): HttpRoutes[F] = {
     val dsl = new Http4sDsl[F]{}
     import dsl._
 
@@ -158,38 +160,37 @@ object NuGetRoutes {
   private def isValidName(name: String): Boolean =
     name.matches("[a-z0-9\\_-][a-z0-9\\_\\-\\.]*")
 
-  private def getNupkg[F[_]: Sync](lock: Semaphore[F], cacheDir: File, name: String, packageName: String, packageVersion: String, nugetUri: SttpUri)(implicit sttpBackend: SttpBackend[F, Nothing]): F[File] = {
+  private def getNupkg[F[_]: Sync](lock: Semaphore[F], cacheDir: File, name: String, packageName: String, packageVersion: String, nugetUri: SttpUri)(implicit sttpBackend: SttpBackend[F, Nothing, WebSocketHandler]): F[File] = {
     val nugetCache = new File(new File(new File(cacheDir, "dependencies"), "nuget"), name)
 
     val outFile = new File(new File(new File(nugetCache, packageName), packageVersion), packageName + "." + packageVersion + ".nupkg")
 
     Cache.cacheDownload(nugetCache, outFile, lock) { tempFile =>
       nugetPackageBaseAddress(nugetUri) { baseUri =>
-        sttp.get(baseUri.path(baseUri.path.filter { _.nonEmpty } ++ Seq(packageName, packageVersion, packageName + "." + packageVersion + ".nupkg")))
-          .response(asFile(tempFile, overwrite = true))
+        basicRequest.get(baseUri.path(baseUri.path.filter { _.nonEmpty } ++ Seq(packageName, packageVersion, packageName + "." + packageVersion + ".nupkg")))
+          .response(asFile(tempFile))
           .send()
           .map { _ => () }
       }
     }
   }
 
-  private def getPackageIndex[F[_]: Sync](packageName: String, nugetUri: SttpUri)(implicit sttpBackend: SttpBackend[F, Nothing]): F[Json] =
+  private def getPackageIndex[F[_]: Sync](packageName: String, nugetUri: SttpUri)(implicit sttpBackend: SttpBackend[F, Nothing, WebSocketHandler]): F[Json] =
     nugetPackageBaseAddress(nugetUri) { baseUri =>
       for {
-        response <- sttp.get(baseUri.path(baseUri.path.filter { _.nonEmpty } ++ Seq(packageName, "index.json"))).send()
+        response <- basicRequest.get(baseUri.path(baseUri.path.filter { _.nonEmpty } ++ Seq(packageName, "index.json"))).send()
         resultStr <- Sync[F].fromEither(response.body.left.map(new RuntimeException(_)))
         resultJson <- Sync[F].fromEither(io.circe.parser.parse(resultStr))
       } yield resultJson
     }
 
-  private def nugetPackageBaseAddress[F[_]: Sync, A](nugetUri: SttpUri)(f: SttpUri => F[A])(implicit sttpBackend: SttpBackend[F, Nothing]): F[A] = {
-    import com.softwaremill.sttp._
+  private def nugetPackageBaseAddress[F[_]: Sync, A](nugetUri: SttpUri)(f: SttpUri => F[A])(implicit sttpBackend: SttpBackend[F, Nothing, WebSocketHandler]): F[A] = {
+    import sttp.client._
     import io.circe.generic.auto._
 
     for {
-      serviceIndexResponse <- sttp.get(nugetUri).response(asJson[NuGetServiceIndex]).send()
-      serviceIndexBody <- Sync[F].fromEither(serviceIndexResponse.body.leftMap(new RuntimeException(_)))
-      serviceIndex <- Sync[F].fromEither(serviceIndexBody.leftMap(_.error))
+      serviceIndexResponse <- basicRequest.get(nugetUri).response(asJson[NuGetServiceIndex]).send()
+      serviceIndex <- Sync[F].fromEither(serviceIndexResponse.body)
 
       packageBaseAddress <- Sync[F].fromEither (
         serviceIndex.resources.find { _.`@type` == "PackageBaseAddress/3.0.0" }

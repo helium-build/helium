@@ -46,10 +46,10 @@ lazy val root = (project in file("."))
 
       "tech.sparse" %%  "toml-scala" % "0.2.1",
 
-      "com.softwaremill.sttp" %% "core" % "1.7.1",
-      "com.softwaremill.sttp" %% "async-http-client-backend-zio" % "1.7.1",
-      "com.softwaremill.sttp" %% "async-http-client-backend-cats" % "1.7.1",
-      "com.softwaremill.sttp" %% "circe" % "1.7.1",
+      "com.softwaremill.sttp.client" %% "core" % "2.0.0-M6",
+      "com.softwaremill.sttp.client" %% "async-http-client-backend-zio" % "2.0.0-M6",
+      "com.softwaremill.sttp.client" %% "async-http-client-backend-cats" % "2.0.0-M6",
+      "com.softwaremill.sttp.client" %% "circe" % "2.0.0-M6",
 
       "org.scalatra.scalate" % "scalate-core_2.13" % "1.9.5",
 

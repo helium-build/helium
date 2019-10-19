@@ -13,9 +13,10 @@ import cats._
 import cats.implicits._
 import dev.helium_build.util.ArchiveUtil
 import org.apache.commons.io.{FileUtils, FilenameUtils}
-import com.softwaremill.sttp._
-import com.softwaremill.sttp.circe._
-import com.softwaremill.sttp.asynchttpclient.zio._
+import sttp.client._
+import sttp.model._
+import sttp.client.circe._
+import sttp.client.asynchttpclient.zio._
 import org.apache.commons.codec.binary.Hex
 import org.apache.commons.codec.digest.DigestUtils
 import org.apache.commons.compress.archivers.tar.{TarArchiveEntry, TarArchiveInputStream}
@@ -31,12 +32,13 @@ trait SdkInstallManager {
 
 object SdkInstallManager {
 
-  private implicit val sttpBackend = AsyncHttpClientZioBackend()
-
-  def apply(cacheDir: File): ZIO[Blocking, Nothing, SdkInstallManager] = for {
+  def apply(cacheDir: File): ZIO[Blocking, Throwable, SdkInstallManager] = for {
+    sttpBackend2 <- AsyncHttpClientZioBackend()
     baseDir <- ZIO.accessM[Blocking] { _.blocking.effectBlocking { new File(cacheDir, "sdks").getAbsoluteFile }.orDie }
     sdkStore <- RefM.make(Map[String, Task[(String, File)]]())
   } yield new SdkInstallManager {
+    implicit val sttpBackend = sttpBackend2
+
     override def getInstalledSdkDir(sdk: SdkInfo): RIO[Blocking, (String, File)] =
       sdkStore.modify { sdks =>
         val sdkHash = SdkLoader.sdkSha256(sdk)
@@ -81,7 +83,7 @@ object SdkInstallManager {
           for {
             nFileName <- ArchiveUtil.normalizePath(fileName)
             outFile <- ZIO.accessM[Blocking] { _.blocking.effectBlocking { new File(installDir, nFileName) } }
-            response <- sttp.get(Uri(java.net.URI.create(url))).response(asFile(outFile)).send()
+            response <- basicRequest.get(Uri(java.net.URI.create(url))).response(asFile(outFile)).send()
             _ <- if(response.isSuccess) IO.succeed(()) else IO.fail(new RuntimeException(response.toString()))
             _ <- validateHash(outFile, hash)
           } yield ()

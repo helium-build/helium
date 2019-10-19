@@ -2,13 +2,15 @@ package dev.helium_build
 
 import java.io.File
 
-import com.softwaremill.sttp.asynchttpclient.zio._
-import com.softwaremill.sttp.circe._
-import com.softwaremill.sttp._
+import sttp.client.asynchttpclient.zio._
+import sttp.client.circe._
+import sttp.client._
+import sttp.model._
 import dev.helium_build.sdk._
 import io.circe
 import io.circe.generic.auto._
 import org.apache.commons.io.{FileUtils, FilenameUtils}
+import sttp.client.asynchttpclient.WebSocketHandler
 import zio.blocking.Blocking
 import zio.console._
 import zio.stream._
@@ -21,6 +23,7 @@ object SdkGenerator extends App {
     (
       for {
         _ <- ZIO.accessM[Blocking] { _.blocking.effectBlocking { FileUtils.cleanDirectory(sdkDir) } }
+        backend <- AsyncHttpClientZioBackend()
         _ <- Stream(
 
           OpenJDK,
@@ -31,7 +34,7 @@ object SdkGenerator extends App {
 
           NodeJS,
 
-        ).foreach(runCreator)
+        ).foreach(runCreator(_)(backend))
       } yield ()
     )
       .as(0)
@@ -42,29 +45,26 @@ object SdkGenerator extends App {
 
   private val sdkDir = new File(new File(".").getCanonicalFile, "sdks")
 
-  private def runCreator(creator: SDKCreator): RIO[Blocking with Console, Unit] =
+  private def runCreator(creator: SDKCreator)(implicit sttpBackend: TBackend): RIO[Blocking with Console, Unit] =
     putStrLn(s"Generating SDKs for ${creator.name}") *>
     creator.sdks.foreach { case (path, sdk) =>
       SdkLoader.saveSdk(sdk, new File(sdkDir, path))
     }
 
+  type TBackend = SttpBackend[Task, Nothing, WebSocketHandler]
 
-
-  private implicit val sttpBackend = AsyncHttpClientZioBackend()
-
-  private def makeSttpJSONTask[A](r: Task[Response[Either[DeserializationError[circe.Error], A]]]) =
+  private def makeSttpJSONTask[A](r: Task[Response[Either[ResponseError[circe.Error], A]]]) =
     r
-      .flatMap { resp => IO.fromEither(resp.body).mapError(new RuntimeException(_)) }
-      .flatMap { resp => IO.fromEither(resp).mapError { _.error } }
+      .flatMap { resp => IO.fromEither(resp.body) }
 
-  private def makeSttpStringTask[A](uri: Uri)(r: Uri => Task[Response[A]]) =
+  private def makeSttpStringTask[A](uri: Uri)(r: Uri => Task[Response[Either[String, A]]]) =
     r(uri)
-      .flatMap { resp => IO.fromEither(resp.body).mapError { msg => new RuntimeException(uri.toString() + msg) } }
+      .flatMap { resp => IO.fromEither(resp.body).mapError { new RuntimeException(_) } }
 
 
   private sealed trait SDKCreator {
     val name: String
-    def sdks: ZStream[Console, Throwable, (String, SdkInfo)]
+    def sdks(implicit sttpBackend: TBackend): ZStream[Console, Throwable, (String, SdkInfo)]
   }
 
   private object OpenJDK extends SDKCreator {
@@ -97,12 +97,12 @@ object SdkGenerator extends App {
       semver: String,
     )
 
-    private def getAdoptOpenJDKRelease(uri: Uri): RIO[Console, OpenJDKRelease] = for {
+    private def getAdoptOpenJDKRelease(uri: Uri)(implicit sttpBackend: TBackend): RIO[Console, OpenJDKRelease] = for {
       _ <- ZIO.accessM[Console] { _.console.putStrLn(s"release API URL: ${uri.toString()}") }
 
       release <-
         makeSttpJSONTask(
-          sttp.get(uri)
+          basicRequest.get(uri)
             .response(asJson[OpenJDKRelease])
             .send()
         )
@@ -110,10 +110,10 @@ object SdkGenerator extends App {
 
     private val SHA256 = "^([a-fA-F0-9]{64})\\s+.".r.unanchored
 
-    private def getSDKForBinary(release: OpenJDKRelease, binary: OpenJDKBinary): RIO[Console, (String, SdkInfo)] = for {
+    private def getSDKForBinary(release: OpenJDKRelease, binary: OpenJDKBinary)(implicit sttpBackend: TBackend): RIO[Console, (String, SdkInfo)] = for {
       _ <- ZIO.accessM[Console] { _.console.putStrLn(s"Creating SDK for binary ${binary.binary_name}") }
       _ <- ZIO.accessM[Console] { _.console.putStrLn(s"checksum URL: ${binary.checksum_link}") }
-      shaFileContent <- makeSttpStringTask(Uri(java.net.URI.create(binary.checksum_link)))(sttp.get(_).send())
+      shaFileContent <- makeSttpStringTask(Uri(java.net.URI.create(binary.checksum_link)))(basicRequest.get(_).send())
       sha256 <- shaFileContent match {
         case SHA256(sha256) => IO.succeed(sha256)
         case _ => IO.fail(new RuntimeException(s"Invalid SHA256 from ${binary.checksum_link}"))
@@ -157,7 +157,7 @@ object SdkGenerator extends App {
       } yield uri"https://api.adoptopenjdk.net/v2/info/releases/openjdk$ver?openjdk_impl=hotspot&release=latest&type=jdk&os=$os&arch=$arch"
 
 
-    override def sdks: ZStream[Console, Throwable, (String, SdkInfo)] =
+    override def sdks(implicit sttpBackend: TBackend): ZStream[Console, Throwable, (String, SdkInfo)] =
       Stream.fromIterable(urls)
         .mapM(getAdoptOpenJDKRelease)
         .flatMap { release =>
@@ -173,7 +173,7 @@ object SdkGenerator extends App {
 
     override val name: String = "sbt"
 
-    override def sdks: ZStream[Console, Throwable, (String, SdkInfo)] =
+    override def sdks(implicit sttpBackend: TBackend): ZStream[Console, Throwable, (String, SdkInfo)] =
       ZStream(
         s"sbt/sbt-$version.json" -> SdkInfo(
           implements = Seq("sbt"),
@@ -212,15 +212,15 @@ object SdkGenerator extends App {
       "2.1"
     )
 
-    private def latestVersionSdk(channel: String): RIO[Console, String] =
-      makeSttpStringTask(uri"https://dotnetcli.blob.core.windows.net/dotnet/Sdk/$channel/latest.version")(sttp.get(_).send())
+    private def latestVersionSdk(channel: String)(implicit sttpBackend: TBackend): RIO[Console, String] =
+      makeSttpStringTask(uri"https://dotnetcli.blob.core.windows.net/dotnet/Sdk/$channel/latest.version")(basicRequest.get(_).send())
         .map { _.linesIterator.drop(1).next().trim }
 
-    private def latestVersionRuntime(channel: String): RIO[Console, String] =
-      makeSttpStringTask(uri"https://dotnetcli.blob.core.windows.net/dotnet/Runtime/$channel/latest.version")(sttp.get(_).send())
+    private def latestVersionRuntime(channel: String)(implicit sttpBackend: TBackend): RIO[Console, String] =
+      makeSttpStringTask(uri"https://dotnetcli.blob.core.windows.net/dotnet/Runtime/$channel/latest.version")(basicRequest.get(_).send())
         .map { _.linesIterator.drop(1).next().trim }
 
-    override def sdks: ZStream[Console, Throwable, (String, SdkInfo)] = for {
+    override def sdks(implicit sttpBackend: TBackend): ZStream[Console, Throwable, (String, SdkInfo)] = for {
       channel <- ZStream.fromIterable(channels)
 
       (os, osStr, ext) <- Stream(
@@ -239,7 +239,7 @@ object SdkGenerator extends App {
         for {
           verSdk <- latestVersionSdk(channel)
           verRuntime <- latestVersionRuntime(channel)
-          shaFileContent <- makeSttpStringTask(uri"https://dotnetcli.blob.core.windows.net/dotnet/checksums/$verRuntime-sha.txt")(sttp.get(_).send())
+          shaFileContent <- makeSttpStringTask(uri"https://dotnetcli.blob.core.windows.net/dotnet/checksums/$verRuntime-sha.txt")(basicRequest.get(_).send())
           shaMap = shaFileContent.linesIterator.collect {
             case SHA512(sha512, fileName) => fileName -> sha512
           }.toMap
@@ -299,7 +299,7 @@ object SdkGenerator extends App {
 
     override val name: String = "dotnet-merge"
 
-    override def sdks: ZStream[Console, Throwable, (String, SdkInfo)] =
+    override def sdks(implicit sttpBackend: TBackend): ZStream[Console, Throwable, (String, SdkInfo)] =
       ZStream(
         s"dotnet-merge/dotnet-merge-$version-linux.json" -> SdkInfo(
           implements = Seq("dotnet-merge"),
@@ -338,11 +338,11 @@ object SdkGenerator extends App {
 
     private val SHA256 = "^([a-fA-F0-9]{64})\\s+(.+)".r.unanchored
 
-    override def sdks: ZStream[Console, Throwable, (String, SdkInfo)] = for {
+    override def sdks(implicit sttpBackend: TBackend): ZStream[Console, Throwable, (String, SdkInfo)] = for {
       ver <- Stream("12.7.0")
       shaMap <- ZStream.fromEffect(
         for {
-          shaFileContent <- makeSttpStringTask(uri"https://nodejs.org/dist/v$ver/SHASUMS256.txt")(sttp.get(_).send())
+          shaFileContent <- makeSttpStringTask(uri"https://nodejs.org/dist/v$ver/SHASUMS256.txt")(basicRequest.get(_).send())
         } yield shaFileContent.linesIterator.collect {
           case SHA256(sha256, fileName) => fileName -> sha256
         }.toMap

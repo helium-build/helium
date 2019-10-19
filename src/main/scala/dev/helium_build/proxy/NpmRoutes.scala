@@ -8,20 +8,21 @@ import cats.effect.{Async, Blocker, ContextShift, Sync}
 import cats.effect.concurrent.Semaphore
 import com.github.zafarkhaja.semver.Version
 import dev.helium_build.record.{ArtifactAlreadyExistsException, ArtifactSaver, Recorder}
-import com.softwaremill.sttp.SttpBackend
 import org.http4s.{HttpRoutes, Request, Response, StaticFile}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.dsl.impl.Path
 import org.http4s.headers._
-import com.softwaremill.sttp.{SttpBackend, asFile, sttp, Uri => SttpUri}
+import sttp.client.{SttpBackend, asFile, basicRequest}
+import sttp.model.{Uri => SttpUri}
 import io.circe.{HCursor, Json, JsonObject}
 import org.http4s.circe._
 import org.http4s.multipart.Multipart
+import sttp.client.asynchttpclient.WebSocketHandler
 
 object NpmRoutes {
 
 
-  def routes[F[_]: Async : ContextShift](recorder: Recorder[F], artifact: ArtifactSaver[F], blocker: Blocker, lock: Semaphore[F], registry: SttpUri)(implicit sttpBackend: SttpBackend[F, Nothing]): HttpRoutes[F] = {
+  def routes[F[_]: Async : ContextShift](recorder: Recorder[F], artifact: ArtifactSaver[F], blocker: Blocker, lock: Semaphore[F], registry: SttpUri)(implicit sttpBackend: SttpBackend[F, Nothing, WebSocketHandler]): HttpRoutes[F] = {
     val dsl = new Http4sDsl[F]{}
     import dsl._
     HttpRoutes.of[F] {
@@ -92,12 +93,12 @@ object NpmRoutes {
   private def validateVersion(version: String): Boolean =
     try { Version.valueOf(version); true } catch { case _: Exception => false }
 
-  private def resolveArtifact[F[_]: Sync](lock: Semaphore[F], cacheDir: File, registry: SttpUri, packageName: Seq[String], version: String)(implicit sttpBackend: SttpBackend[F, Nothing]): F[File] = {
+  private def resolveArtifact[F[_]: Sync](lock: Semaphore[F], cacheDir: File, registry: SttpUri, packageName: Seq[String], version: String)(implicit sttpBackend: SttpBackend[F, Nothing, WebSocketHandler]): F[File] = {
     val npmCache = new File(new File(cacheDir, "dependencies"), "npm")
     val outFile = new File(packageName.foldLeft(npmCache) { new File(_, _) }, version + ".tgz")
 
     Cache.cacheDownload(npmCache, outFile, lock) { tempFile =>
-      sttp
+      basicRequest
         .get(registry.path(registry.path.filter { _.nonEmpty } ++ packageName :+ version))
         .send()
         .flatMap { response => Sync[F].fromEither(response.body.leftMap(new RuntimeException(_))) }
@@ -108,18 +109,18 @@ object NpmRoutes {
           Sync[F].fromEither(metadata.hcursor.downField("dist").get[String]("tarball"))
         }
         .flatMap { tarball =>
-          import com.softwaremill.sttp._
+          import sttp.client._
 
-          sttp.get(uri"$tarball")
-            .response(asFile(tempFile, overwrite = true))
+          basicRequest.get(uri"$tarball")
+            .response(asFile(tempFile))
             .send()
             .map { _ => () }
         }
     }
   }
 
-  private def fetchMetadataAllVersions[F[_]: Sync](registry: SttpUri, packageName: Seq[String])(implicit sttpBackend: SttpBackend[F, Nothing]): F[Json] =
-    sttp
+  private def fetchMetadataAllVersions[F[_]: Sync](registry: SttpUri, packageName: Seq[String])(implicit sttpBackend: SttpBackend[F, Nothing, WebSocketHandler]): F[Json] =
+    basicRequest
       .get(registry.path(registry.path.filter { _.nonEmpty } ++ packageName))
       .send()
       .flatMap { response => Sync[F].fromEither(response.body.leftMap(new RuntimeException(_))) }
@@ -131,8 +132,8 @@ object NpmRoutes {
         )
       }
 
-  private def fetchMetadata[F[_]: Sync](registry: SttpUri, packageName: Seq[String], version: String)(implicit sttpBackend: SttpBackend[F, Nothing]): F[Json] =
-    sttp
+  private def fetchMetadata[F[_]: Sync](registry: SttpUri, packageName: Seq[String], version: String)(implicit sttpBackend: SttpBackend[F, Nothing, WebSocketHandler]): F[Json] =
+    basicRequest
       .get(registry.path(registry.path.filter { _.nonEmpty } ++ packageName :+ version))
       .send()
       .flatMap { response => Sync[F].fromEither(response.body.leftMap(new RuntimeException(_))) }
