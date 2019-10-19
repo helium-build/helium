@@ -204,6 +204,8 @@ object Program extends App {
               _ <- runBuild(recorderManaged, outputDir = outputDir, workDir = workDir)
 
             } yield ()
+
+          case _ => invalidArguments
         }
 
       (value match {
