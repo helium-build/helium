@@ -158,7 +158,7 @@ namespace JobExecutor
                             case MultiplexedStream.TargetStream.StandardError:
                             {
                                 byte[] b2 = new byte[1 + result.Count];
-                                b2[0] = 0;
+                                b2[0] = 1;
                                 Array.Copy(buffer, 0, b2, 1, result.Count);
                                 await conn.Send(b2);
                             }
