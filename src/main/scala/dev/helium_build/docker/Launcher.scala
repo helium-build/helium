@@ -29,6 +29,10 @@ object Launcher {
   private def runProcess(props: LaunchProperties): Task[Unit] =
     IO.effect {
 
+      val rootFSPath =
+        if(SystemUtils.IS_OS_WINDOWS) "C:/"
+        else "/"
+
       val command =
         dockerCommand ++
           Seq("run", "--rm") ++
@@ -39,17 +43,17 @@ object Launcher {
           } ++
           buildSdkVolumes(props.sdkDirs) ++
           buildEnvArgs(props.pathDirs, props.env) ++
-          Seq("-v", props.sourcesDir.getAbsolutePath + ":/sources/") ++
+          Seq("-v", props.sourcesDir.getAbsolutePath + s":${rootFSPath}sources/") ++
           props.configFiles
             .map {
               case (outName, inName) if inName startsWith "~/" =>
-                (outName, "/helium/install/home" + inName.substring(1))
+                (outName, s"${rootFSPath}helium/install/home${inName.substring(1)}")
 
               case (outName, inName) if inName startsWith "$CONFIG/" =>
-                (outName, "/helium/install/home/.config" + inName.substring(7))
+                (outName, s"${rootFSPath}helium/install/home/.config${inName.substring(7)}")
 
               case (outName, inName) if inName startsWith "/" =>
-                (outName, "/helium/install/root" + inName)
+                (outName, s"${rootFSPath}helium/install/root$inName")
 
               case (_, _) =>
                 throw new RuntimeException("Invalid config path.")
@@ -61,7 +65,7 @@ object Launcher {
               case (outName, inName) =>
                 Seq("-v", outName + ":" + inName)
             } ++
-          Seq("helium-build/build-env:debian-buster-20190708", "env") ++
+          Seq(dockerImageName) ++
           props.command
 
       new ProcessBuilder(command: _*)
@@ -107,5 +111,10 @@ object Launcher {
   private def dockerCommand: Seq[String] =
     sys.env.get("HELIUM_SUDO_COMMAND").toList :+
       sys.env.getOrElse("HELIUM_DOCKER_COMMAND", "docker")
+
+  private def dockerImageName =
+    if(SystemUtils.IS_OS_LINUX) "helium-build/build-env:debian-buster-20190708"
+    else if(SystemUtils.IS_OS_WINDOWS) "helium-build/build-env:windows-nanoserver-1903"
+    else throw new UnsupportedOperationException()
 
 }

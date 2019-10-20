@@ -20,6 +20,7 @@ import zio.clock.Clock
 import zio._
 import zio.interop.catz._
 import io.circe.syntax._
+import org.apache.commons.lang3.SystemUtils
 import org.apache.log4j.spi.{Filter, LoggingEvent}
 import zio.console._
 
@@ -257,7 +258,7 @@ object Program extends App {
 
         port <- runProxyServer(recorder, artifact)
 
-        socketFile <- runSocatProxy(workDir, port)
+        socketFile <- runUnixSocketProxy(workDir, port)
 
       } yield launchProps.copy(
         sockets = launchProps.sockets :+ (socketFile.toString -> "/helium/helium.sock"),
@@ -341,17 +342,23 @@ object Program extends App {
 
     } yield server.address.getPort
 
-  private def runSocatProxy(workDir: File, port: Int): ZManaged[Blocking, Throwable, File] =
+  private def runUnixSocketProxy(workDir: File, port: Int): ZManaged[Blocking, Throwable, File] =
     Temp.createTempPath(
       ZIO.accessM[Blocking] { _.blocking.effectBlocking { Files.createTempDirectory(workDir.toPath, "helium-socket-") } }
     )
       .flatMap { socketDir =>
         ZManaged.make(
           IO.effect {
-            new ProcessBuilder("socat", s"UNIX-LISTEN:${socketDir.toString}/helium.sock,fork,mode=666", s"TCP:localhost:$port")
-              .redirectOutput(ProcessBuilder.Redirect.DISCARD)
-              .redirectError(ProcessBuilder.Redirect.DISCARD)
-              .start()
+            if(SystemUtils.IS_OS_WINDOWS)
+              new ProcessBuilder("UnixToLocalhost", s"${socketDir.toString}/helium.sock", port.toString)
+                .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+                .redirectError(ProcessBuilder.Redirect.DISCARD)
+                .start()
+            else
+              new ProcessBuilder("socat", s"UNIX-LISTEN:${socketDir.toString}/helium.sock,fork,mode=666", s"TCP:localhost:$port")
+                .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+                .redirectError(ProcessBuilder.Redirect.DISCARD)
+                .start()
           }
         ) { process =>
           IO.effectTotal { process.destroy() }
