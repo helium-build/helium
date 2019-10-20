@@ -10,6 +10,6 @@ final case class LaunchProperties
   pathDirs: Seq[String],
   sdkDirs: Seq[(String, File)],
   sourcesDir: File,
-  configFiles: Seq[(String, String)],
-  sockets: Seq[(String, String)],
+  installDir: File,
+  socketDir: File,
 )

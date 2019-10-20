@@ -2,5 +2,5 @@
 .idea/
 **/target/
 examples/
-cache/
-work/
+**/cache/
+**/workspace/

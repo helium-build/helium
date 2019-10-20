@@ -33,40 +33,18 @@ object Launcher {
         if(SystemUtils.IS_OS_WINDOWS) "C:/"
         else "/"
 
-      val command =
+      val command = (
         dockerCommand ++
           Seq("run", "--rm") ++
           Seq("--network", "none", "--hostname", "helium-build-env") ++
-          props.sockets.flatMap {
-            case (outName, inName) =>
-              Seq("-v", outName + ":" + inName)
-          } ++
+          Seq("-v", s"${props.socketDir.getAbsolutePath}:${rootFSPath}helium/socket/") ++
           buildSdkVolumes(props.sdkDirs) ++
           buildEnvArgs(props.pathDirs, props.env) ++
-          Seq("-v", props.sourcesDir.getAbsolutePath + s":${rootFSPath}sources/") ++
-          props.configFiles
-            .map {
-              case (outName, inName) if inName startsWith "~/" =>
-                (outName, s"${rootFSPath}helium/install/home${inName.substring(1)}")
-
-              case (outName, inName) if inName startsWith "$CONFIG/" =>
-                (outName, s"${rootFSPath}helium/install/home/.config${inName.substring(7)}")
-
-              case (outName, inName) if inName startsWith "/" =>
-                (outName, s"${rootFSPath}helium/install/root$inName")
-
-              case (_, _) =>
-                throw new RuntimeException("Invalid config path.")
-            }
-            .distinctBy {
-              case (_, inName) => inName
-            }
-            .flatMap {
-              case (outName, inName) =>
-                Seq("-v", outName + ":" + inName)
-            } ++
-          Seq(dockerImageName) ++
+          Seq("-v", s"${props.sourcesDir.getAbsolutePath}:${rootFSPath}sources/") ++
+          Seq("-v", s"${props.installDir.getAbsolutePath}:${rootFSPath}helium/install/") ++
+          Seq(props.dockerImage) ++
           props.command
+      )
 
       new ProcessBuilder(command: _*)
         .inheritIO()
@@ -112,9 +90,5 @@ object Launcher {
     sys.env.get("HELIUM_SUDO_COMMAND").toList :+
       sys.env.getOrElse("HELIUM_DOCKER_COMMAND", "docker")
 
-  private def dockerImageName =
-    if(SystemUtils.IS_OS_LINUX) "helium-build/build-env:debian-buster-20190708"
-    else if(SystemUtils.IS_OS_WINDOWS) "helium-build/build-env:windows-nanoserver-1903"
-    else throw new UnsupportedOperationException()
 
 }

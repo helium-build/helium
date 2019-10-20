@@ -12,7 +12,7 @@ import dev.helium_build.docker._
 import dev.helium_build.proxy.ProxyServer
 import dev.helium_build.record._
 import dev.helium_build.sdk._
-import dev.helium_build.util.Temp
+import dev.helium_build.util.{ArchiveUtil, Temp}
 import org.apache.log4j.{Appender, BasicConfigurator, Level, Logger}
 import org.fusesource.scalate.{TemplateEngine, TemplateSource}
 import zio.blocking.Blocking
@@ -258,72 +258,94 @@ object Program extends App {
 
         port <- runProxyServer(recorder, artifact)
 
-        socketFile <- runUnixSocketProxy(workDir, port)
+        _ <- runUnixSocketProxy(launchProps.socketDir, port)
 
-      } yield launchProps.copy(
-        sockets = launchProps.sockets :+ (socketFile.toString -> "/helium/helium.sock"),
-      )
+      } yield launchProps
     ).use(Launcher.run)
 
 
-  private def getDockerLaunchProps(sdks: List[SdkInfo], workDir: File, sourcesDir: File, config: RepoConfig)(sdkInstallManager: SdkInstallManager)(schema: BuildSchema): ZManaged[Blocking, Throwable, LaunchProperties] =
-    ZManaged.fromEffect(PlatformInfo.current)
-      .flatMap { currentPlatform =>
-        schema.sdk
-          .foldLeftM(LaunchProperties(
-            dockerImage = "debian",
-            command = schema.build.command,
-            env = Map(),
-            pathDirs = Seq(),
-            sdkDirs = Seq(),
-            sourcesDir = sourcesDir,
-            configFiles = Seq(),
-            sockets = Seq(),
-          )) { (props, requiredSdk) =>
-            for {
-              sdk <- ZManaged.fromEffect(IO.fromEither(
-                sdks
-                  .find { sdk => sdk.matches(requiredSdk) && sdk.matchesPlatform(currentPlatform) }
-                  .toRight { new RuntimeException(s"Could not find sdk ${requiredSdk}") }
-              ))
+  private def getDockerLaunchProps(sdks: List[SdkInfo], workDir: File, sourcesDir: File, config: RepoConfig)(sdkInstallManager: SdkInstallManager)(schema: BuildSchema): ZManaged[Blocking, Throwable, LaunchProperties] = for {
+    currentPlatform <- ZManaged.fromEffect(PlatformInfo.current)
 
-              (sdkHash, sdkInstallDir) <- ZManaged.fromEffect(sdkInstallManager.getInstalledSdkDir(sdk))
+    installDir <- Temp.createTempPath(
+      ZIO.accessM[Blocking] { _.blocking.effectBlocking { Files.createTempDirectory(workDir.toPath, "helium-install-") } }
+    )
 
-              sdkConfigFiles <- sdk.configFileTemplates
-                .getOrElse(Map.empty)
-                .toList
-                .traverse {
-                  case (fileName, _) if fileName.contains(':') =>
-                    ZManaged.fail(new RuntimeException("SDK config filenames may not contain colons"))
+    socketDir <- Temp.createTempPath(
+      ZIO.accessM[Blocking] { _.blocking.effectBlocking { Files.createTempDirectory(workDir.toPath, "helium-socket-") } }
+    )
 
-                  case (fileName, template) =>
-                    Temp.createTemp(ZIO.accessM[Blocking] { _.blocking.effectBlocking {
-                      File.createTempFile("helium-conf-", null, workDir)
-                    } })
-                      .flatMap { file =>
-                        val templateEngine = new TemplateEngine()
-                        val templatedData = templateEngine.layout(
-                          TemplateSource.fromText("config.mustache", template),
-                          config.createMap
-                        )
+    props <- schema.sdk
+      .foldLeftM(LaunchProperties(
+        dockerImage = currentPlatform.os match {
+          case SdkOperatingSystem.Linux => "helium-build/build-env:debian-buster-20190708"
+          case SdkOperatingSystem.Windows => "helium-build/build-env:windows-nanoserver-1903"
+        },
+        command = schema.build.command,
+        env = Map(),
+        pathDirs = Seq(),
+        sdkDirs = Seq(),
+        sourcesDir = sourcesDir,
+        installDir = installDir.toFile,
+        socketDir = socketDir.toFile,
+      )) { (props, requiredSdk) =>
+        for {
+          sdk <- ZManaged.fromEffect(IO.fromEither(
+            sdks
+              .find { sdk => sdk.matches(requiredSdk) && sdk.matchesPlatform(currentPlatform) }
+              .toRight { new RuntimeException(s"Could not find sdk ${requiredSdk}") }
+          ))
 
-                        ZManaged.fromEffect(ZIO.accessM[Blocking] { _.blocking.effectBlocking {
-                          Files.writeString(file.toPath, templatedData, StandardCharsets.UTF_8)
-                          file.getAbsolutePath -> fileName
-                        } })
-                      }
-                }
+          (sdkHash, sdkInstallDir) <- ZManaged.fromEffect(sdkInstallManager.getInstalledSdkDir(sdk))
+
+          _ <- sdk.configFileTemplates
+            .getOrElse(Map.empty)
+            .toList
+            .traverse_ {
+              case (fileName, _) if fileName.contains(':') =>
+                ZManaged.fail(new RuntimeException("SDK config filenames may not contain colons"))
+
+              case (fileName, template) =>
+                ZManaged.fromEffect(
+                  for {
+                    (typeDir, path) <- getConfigFilePath(fileName)
+                    normalizedFileName <- ArchiveUtil.normalizePath(path)
+                    templatedData <- IO.effect {
+                      val templateEngine = new TemplateEngine()
+                      templateEngine.layout(
+                        TemplateSource.fromText("config.mustache", template),
+                        config.createMap
+                      )
+                    }
+
+                    _ <- ZIO.accessM[Blocking] { _.blocking.effectBlocking {
+                      val file = new File(new File(installDir.toFile, typeDir), normalizedFileName)
+                      file.getParentFile.mkdirs()
+                      Files.writeString(file.toPath, templatedData, StandardCharsets.UTF_8)
+                    } }
+
+                  } yield ()
+                )
+            }
 
 
-              containerSdkDir = "/sdk/" + sdkHash
-            } yield props.copy(
-              env = props.env ++ sdk.env.view.mapValues(resolveSdkEnv(containerSdkDir)).toMap,
-              pathDirs = sdk.pathDirs.map { containerSdkDir + "/" + _ } ++ props.pathDirs,
-              sdkDirs = props.sdkDirs :+ ((containerSdkDir, sdkInstallDir)),
-              configFiles = props.configFiles ++ sdkConfigFiles
-            )
-          }
+          containerSdkDir = "/sdk/" + sdkHash
+        } yield props.copy(
+          env = props.env ++ sdk.env.view.mapValues(resolveSdkEnv(containerSdkDir)).toMap,
+          pathDirs = sdk.pathDirs.map { containerSdkDir + "/" + _ } ++ props.pathDirs,
+          sdkDirs = props.sdkDirs :+ ((containerSdkDir, sdkInstallDir)),
+        )
       }
+
+  } yield props
+
+  private def getConfigFilePath(fileName: String): Task[(String, String)] =
+    if(fileName startsWith "~/")
+      IO.succeed(("home", fileName.substring(2)))
+    else if(fileName startsWith "$CONFIG/")
+      IO.succeed(("config", fileName.substring(8)))
+    else
+      IO.fail(new RuntimeException("Invalid config path."))
 
   private def runProxyServer[R <: Blocking with Clock](recorder: ZIORecorder[R], artifact: ZIOArtifactSaver[R]): ZManaged[R, Throwable, Int] =
     for {
@@ -342,31 +364,23 @@ object Program extends App {
 
     } yield server.address.getPort
 
-  private def runUnixSocketProxy(workDir: File, port: Int): ZManaged[Blocking, Throwable, File] =
-    Temp.createTempPath(
-      ZIO.accessM[Blocking] { _.blocking.effectBlocking { Files.createTempDirectory(workDir.toPath, "helium-socket-") } }
-    )
-      .flatMap { socketDir =>
-        ZManaged.make(
-          IO.effect {
-            if(SystemUtils.IS_OS_WINDOWS)
-              new ProcessBuilder("UnixToLocalhost", s"${socketDir.toString}/helium.sock", port.toString)
-                .redirectOutput(ProcessBuilder.Redirect.DISCARD)
-                .redirectError(ProcessBuilder.Redirect.DISCARD)
-                .start()
-            else
-              new ProcessBuilder("socat", s"UNIX-LISTEN:${socketDir.toString}/helium.sock,fork,mode=666", s"TCP:localhost:$port")
-                .redirectOutput(ProcessBuilder.Redirect.DISCARD)
-                .redirectError(ProcessBuilder.Redirect.DISCARD)
-                .start()
-          }
-        ) { process =>
-          IO.effectTotal { process.destroy() }
-        }.flatMap { _ =>
-          ZManaged.fromEffect(ZIO.accessM[Blocking] { _.blocking.effectBlocking {
-            new File(socketDir.toAbsolutePath.toFile, "helium.sock")
-          } })
-        }
+  private def runUnixSocketProxy(socketDir: File, port: Int): ZManaged[Blocking, Throwable, Unit] =
+    ZManaged.make(
+      IO.effect {
+        if(SystemUtils.IS_OS_WINDOWS)
+          new ProcessBuilder("UnixToLocalhost", s"${socketDir.toString}/helium.sock", port.toString)
+            .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+            .redirectError(ProcessBuilder.Redirect.DISCARD)
+            .start()
+        else
+          new ProcessBuilder("socat", s"UNIX-LISTEN:${socketDir.toString}/helium.sock,fork,mode=666", s"TCP:localhost:$port")
+            .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+            .redirectError(ProcessBuilder.Redirect.DISCARD)
+            .start()
       }
+    ) { process =>
+      IO.effectTotal { process.destroy() }
+    }
+      .unit
 
 }
