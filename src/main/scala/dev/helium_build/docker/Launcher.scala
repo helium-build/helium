@@ -13,7 +13,7 @@ import zio._
 object Launcher {
 
   private def buildEnvArgs(path: Seq[String], env: Map[String, String]): Seq[String] =
-    env.updated("PATH", path.mkString(":"))
+    env.updated("HELIUM_SDK_PATH", path.mkString(":"))
       .toSeq
       .flatMap { case (name, value) => Seq("-e", s"$name=$value") }
 

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export PATH=$PATH:$HELIUM_SDK_PATH
+
 socat TCP-LISTEN:9000,reuseaddr,fork UNIX-CONNECT:/helium/helium.sock &
 SOCAT_PID=$!
 

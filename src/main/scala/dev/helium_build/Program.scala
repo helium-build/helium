@@ -274,7 +274,7 @@ object Program extends App {
             dockerImage = "debian",
             command = schema.build.command,
             env = Map(),
-            pathDirs = Seq("/usr/local/bin", "/usr/bin", "/bin", "/helium/bin"),
+            pathDirs = Seq(),
             sdkDirs = Seq(),
             sourcesDir = sourcesDir,
             configFiles = Seq(),
