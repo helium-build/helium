@@ -2,7 +2,13 @@ package dev.helium_build.docker
 
 import java.io.File
 
-import zio.{IO, Task, ZIO}
+import org.apache.commons.lang3.SystemUtils
+import sttp.client._
+import sttp.model._
+import sttp.client.asynchttpclient.zio.{AsyncHttpClientZioBackend, ZioWebSocketHandler}
+import sttp.model.ws.WebSocketFrame
+import zio.blocking.Blocking
+import zio._
 
 object Launcher {
 
@@ -15,6 +21,12 @@ object Launcher {
     sdkPaths.flatMap { case (containerDir, dir) => Seq("-v", dir.getCanonicalPath + ":" + containerDir + ":ro") }
 
   def run(props: LaunchProperties): Task[Unit] =
+    IO.effectTotal { sys.env.get("HELIUM_DOCKER_WS_PROXY") }.flatMap {
+      case Some(proxyUrl) => runWSClient(proxyUrl, props)
+      case None => runProcess(props)
+    }
+
+  private def runProcess(props: LaunchProperties): Task[Unit] =
     IO.effect {
 
       val command =
@@ -57,6 +69,40 @@ object Launcher {
         .start()
     }
     .flatMap(ProcessHelpers.waitForExit)
+
+  private def runWSClient(clientUrl: String, props: LaunchProperties): Task[Unit] =
+    AsyncHttpClientZioBackend().flatMap { implicit sttpBackend =>
+      ZioWebSocketHandler().flatMap { socketHandler =>
+        basicRequest
+          .get(uri"$clientUrl")
+          .openWebsocket(socketHandler)
+      }
+    }
+      .flatMap { response =>
+        val ws = response.result
+
+        def consumeOutput: RIO[Blocking, Int] =
+          ws.receiveData().flatMap {
+            case Left(_) => IO.succeed(1)
+            case Right(WebSocketFrame.Text(payload, _, _)) =>
+              ???
+
+            case Right(WebSocketFrame.Binary(payload, _, _)) if payload.isEmpty => consumeOutput
+
+            case Right(WebSocketFrame.Binary(payload, _, _)) if payload(0) == 0 =>
+              ZIO.accessM[Blocking] { _.blocking.effectBlocking {
+                System.out.write(payload, 1, payload.length - 1)
+              } } *> consumeOutput
+
+            case Right(WebSocketFrame.Binary(payload, _, _)) =>
+              ZIO.accessM[Blocking] { _.blocking.effectBlocking {
+                System.err.write(payload, 1, payload.length - 1)
+              } } *> consumeOutput
+
+          }
+
+        ???
+      }
 
   private def dockerCommand: Seq[String] =
     sys.env.get("HELIUM_SUDO_COMMAND").toList :+
