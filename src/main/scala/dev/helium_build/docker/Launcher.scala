@@ -12,13 +12,13 @@ import zio._
 
 object Launcher {
 
-  private def buildEnvArgs(path: Seq[String], env: Map[String, String]): Seq[String] =
-    env.updated("HELIUM_SDK_PATH", path.mkString(":"))
+  private def buildEnvArgs(rootFSPath: String, path: Seq[String], env: Map[String, String]): Seq[String] =
+    env.updated("HELIUM_SDK_PATH", path.map { rootFSPath + "sdk/" + _ }.mkString(":"))
       .toSeq
       .flatMap { case (name, value) => Seq("-e", s"$name=$value") }
 
-  private def buildSdkVolumes(sdkPaths: Seq[(String, File)]): Seq[String] =
-    sdkPaths.flatMap { case (containerDir, dir) => Seq("-v", dir.getCanonicalPath + ":" + containerDir + ":ro") }
+  private def buildSdkVolumes(rootFSPath: String, sdkPaths: Seq[(String, File)]): Seq[String] =
+    sdkPaths.flatMap { case (containerDir, dir) => Seq("-v", dir.getCanonicalPath + ":" + rootFSPath + "sdk/" + containerDir + ":ro") }
 
   def run(props: LaunchProperties): Task[Unit] =
     IO.effectTotal { sys.env.get("HELIUM_DOCKER_WS_PROXY") }.flatMap {
@@ -37,9 +37,10 @@ object Launcher {
         dockerCommand ++
           Seq("run", "--rm") ++
           Seq("--network", "none", "--hostname", "helium-build-env") ++
+          (if(SystemUtils.IS_OS_WINDOWS) Seq("--isolation", "process") else Seq()) ++
           Seq("-v", s"${props.socketDir.getAbsolutePath}:${rootFSPath}helium/socket/") ++
-          buildSdkVolumes(props.sdkDirs) ++
-          buildEnvArgs(props.pathDirs, props.env) ++
+          buildSdkVolumes(rootFSPath, props.sdkDirs) ++
+          buildEnvArgs(rootFSPath, props.pathDirs, props.env) ++
           Seq("-v", s"${props.sourcesDir.getAbsolutePath}:${rootFSPath}sources/") ++
           Seq("-v", s"${props.installDir.getAbsolutePath}:${rootFSPath}helium/install/") ++
           Seq(props.dockerImage) ++

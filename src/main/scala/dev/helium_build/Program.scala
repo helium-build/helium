@@ -329,7 +329,7 @@ object Program extends App {
             }
 
 
-          containerSdkDir = "/sdk/" + sdkHash
+          containerSdkDir = sdkHash
         } yield props.copy(
           env = props.env ++ sdk.env.view.mapValues(resolveSdkEnv(containerSdkDir)).toMap,
           pathDirs = sdk.pathDirs.map { containerSdkDir + "/" + _ } ++ props.pathDirs,
