@@ -1,9 +1,9 @@
 {
   "implements" : [
     "jdk",
-    "jdk8"
+    "jdk11"
   ],
-  "version" : "8.0.222+10",
+  "version" : "11.0.5+10",
   "os" : {
     "Linux" : {
       
@@ -17,29 +17,29 @@
   "setupSteps" : [
     {
       "SdkDownload" : {
-        "url" : "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u222-b10/OpenJDK8U-jdk_x64_linux_hotspot_8u222b10.tar.gz",
-        "fileName" : "OpenJDK8U-jdk_x64_linux_hotspot_8u222b10.tar.gz",
+        "url" : "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.5%2B10/OpenJDK11U-jdk_x64_linux_hotspot_11.0.5_10.tar.gz",
+        "fileName" : "OpenJDK11U-jdk_x64_linux_hotspot_11.0.5_10.tar.gz",
         "hash" : {
           "Sha256" : {
-            "value" : "37356281345b93feb4212e6267109b4409b55b06f107619dde4960e402bafa77"
+            "value" : "6dd0c9c8a740e6c19149e98034fba8e368fd9aa16ab417aa636854d40db1a161"
           }
         }
       }
     },
     {
       "SdkExtract" : {
-        "fileName" : "OpenJDK8U-jdk_x64_linux_hotspot_8u222b10.tar.gz",
+        "fileName" : "OpenJDK11U-jdk_x64_linux_hotspot_11.0.5_10.tar.gz",
         "directory" : "."
       }
     },
     {
       "SdkDelete" : {
-        "fileName" : "OpenJDK8U-jdk_x64_linux_hotspot_8u222b10.tar.gz"
+        "fileName" : "OpenJDK11U-jdk_x64_linux_hotspot_11.0.5_10.tar.gz"
       }
     }
   ],
   "pathDirs" : [
-    "jdk8u222-b10/bin"
+    "jdk-11.0.5+10/bin"
   ],
   "env" : {
     "JAVA_HOME" : {
@@ -52,7 +52,7 @@
           },
           {
             "OfString" : {
-              "value" : "/jdk8u222-b10"
+              "value" : "/jdk-11.0.5+10"
             }
           }
         ]

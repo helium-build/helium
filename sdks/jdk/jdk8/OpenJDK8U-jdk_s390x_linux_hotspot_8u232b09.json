@@ -3,43 +3,43 @@
     "jdk",
     "jdk8"
   ],
-  "version" : "8.0.222+10",
+  "version" : "8.0.232+9",
   "os" : {
-    "Windows" : {
+    "Linux" : {
       
     }
   },
   "architecture" : {
-    "X86" : {
+    "S390x" : {
       
     }
   },
   "setupSteps" : [
     {
       "SdkDownload" : {
-        "url" : "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u222-b10/OpenJDK8U-jdk_x86-32_windows_hotspot_8u222b10.zip",
-        "fileName" : "OpenJDK8U-jdk_x86-32_windows_hotspot_8u222b10.zip",
+        "url" : "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u232-b09/OpenJDK8U-jdk_s390x_linux_hotspot_8u232b09.tar.gz",
+        "fileName" : "OpenJDK8U-jdk_s390x_linux_hotspot_8u232b09.tar.gz",
         "hash" : {
           "Sha256" : {
-            "value" : "fa7205a08a84474f591784849e89224eafdd7d3354d780db3a191534b787b5b8"
+            "value" : "bd20cb8bf4cfab9d3e2b2ccfb9a6f9eda1e4e67b4103b9975d29de12c05ad1f5"
           }
         }
       }
     },
     {
       "SdkExtract" : {
-        "fileName" : "OpenJDK8U-jdk_x86-32_windows_hotspot_8u222b10.zip",
+        "fileName" : "OpenJDK8U-jdk_s390x_linux_hotspot_8u232b09.tar.gz",
         "directory" : "."
       }
     },
     {
       "SdkDelete" : {
-        "fileName" : "OpenJDK8U-jdk_x86-32_windows_hotspot_8u222b10.zip"
+        "fileName" : "OpenJDK8U-jdk_s390x_linux_hotspot_8u232b09.tar.gz"
       }
     }
   ],
   "pathDirs" : [
-    "jdk8u222-b10/bin"
+    "jdk8u232-b09/bin"
   ],
   "env" : {
     "JAVA_HOME" : {
@@ -52,7 +52,7 @@
           },
           {
             "OfString" : {
-              "value" : "/jdk8u222-b10"
+              "value" : "/jdk8u232-b09"
             }
           }
         ]

@@ -45,6 +45,11 @@
       "OfString" : {
         "value" : "1"
       }
+    },
+    "DOTNET_SKIP_FIRST_TIME_EXPERIENCE" : {
+      "OfString" : {
+        "value" : "1"
+      }
     }
   },
   "configFileTemplates" : {

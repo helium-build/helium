@@ -264,6 +264,7 @@ object SdkGenerator extends App {
         pathDirs = Seq(outDir),
         env = Map(
           "DOTNET_CLI_TELEMETRY_OPTOUT" -> EnvValue.OfString("1"),
+          "DOTNET_SKIP_FIRST_TIME_EXPERIENCE" -> EnvValue.OfString("1"),
         ),
         configFileTemplates = {
           val configFile =

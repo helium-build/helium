@@ -3,43 +3,43 @@
     "jdk",
     "jdk8"
   ],
-  "version" : "8.0.222+10",
+  "version" : "8.0.232+9",
   "os" : {
-    "Linux" : {
+    "Windows" : {
       
     }
   },
   "architecture" : {
-    "Ppc64le" : {
+    "Amd64" : {
       
     }
   },
   "setupSteps" : [
     {
       "SdkDownload" : {
-        "url" : "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u222-b10/OpenJDK8U-jdk_ppc64le_linux_hotspot_8u222b10.tar.gz",
-        "fileName" : "OpenJDK8U-jdk_ppc64le_linux_hotspot_8u222b10.tar.gz",
+        "url" : "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u232-b09/OpenJDK8U-jdk_x64_windows_hotspot_8u232b09.zip",
+        "fileName" : "OpenJDK8U-jdk_x64_windows_hotspot_8u232b09.zip",
         "hash" : {
           "Sha256" : {
-            "value" : "f85de48f1dcfd78a39bf5817d3c2f8247c75df6abd56c8721172bf2bd757eb69"
+            "value" : "a8ceaf48582217b413da8d4100407f703c92d1560a763dc85bc49fc226c04958"
           }
         }
       }
     },
     {
       "SdkExtract" : {
-        "fileName" : "OpenJDK8U-jdk_ppc64le_linux_hotspot_8u222b10.tar.gz",
+        "fileName" : "OpenJDK8U-jdk_x64_windows_hotspot_8u232b09.zip",
         "directory" : "."
       }
     },
     {
       "SdkDelete" : {
-        "fileName" : "OpenJDK8U-jdk_ppc64le_linux_hotspot_8u222b10.tar.gz"
+        "fileName" : "OpenJDK8U-jdk_x64_windows_hotspot_8u232b09.zip"
       }
     }
   ],
   "pathDirs" : [
-    "jdk8u222-b10/bin"
+    "jdk8u232-b09/bin"
   ],
   "env" : {
     "JAVA_HOME" : {
@@ -52,7 +52,7 @@
           },
           {
             "OfString" : {
-              "value" : "/jdk8u222-b10"
+              "value" : "/jdk8u232-b09"
             }
           }
         ]
