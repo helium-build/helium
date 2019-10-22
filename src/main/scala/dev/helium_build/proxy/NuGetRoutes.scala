@@ -2,6 +2,7 @@ package dev.helium_build.proxy
 
 import java.io.File
 import java.nio.charset.StandardCharsets
+import java.nio.file.Files
 import java.util.zip.ZipFile
 
 import cats.effect.concurrent.Semaphore
@@ -12,7 +13,7 @@ import io.circe.Json
 import org.http4s.{HttpRoutes, MediaType, StaticFile}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.circe._
-import sttp.client.{SttpBackend, asFile, basicRequest}
+import sttp.client.{SttpBackend, asByteArray, basicRequest}
 import sttp.model.{Uri => SttpUri}
 import sttp.client.circe._
 import io.circe.generic.JsonCodec
@@ -66,7 +67,7 @@ object NuGetRoutes {
           isValidName(packageVersion) &&
           fileName == packageId + "." + packageVersion =>
         recorder.recordArtifact("nuget/" + name + "/" + packageId + "/" + packageVersion + "/" + fileName + ".nupkg") { cacheDir =>
-          getNupkg(lock, cacheDir, name, packageId, packageVersion, nugetUri)
+          getNupkg(blocker, lock, cacheDir, name, packageId, packageVersion, nugetUri)
         }
           .flatMap { nupkg =>
             StaticFile.fromFile(nupkg, blocker, Some(request)).getOrElseF(NotFound())
@@ -77,7 +78,7 @@ object NuGetRoutes {
           isValidName(packageVersion) &&
           fileName == packageId + "." + packageVersion =>
         recorder.recordArtifact("nuget/" + name + "/" + packageId + "/" + packageVersion + "/" + fileName + ".nupkg") { cacheDir =>
-          getNupkg(lock, cacheDir, name, packageId, packageVersion, nugetUri)
+          getNupkg(blocker, lock, cacheDir, name, packageId, packageVersion, nugetUri)
         }
           .flatMap { _ =>
             Ok()
@@ -88,7 +89,7 @@ object NuGetRoutes {
           isValidName(packageVersion) &&
           fileName == packageId =>
         recorder.recordArtifact("nuget/" + name + "/" + packageId + "/" + packageVersion + "/" + fileName + ".nupkg") { cacheDir =>
-          getNupkg(lock, cacheDir, name, packageId, packageVersion, nugetUri)
+          getNupkg(blocker, lock, cacheDir, name, packageId, packageVersion, nugetUri)
         }
           .flatMap { nupkg =>
             readNuSpec(blocker, nupkg, removeBom = false).flatMap(Ok(_))
@@ -99,7 +100,7 @@ object NuGetRoutes {
           isValidName(packageVersion) &&
           fileName == packageId =>
         recorder.recordArtifact("nuget/" + name + "/" + packageId + "/" + packageVersion + "/" + fileName + ".nupkg") { cacheDir =>
-          getNupkg(lock, cacheDir, name, packageId, packageVersion, nugetUri)
+          getNupkg(blocker, lock, cacheDir, name, packageId, packageVersion, nugetUri)
         }
           .flatMap { _ =>
             Ok()
@@ -160,7 +161,7 @@ object NuGetRoutes {
   private def isValidName(name: String): Boolean =
     name.matches("[a-z0-9\\_-][a-z0-9\\_\\-\\.]*")
 
-  private def getNupkg[F[_]: Sync](lock: Semaphore[F], cacheDir: File, name: String, packageName: String, packageVersion: String, nugetUri: SttpUri)(implicit sttpBackend: SttpBackend[F, Nothing, WebSocketHandler]): F[File] = {
+  private def getNupkg[F[_]: Sync : ContextShift](blocker: Blocker, lock: Semaphore[F], cacheDir: File, name: String, packageName: String, packageVersion: String, nugetUri: SttpUri)(implicit sttpBackend: SttpBackend[F, Nothing, WebSocketHandler]): F[File] = {
     val nugetCache = new File(new File(new File(cacheDir, "dependencies"), "nuget"), name)
 
     val outFile = new File(new File(new File(nugetCache, packageName), packageVersion), packageName + "." + packageVersion + ".nupkg")
@@ -168,9 +169,14 @@ object NuGetRoutes {
     Cache.cacheDownload(nugetCache, outFile, lock) { tempFile =>
       nugetPackageBaseAddress(nugetUri) { baseUri =>
         basicRequest.get(baseUri.path(baseUri.path.filter { _.nonEmpty } ++ Seq(packageName, packageVersion, packageName + "." + packageVersion + ".nupkg")))
-          .response(asFile(tempFile))
+          .response(asByteArray)
           .send()
-          .map { _ => () }
+          .flatMap { response => Sync[F].fromEither(response.body.leftMap { new RuntimeException(_) }) }
+          .flatMap { data =>
+            blocker.delay {
+              Files.write(tempFile.toPath, data)
+            }
+          }
       }
     }
   }

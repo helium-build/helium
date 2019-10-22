@@ -8,7 +8,7 @@ import cats.effect.concurrent.Semaphore
 import cats.effect.{Async, Blocker, ContextShift, Sync}
 import cats.implicits._
 import dev.helium_build.record.Recorder
-import sttp.client.{SttpBackend, asFile, basicRequest}
+import sttp.client.{SttpBackend, asByteArray, basicRequest}
 import sttp.model.{Uri => sttpUri}
 import sttp.client.asynchttpclient.cats._
 import org.apache.commons.io.{FileUtils, FilenameUtils}
@@ -27,7 +27,7 @@ object MavenIvyRoutes {
     HttpRoutes.of[F] {
       case request @ GET -> `mode` /: `name` /: path if validatePath(path) =>
         recorder.recordArtifact(mode + "/" + name + "/" + path.toList.mkString("/")) { cacheDir =>
-          resolveArtifact(mode, lock, cacheDir, name, baseUrl, path)
+          resolveArtifact(blocker, mode, lock, cacheDir, name, baseUrl, path)
         }
           .flatMap { file =>
             StaticFile.fromFile(file, blocker, Some(request)).getOrElseF(NotFound())
@@ -41,7 +41,7 @@ object MavenIvyRoutes {
 
       case HEAD -> `mode` /: `name` /: path if validatePath(path) =>
         recorder.recordArtifact(mode + "/" + name + "/" + path.toList.mkString("/")) { cacheDir =>
-          resolveArtifact(mode, lock, cacheDir, name, baseUrl, path)
+          resolveArtifact(blocker, mode, lock, cacheDir, name, baseUrl, path)
         }
           .flatMap { _ =>
             Ok()
@@ -61,16 +61,21 @@ object MavenIvyRoutes {
     parts.nonEmpty && parts.forall { part => part.matches("[a-zA-Z0-9\\-_][a-zA-Z0-9\\-_\\.]*") }
   }
 
-  private def resolveArtifact[F[_]: Sync](mode: String, lock: Semaphore[F], cacheDir: File, name: String, baseUrl: sttpUri, path: Path)(implicit sttpBackend: SttpBackend[F, Nothing, WebSocketHandler]): F[File] = {
+  private def resolveArtifact[F[_]: Sync : ContextShift](blocker: Blocker, mode: String, lock: Semaphore[F], cacheDir: File, name: String, baseUrl: sttpUri, path: Path)(implicit sttpBackend: SttpBackend[F, Nothing, WebSocketHandler]): F[File] = {
     val ivyCache = new File(new File(new File(cacheDir, "dependencies"), mode), name)
 
     val outFile = path.toList.foldLeft(ivyCache)(new File(_, _))
 
     Cache.cacheDownload(ivyCache, outFile, lock) { tempFile =>
       basicRequest.get(baseUrl.path((baseUrl.path.filter(_.nonEmpty) ++ path.toList)))
-        .response(asFile(tempFile))
+        .response(asByteArray)
         .send()
-        .map { _ => () }
+        .flatMap { response => Sync[F].fromEither(response.body.leftMap { new RuntimeException(_) }) }
+        .flatMap { data =>
+          blocker.delay {
+            Files.write(tempFile.toPath, data)
+          }
+        }
     }
   }
 

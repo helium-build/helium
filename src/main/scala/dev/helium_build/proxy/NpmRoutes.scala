@@ -1,6 +1,7 @@
 package dev.helium_build.proxy
 
 import java.io.{File, IOException}
+import java.nio.file.Files
 import java.util.Base64
 
 import cats.implicits._
@@ -12,7 +13,7 @@ import org.http4s.{HttpRoutes, Request, Response, StaticFile}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.dsl.impl.Path
 import org.http4s.headers._
-import sttp.client.{SttpBackend, asFile, basicRequest}
+import sttp.client.{SttpBackend, asByteArray, basicRequest}
 import sttp.model.{Uri => SttpUri}
 import io.circe.{HCursor, Json, JsonObject}
 import org.http4s.circe._
@@ -55,7 +56,7 @@ object NpmRoutes {
       case request @ GET -> Root / "npm" / packageName / "-" / version ~ "tgz"
         if validateName(packageName) && validateVersion(version) =>
         recorder.recordArtifact("npm/" + packageName + "/" + version + ".tgz") { cacheDir =>
-          resolveArtifact(lock, cacheDir, registry, Seq(packageName), version)
+          resolveArtifact(blocker, lock, cacheDir, registry, Seq(packageName), version)
         }
           .flatMap { file =>
             StaticFile.fromFile(file, blocker, Some(request)).getOrElseF(NotFound())
@@ -64,7 +65,7 @@ object NpmRoutes {
       case request @ GET -> Root / "npm" / scope / packageName / "-" / version ~ "tgz"
         if scope.startsWith("@") && validateName(scope) && validateName(packageName) && validateVersion(version) =>
         recorder.recordArtifact("npm/" + scope + "/" + packageName + "/" + version + ".tgz") { cacheDir =>
-          resolveArtifact(lock, cacheDir, registry, Seq(scope, packageName), version)
+          resolveArtifact(blocker, lock, cacheDir, registry, Seq(scope, packageName), version)
         }
           .flatMap { file =>
             StaticFile.fromFile(file, blocker, Some(request)).getOrElseF(NotFound())
@@ -93,7 +94,7 @@ object NpmRoutes {
   private def validateVersion(version: String): Boolean =
     try { Version.valueOf(version); true } catch { case _: Exception => false }
 
-  private def resolveArtifact[F[_]: Sync](lock: Semaphore[F], cacheDir: File, registry: SttpUri, packageName: Seq[String], version: String)(implicit sttpBackend: SttpBackend[F, Nothing, WebSocketHandler]): F[File] = {
+  private def resolveArtifact[F[_]: Sync : ContextShift](blocker: Blocker, lock: Semaphore[F], cacheDir: File, registry: SttpUri, packageName: Seq[String], version: String)(implicit sttpBackend: SttpBackend[F, Nothing, WebSocketHandler]): F[File] = {
     val npmCache = new File(new File(cacheDir, "dependencies"), "npm")
     val outFile = new File(packageName.foldLeft(npmCache) { new File(_, _) }, version + ".tgz")
 
@@ -112,9 +113,14 @@ object NpmRoutes {
           import sttp.client._
 
           basicRequest.get(uri"$tarball")
-            .response(asFile(tempFile))
+            .response(asByteArray)
             .send()
-            .map { _ => () }
+            .flatMap { response => Sync[F].fromEither(response.body.leftMap { new RuntimeException(_) }) }
+            .flatMap { data =>
+              blocker.delay {
+                Files.write(tempFile.toPath, data)
+              }
+            }
         }
     }
   }

@@ -18,7 +18,7 @@ object Cache {
           Sync[F].delay { outFile.exists() }.flatMap {
             case true => outFile.pure[F]
             case false =>
-              Sync[F].delay { File.createTempFile("download-", FilenameUtils.getExtension(outFile.getName), cache) }
+              Sync[F].delay { File.createTempFile("download-", "." + FilenameUtils.getExtension(outFile.getName), cache) }
                 .flatMap { tempFile =>
                   (
                     for {
@@ -31,7 +31,7 @@ object Cache {
                     } yield outFile
                   )
                     .recoverWith { case e =>
-                      Sync[F].delay { Files.deleteIfExists(tempFile.toPath) } *>
+                      Sync[F].delay { Files.deleteIfExists(tempFile.toPath) }.recover { case _ => false } *>
                         Sync[F].raiseError(e)
                     }
                 }

@@ -83,8 +83,13 @@ object SdkInstallManager {
           for {
             nFileName <- ArchiveUtil.normalizePath(fileName)
             outFile <- ZIO.accessM[Blocking] { _.blocking.effectBlocking { new File(installDir, nFileName) } }
-            response <- basicRequest.get(Uri(java.net.URI.create(url))).response(asFile(outFile)).send()
-            _ <- if(response.isSuccess) IO.succeed(()) else IO.fail(new RuntimeException(response.toString()))
+            response <- basicRequest.get(Uri(java.net.URI.create(url))).response(asByteArray).send()
+            data <- IO.fromEither(response.body.leftMap { new RuntimeException(_) })
+            _ <-
+              if(response.isSuccess)
+                ZIO.accessM[Blocking] { _.blocking.effectBlocking { Files.write(outFile.toPath, data) } }
+              else
+                IO.fail(new RuntimeException(response.toString()))
             _ <- validateHash(outFile, hash)
           } yield ()
 
