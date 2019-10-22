@@ -361,14 +361,13 @@ object Program extends App {
         ProxyServer.serverResource[RIO[R, *]](recorder, artifact, blocker).toManaged
       }
 
-
     } yield server.address.getPort
 
   private def runUnixSocketProxy(socketDir: File, port: Int): ZManaged[Blocking, Throwable, Unit] =
     ZManaged.make(
       IO.effect {
         if(SystemUtils.IS_OS_WINDOWS)
-          new ProcessBuilder("UnixToLocalhost", s"${socketDir.toString}/helium.sock", port.toString)
+          new ProcessBuilder("UnixToLocalhost", port.toString, new File(socketDir, "helium.sock").toString)
             .redirectOutput(ProcessBuilder.Redirect.DISCARD)
             .redirectError(ProcessBuilder.Redirect.DISCARD)
             .start()
