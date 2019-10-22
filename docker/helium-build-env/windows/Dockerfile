@@ -16,6 +16,6 @@ COPY --from=build --chown=helium:helium C:/LocalhostToUnix/bin/Release/netcoreap
 USER helium
 RUN mkdir C:\\sdk
 
-WORKDIR C:/work/
+WORKDIR C:/sources/
 CMD ["cmd"]
 ENTRYPOINT ["pwsh", "C:\\helium\\launch.ps1"]
