@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>Helium.Sdks</AssemblyName>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>4.7</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="SdkInfo.fs" />
+    <Compile Include="SdkLoader.fs" />
+    <Compile Include="SdkHelper.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="TaskBuilder.fs" Version="2.1.0" />
+  </ItemGroup>
+
+</Project>
