@@ -10,6 +10,8 @@ namespace Helium.SdkGenerator
         private static async Task Main(string[] args) {
             string sdkDir = Path.Combine(Environment.CurrentDirectory, "sdks");
 
+            ClearDirectory(sdkDir);
+            
             foreach(var creator in sdkCreators) {
                 await foreach(var (path, sdk) in creator.GenerateSdks()) {
                     await SdkLoader.saveSdk(sdk, Path.Combine(sdkDir, path));
@@ -17,7 +19,7 @@ namespace Helium.SdkGenerator
             }
         }
 
-        private void ClearDirectory(string dir) {
+        private static void ClearDirectory(string dir) {
             foreach(var subdir in Directory.EnumerateDirectories(dir)) {
                 Directory.Delete(subdir, recursive: true);
             }
@@ -28,7 +30,8 @@ namespace Helium.SdkGenerator
         }
 
         private static readonly ISdkCreator[] sdkCreators = {
-            new OpenJDK(),
+            new AdoptOpenJDKCreator(),
+            new SBTCreator(),
         };
     }
 }

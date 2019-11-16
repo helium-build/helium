@@ -8,7 +8,7 @@ using Microsoft.FSharp.Collections;
 
 namespace Helium.SdkGenerator
 {
-    internal class OpenJDK : ISdkCreator
+    internal class AdoptOpenJDKCreator : ISdkCreator
     {
         public string Name => "AdoptOpenJDK";
 
