@@ -3,63 +3,100 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using CommandLine;
+using CommandLine.Text;
+using Helium.Engine.Record;
 
 namespace Helium.Engine
 {
     public static class Program
     {
-        public static void Main(string[] args) {
-            var host = CreateHostBuilder().Build();
-            host.Run();
+        private static string AppDir { get; } =
+            Environment.GetEnvironmentVariable("HELIUM_BASE_DIR") is {} appDir
+                ? appDir
+                : Environment.CurrentDirectory;
+
+        private static string ConfDir { get; } =
+            Path.Combine(AppDir, "conf");
+
+        private static string CacheDir { get; } =
+            Path.Combine(AppDir, "cache");
+
+        private static string SdkDir { get; } =
+            Path.Combine(AppDir, "sdks");
+        
+        
+        
+        public static async Task<int> Main(string[] args) =>
+            await Parser.Default.ParseArguments<BuildOptions, ReplayOptions>(args)
+                .MapResult<BuildOptions, ReplayOptions, Task<int>>(
+                    BuildMain,
+                    ReplayMain,
+                    async errs => 1
+                );
+
+        private static async Task<int> BuildMain(BuildOptions options) {
+            var workDir = options.WorkDir;
+            if(workDir == null) {
+                return 1;
+            }
+            
+            var outputDir = options.Schema ?? Path.Combine(workDir, "output");
+            var sourcesDir = options.Schema ?? Path.Combine(workDir, "sources");
+
+            string schemaFile;
+            if(options.Schema != null) {
+                schemaFile = options.Schema;
+            }
+            else {
+                var schemaFile1 = Path.Combine(workDir, "build.toml");
+                if(File.Exists(schemaFile1)) {
+                    schemaFile = schemaFile1;
+                }
+                else {
+                    schemaFile = Path.Combine(sourcesDir, "build.toml");
+                }
+            }
+
+            Func<Task<IRecorder>> recorder;
+            if(options.Archive != null) {
+                recorder = () => ArchiveRecorder.Create(
+                    cacheDir: CacheDir,
+                    sdkDir: SdkDir,
+                    schemaFile: schemaFile,
+                    archiveFile: options.Archive,
+                    sourcesDir: sourcesDir,
+                    confDir: ConfDir
+                );
+            }
+            else {
+                recorder = () => NullRecorder.Create(
+                    cacheDir: CacheDir,
+                    sdkDir: SdkDir,
+                    schemaFile: schemaFile,
+                    sourcesDir: sourcesDir,
+                    confDir: ConfDir
+                );
+            }
+
+            await BuildManager.RunBuild(createRecorder: recorder, outputDir: outputDir, workDir: workDir);
+            return 0;
         }
-
-        private static IHostBuilder CreateHostBuilder() =>
-            new HostBuilder()
-                .UseContentRoot(Directory.GetCurrentDirectory())
-                .ConfigureLogging((hostingContext, logging) => {
-                    logging.AddConfiguration((IConfiguration) hostingContext.Configuration.GetSection("Logging"));
-                    logging.AddConsole();
-                    logging.AddDebug();
-                    logging.AddEventSourceLogger();
-                })
-                .ConfigureWebHost(webBuilder => {
-                    webBuilder
-                        .UseSetting(WebHostDefaults.SuppressStatusMessagesKey, "True")
-                        .ConfigureAppConfiguration(((builderContext, config) => {
-                            var env = builderContext.HostingEnvironment;
-
-                            config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
-                            config.AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true,
-                                reloadOnChange: false);
-                        }))
-                        .UseKestrel(options => {
-                            options.ListenUnixSocket(Path.Combine(Directory.GetCurrentDirectory(), "test.sock"));
-                        })
-                        .ConfigureServices(services => {
-                            services.AddRouting();
-                        })
-                        .Configure(app => {
-                            var env = app.ApplicationServices.GetRequiredService<IWebHostEnvironment>();
-
-                            if(env.IsDevelopment()) {
-                                app.UseDeveloperExceptionPage();
-                            }
-
-                            app.UseRouting();
-
-                            app.UseEndpoints(endpoints => {
-                                endpoints.MapGet("/", async context => {
-                                    await context.Response.WriteAsync("Hello World!");
-                                });
-                            });
-                        });
-                });
+        
+        private static async Task<int> ReplayMain(ReplayOptions options) {
+            if(options.WorkDir == null || options.Archive == null || options.Output == null) {
+                return 1;
+            }
+            
+            await BuildManager.RunBuild(
+                createRecorder: () => ReplayRecorder.Create(
+                    archiveFile: options.Archive,
+                    workDir: options.WorkDir
+                ),
+                outputDir: options.Output,
+                workDir: options.WorkDir
+            );
+            return 0;
+        }
     }
 }
