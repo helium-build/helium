@@ -2,23 +2,23 @@
   "implements": [
     "jdk"
   ],
-  "version": "8.0.232+9",
+  "version": "13.0.1+9",
   "platforms": [
     {
-      "os": "Windows",
-      "arch": "Amd64"
+      "os": "Linux",
+      "arch": "S390x"
     }
   ],
   "setupSteps": [
     {
       "Case": "Download",
       "Fields": [
-        "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u232-b09/OpenJDK8U-jdk_x64_windows_hotspot_8u232b09.zip",
-        "OpenJDK8U-jdk_x64_windows_hotspot_8u232b09.zip",
+        "https://github.com/AdoptOpenJDK/openjdk13-binaries/releases/download/jdk-13.0.1%2B9/OpenJDK13U-jdk_s390x_linux_hotspot_13.0.1_9.tar.gz",
+        "OpenJDK13U-jdk_s390x_linux_hotspot_13.0.1_9.tar.gz",
         {
           "Case": "Sha256",
           "Fields": [
-            "a8ceaf48582217b413da8d4100407f703c92d1560a763dc85bc49fc226c04958"
+            "334604f0ae9f36265ddde9e98060be929c35654d5e78b8e9f2998f0964ef04b4"
           ]
         }
       ]
@@ -26,19 +26,19 @@
     {
       "Case": "Extract",
       "Fields": [
-        "OpenJDK8U-jdk_x64_windows_hotspot_8u232b09.zip",
+        "OpenJDK13U-jdk_s390x_linux_hotspot_13.0.1_9.tar.gz",
         "."
       ]
     },
     {
       "Case": "Delete",
       "Fields": [
-        "OpenJDK8U-jdk_x64_windows_hotspot_8u232b09.zip"
+        "OpenJDK13U-jdk_s390x_linux_hotspot_13.0.1_9.tar.gz"
       ]
     }
   ],
   "pathDirs": [
-    "jdk8u232-b09/bin"
+    "jdk-13.0.1+9/bin"
   ],
   "env": {
     "JAVA_HOME": {
@@ -51,7 +51,7 @@
           {
             "Case": "OfString",
             "Fields": [
-              "/jdk8u232-b09"
+              "/jdk-13.0.1+9"
             ]
           }
         ]

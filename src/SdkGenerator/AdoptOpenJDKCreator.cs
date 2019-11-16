@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using Helium.Sdks;
 using Helium.Util;
@@ -90,8 +91,13 @@ namespace Helium.SdkGenerator
                 }),
                 configFileTemplates: MapModule.Empty<string, string>()
             );
+
+            var noExtFile = Path.GetFileNameWithoutExtension(binary.binary_name);
+            if(noExtFile.EndsWith(".tar")) {
+                noExtFile = Path.GetFileNameWithoutExtension(noExtFile);
+            }
             
-            return ($"jdk/jdk{binary.version}/{Path.GetFileNameWithoutExtension(binary.binary_name)}.json", sdkInfo);
+            return ($"jdk/jdk{binary.version}/{noExtFile}.json", sdkInfo);
         }
 
         private IEnumerable<string> Urls() {
@@ -128,9 +134,19 @@ namespace Helium.SdkGenerator
         
         public async IAsyncEnumerable<(string path, SdkInfo)> GenerateSdks() {
             foreach(var url in Urls()) {
+                Console.WriteLine($"Checking AdoptOpenJDK release: {url}");
                 var release = await GetAdoptOpenJDKRelease(url);
                 foreach(var binary in release.binaries) {
-                    yield return await GetSDKForBinary(release, binary);
+                    (string path, SdkInfo) sdk;
+                    try {
+                        sdk = await GetSDKForBinary(release, binary);
+                    }
+                    catch(WebException) {
+                        Console.WriteLine("Could not generate SDK.");
+                        continue;
+                    }
+                    
+                    yield return sdk;
                 }
             }
         }

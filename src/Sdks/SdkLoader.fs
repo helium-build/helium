@@ -3,11 +3,13 @@ open Newtonsoft.Json
 open System.IO
 open System.Threading.Tasks
 open FSharp.Control.Tasks.V2
+open Newtonsoft.Json
 
 
 let private createSerSettings () =
     let settings = JsonSerializerSettings()
     settings.Converters.Add <| Converters.StringEnumConverter()
+    settings.Formatting <- Formatting.Indented
     settings
 
 let loadSdk (sdkFile: string): SdkInfo Task = task {

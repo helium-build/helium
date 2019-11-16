@@ -1,63 +1,62 @@
 {
-  "implements" : [
-    "jdk",
-    "jdk8"
+  "implements": [
+    "jdk"
   ],
-  "version" : "8.0.232+9",
-  "os" : {
-    "Linux" : {
-      
-    }
-  },
-  "architecture" : {
-    "Ppc64le" : {
-      
-    }
-  },
-  "setupSteps" : [
+  "version": "8.0.232+9",
+  "platforms": [
     {
-      "SdkDownload" : {
-        "url" : "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u232-b09/OpenJDK8U-jdk_ppc64le_linux_hotspot_8u232b09.tar.gz",
-        "fileName" : "OpenJDK8U-jdk_ppc64le_linux_hotspot_8u232b09.tar.gz",
-        "hash" : {
-          "Sha256" : {
-            "value" : "da87bdc04b47477b42afc76066dbd96efa35ad967238be03a0081f8840e893a8"
-          }
+      "os": "Linux",
+      "arch": "Ppc64le"
+    }
+  ],
+  "setupSteps": [
+    {
+      "Case": "Download",
+      "Fields": [
+        "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u232-b09/OpenJDK8U-jdk_ppc64le_linux_hotspot_8u232b09.tar.gz",
+        "OpenJDK8U-jdk_ppc64le_linux_hotspot_8u232b09.tar.gz",
+        {
+          "Case": "Sha256",
+          "Fields": [
+            "da87bdc04b47477b42afc76066dbd96efa35ad967238be03a0081f8840e893a8"
+          ]
         }
-      }
+      ]
     },
     {
-      "SdkExtract" : {
-        "fileName" : "OpenJDK8U-jdk_ppc64le_linux_hotspot_8u232b09.tar.gz",
-        "directory" : "."
-      }
+      "Case": "Extract",
+      "Fields": [
+        "OpenJDK8U-jdk_ppc64le_linux_hotspot_8u232b09.tar.gz",
+        "."
+      ]
     },
     {
-      "SdkDelete" : {
-        "fileName" : "OpenJDK8U-jdk_ppc64le_linux_hotspot_8u232b09.tar.gz"
-      }
+      "Case": "Delete",
+      "Fields": [
+        "OpenJDK8U-jdk_ppc64le_linux_hotspot_8u232b09.tar.gz"
+      ]
     }
   ],
-  "pathDirs" : [
+  "pathDirs": [
     "jdk8u232-b09/bin"
   ],
-  "env" : {
-    "JAVA_HOME" : {
-      "Concat" : {
-        "values" : [
+  "env": {
+    "JAVA_HOME": {
+      "Case": "Concat",
+      "Fields": [
+        [
           {
-            "SdkDirectory" : {
-              
-            }
+            "Case": "SdkDirectory"
           },
           {
-            "OfString" : {
-              "value" : "/jdk8u232-b09"
-            }
+            "Case": "OfString",
+            "Fields": [
+              "/jdk8u232-b09"
+            ]
           }
         ]
-      }
+      ]
     }
   },
-  "configFileTemplates" : null
+  "configFileTemplates": {}
 }

@@ -1,63 +1,62 @@
 {
-  "implements" : [
-    "jdk",
-    "jdk9"
+  "implements": [
+    "jdk"
   ],
-  "version" : "9.0.0+181",
-  "os" : {
-    "Linux" : {
-      
-    }
-  },
-  "architecture" : {
-    "Aarch64" : {
-      
-    }
-  },
-  "setupSteps" : [
+  "version": "9.0.0+181",
+  "platforms": [
     {
-      "SdkDownload" : {
-        "url" : "https://github.com/AdoptOpenJDK/openjdk9-binaries/releases/download/jdk-9%2B181/OpenJDK9U-jdk_aarch64_linux_hotspot_9_181.tar.gz",
-        "fileName" : "OpenJDK9U-jdk_aarch64_linux_hotspot_9_181.tar.gz",
-        "hash" : {
-          "Sha256" : {
-            "value" : "d1ee522053bb4135536b1d3173be8224bf54563d166e882b7ee2ccf609c2517f"
-          }
+      "os": "Linux",
+      "arch": "Aarch64"
+    }
+  ],
+  "setupSteps": [
+    {
+      "Case": "Download",
+      "Fields": [
+        "https://github.com/AdoptOpenJDK/openjdk9-binaries/releases/download/jdk-9%2B181/OpenJDK9U-jdk_aarch64_linux_hotspot_9_181.tar.gz",
+        "OpenJDK9U-jdk_aarch64_linux_hotspot_9_181.tar.gz",
+        {
+          "Case": "Sha256",
+          "Fields": [
+            "d1ee522053bb4135536b1d3173be8224bf54563d166e882b7ee2ccf609c2517f"
+          ]
         }
-      }
+      ]
     },
     {
-      "SdkExtract" : {
-        "fileName" : "OpenJDK9U-jdk_aarch64_linux_hotspot_9_181.tar.gz",
-        "directory" : "."
-      }
+      "Case": "Extract",
+      "Fields": [
+        "OpenJDK9U-jdk_aarch64_linux_hotspot_9_181.tar.gz",
+        "."
+      ]
     },
     {
-      "SdkDelete" : {
-        "fileName" : "OpenJDK9U-jdk_aarch64_linux_hotspot_9_181.tar.gz"
-      }
+      "Case": "Delete",
+      "Fields": [
+        "OpenJDK9U-jdk_aarch64_linux_hotspot_9_181.tar.gz"
+      ]
     }
   ],
-  "pathDirs" : [
+  "pathDirs": [
     "jdk-9+181/bin"
   ],
-  "env" : {
-    "JAVA_HOME" : {
-      "Concat" : {
-        "values" : [
+  "env": {
+    "JAVA_HOME": {
+      "Case": "Concat",
+      "Fields": [
+        [
           {
-            "SdkDirectory" : {
-              
-            }
+            "Case": "SdkDirectory"
           },
           {
-            "OfString" : {
-              "value" : "/jdk-9+181"
-            }
+            "Case": "OfString",
+            "Fields": [
+              "/jdk-9+181"
+            ]
           }
         ]
-      }
+      ]
     }
   },
-  "configFileTemplates" : null
+  "configFileTemplates": {}
 }

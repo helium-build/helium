@@ -5,20 +5,20 @@
   "version": "8.0.232+9",
   "platforms": [
     {
-      "os": "Windows",
-      "arch": "Amd64"
+      "os": "Linux",
+      "arch": "Aarch64"
     }
   ],
   "setupSteps": [
     {
       "Case": "Download",
       "Fields": [
-        "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u232-b09/OpenJDK8U-jdk_x64_windows_hotspot_8u232b09.zip",
-        "OpenJDK8U-jdk_x64_windows_hotspot_8u232b09.zip",
+        "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u232-b09/OpenJDK8U-jdk_aarch64_linux_hotspot_8u232b09.tar.gz",
+        "OpenJDK8U-jdk_aarch64_linux_hotspot_8u232b09.tar.gz",
         {
           "Case": "Sha256",
           "Fields": [
-            "a8ceaf48582217b413da8d4100407f703c92d1560a763dc85bc49fc226c04958"
+            "35799a2fd4b467115aff1bc3a54853b5131ba9068e53e1ab0fbe5521a3f2ba83"
           ]
         }
       ]
@@ -26,14 +26,14 @@
     {
       "Case": "Extract",
       "Fields": [
-        "OpenJDK8U-jdk_x64_windows_hotspot_8u232b09.zip",
+        "OpenJDK8U-jdk_aarch64_linux_hotspot_8u232b09.tar.gz",
         "."
       ]
     },
     {
       "Case": "Delete",
       "Fields": [
-        "OpenJDK8U-jdk_x64_windows_hotspot_8u232b09.zip"
+        "OpenJDK8U-jdk_aarch64_linux_hotspot_8u232b09.tar.gz"
       ]
     }
   ],

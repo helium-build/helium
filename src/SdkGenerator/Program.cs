@@ -14,8 +14,18 @@ namespace Helium.SdkGenerator
             
             foreach(var creator in sdkCreators) {
                 await foreach(var (path, sdk) in creator.GenerateSdks()) {
-                    await SdkLoader.saveSdk(sdk, Path.Combine(sdkDir, path));
+                    string fullPath = Path.Combine(sdkDir, path);
+                    EnsureDirectory(Path.GetDirectoryName(fullPath));
+                    await SdkLoader.saveSdk(sdk, fullPath);
                 }
+            }
+        }
+
+        private static void EnsureDirectory(string? dir) {
+            if(dir == null) return;
+            
+            if(!Directory.Exists(dir)) {
+                Directory.CreateDirectory(dir);
             }
         }
 
@@ -32,6 +42,9 @@ namespace Helium.SdkGenerator
         private static readonly ISdkCreator[] sdkCreators = {
             new AdoptOpenJDKCreator(),
             new SBTCreator(),
+            new DotNetCreator(),
+            new DotNetMergeCreator(),
+            new NodeJSCreator(),
         };
     }
 }

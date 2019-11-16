@@ -1,63 +1,62 @@
 {
-  "implements" : [
-    "jdk",
-    "jdk12"
+  "implements": [
+    "jdk"
   ],
-  "version" : "12.0.2+10",
-  "os" : {
-    "Linux" : {
-      
-    }
-  },
-  "architecture" : {
-    "Amd64" : {
-      
-    }
-  },
-  "setupSteps" : [
+  "version": "12.0.2+10",
+  "platforms": [
     {
-      "SdkDownload" : {
-        "url" : "https://github.com/AdoptOpenJDK/openjdk12-binaries/releases/download/jdk-12.0.2%2B10/OpenJDK12U-jdk_x64_linux_hotspot_12.0.2_10.tar.gz",
-        "fileName" : "OpenJDK12U-jdk_x64_linux_hotspot_12.0.2_10.tar.gz",
-        "hash" : {
-          "Sha256" : {
-            "value" : "1202f536984c28d68681d51207a84b6c76e5998579132d3fe1b8085aa6a5f21e"
-          }
+      "os": "Linux",
+      "arch": "Amd64"
+    }
+  ],
+  "setupSteps": [
+    {
+      "Case": "Download",
+      "Fields": [
+        "https://github.com/AdoptOpenJDK/openjdk12-binaries/releases/download/jdk-12.0.2%2B10/OpenJDK12U-jdk_x64_linux_hotspot_12.0.2_10.tar.gz",
+        "OpenJDK12U-jdk_x64_linux_hotspot_12.0.2_10.tar.gz",
+        {
+          "Case": "Sha256",
+          "Fields": [
+            "1202f536984c28d68681d51207a84b6c76e5998579132d3fe1b8085aa6a5f21e"
+          ]
         }
-      }
+      ]
     },
     {
-      "SdkExtract" : {
-        "fileName" : "OpenJDK12U-jdk_x64_linux_hotspot_12.0.2_10.tar.gz",
-        "directory" : "."
-      }
+      "Case": "Extract",
+      "Fields": [
+        "OpenJDK12U-jdk_x64_linux_hotspot_12.0.2_10.tar.gz",
+        "."
+      ]
     },
     {
-      "SdkDelete" : {
-        "fileName" : "OpenJDK12U-jdk_x64_linux_hotspot_12.0.2_10.tar.gz"
-      }
+      "Case": "Delete",
+      "Fields": [
+        "OpenJDK12U-jdk_x64_linux_hotspot_12.0.2_10.tar.gz"
+      ]
     }
   ],
-  "pathDirs" : [
+  "pathDirs": [
     "jdk-12.0.2+10/bin"
   ],
-  "env" : {
-    "JAVA_HOME" : {
-      "Concat" : {
-        "values" : [
+  "env": {
+    "JAVA_HOME": {
+      "Case": "Concat",
+      "Fields": [
+        [
           {
-            "SdkDirectory" : {
-              
-            }
+            "Case": "SdkDirectory"
           },
           {
-            "OfString" : {
-              "value" : "/jdk-12.0.2+10"
-            }
+            "Case": "OfString",
+            "Fields": [
+              "/jdk-12.0.2+10"
+            ]
           }
         ]
-      }
+      ]
     }
   },
-  "configFileTemplates" : null
+  "configFileTemplates": {}
 }

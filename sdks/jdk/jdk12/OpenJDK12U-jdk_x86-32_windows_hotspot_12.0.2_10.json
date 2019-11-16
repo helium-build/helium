@@ -2,23 +2,23 @@
   "implements": [
     "jdk"
   ],
-  "version": "8.0.232+9",
+  "version": "12.0.2+10",
   "platforms": [
     {
       "os": "Windows",
-      "arch": "Amd64"
+      "arch": "X86"
     }
   ],
   "setupSteps": [
     {
       "Case": "Download",
       "Fields": [
-        "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u232-b09/OpenJDK8U-jdk_x64_windows_hotspot_8u232b09.zip",
-        "OpenJDK8U-jdk_x64_windows_hotspot_8u232b09.zip",
+        "https://github.com/AdoptOpenJDK/openjdk12-binaries/releases/download/jdk-12.0.2%2B10/OpenJDK12U-jdk_x86-32_windows_hotspot_12.0.2_10.zip",
+        "OpenJDK12U-jdk_x86-32_windows_hotspot_12.0.2_10.zip",
         {
           "Case": "Sha256",
           "Fields": [
-            "a8ceaf48582217b413da8d4100407f703c92d1560a763dc85bc49fc226c04958"
+            "2b175ef177e2e6741517e85cabe346ffbd0e2b65608c0a2db4565068ae87aba5"
           ]
         }
       ]
@@ -26,19 +26,19 @@
     {
       "Case": "Extract",
       "Fields": [
-        "OpenJDK8U-jdk_x64_windows_hotspot_8u232b09.zip",
+        "OpenJDK12U-jdk_x86-32_windows_hotspot_12.0.2_10.zip",
         "."
       ]
     },
     {
       "Case": "Delete",
       "Fields": [
-        "OpenJDK8U-jdk_x64_windows_hotspot_8u232b09.zip"
+        "OpenJDK12U-jdk_x86-32_windows_hotspot_12.0.2_10.zip"
       ]
     }
   ],
   "pathDirs": [
-    "jdk8u232-b09/bin"
+    "jdk-12.0.2+10/bin"
   ],
   "env": {
     "JAVA_HOME": {
@@ -51,7 +51,7 @@
           {
             "Case": "OfString",
             "Fields": [
-              "/jdk8u232-b09"
+              "/jdk-12.0.2+10"
             ]
           }
         ]
