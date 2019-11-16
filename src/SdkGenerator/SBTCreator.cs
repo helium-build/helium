@@ -20,7 +20,7 @@ namespace Helium.SdkGenerator
         
         public string Name => "SBT";
 
-        public async IAsyncEnumerable<(string, SdkInfo)> GenerateSdks() {
+        public async IAsyncEnumerable<(string path, SdkInfo)> GenerateSdks() {
             var fileName = $"sbt-{version}.tgz";
             
             var sdk = new SdkInfo(

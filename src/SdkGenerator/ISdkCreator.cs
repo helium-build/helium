@@ -6,6 +6,6 @@ namespace Helium.SdkGenerator
     public interface ISdkCreator
     {
         string Name { get; }
-        IAsyncEnumerable<(string, SdkInfo)> GenerateSdks();
+        IAsyncEnumerable<(string path, SdkInfo)> GenerateSdks();
     }
 }
