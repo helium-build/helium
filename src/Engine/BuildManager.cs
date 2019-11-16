@@ -12,7 +12,9 @@ using Microsoft.Extensions.Logging;
 
 internal static class BuildManager
 {
-    public static Task RunBuild(Func<Task<IRecorder>> createRecorder, string outputDir, string workDir) {
+    public static async Task RunBuild(Func<Task<IRecorder>> createRecorder, string outputDir, string workDir) {
+        using var recorder = await createRecorder();
+        var artifact = new FSArtifactSaver(outputDir);
         throw new NotImplementedException();
     }
 

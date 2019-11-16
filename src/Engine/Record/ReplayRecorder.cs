@@ -12,5 +12,9 @@ namespace Helium.Engine.Record
         public static Task<IRecorder> Create(string archiveFile, string workDir) {
             throw new NotImplementedException();
         }
+
+        public void Dispose() {
+            throw new NotImplementedException();
+        }
     }
 }

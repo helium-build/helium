@@ -43,6 +43,7 @@ namespace Helium.Engine
             
             var outputDir = options.Schema ?? Path.Combine(workDir, "output");
             var sourcesDir = options.Schema ?? Path.Combine(workDir, "sources");
+            var archive = options.Archive;
 
             string schemaFile;
             if(options.Schema != null) {
@@ -59,12 +60,12 @@ namespace Helium.Engine
             }
 
             Func<Task<IRecorder>> recorder;
-            if(options.Archive != null) {
+            if(archive != null) {
                 recorder = () => ArchiveRecorder.Create(
                     cacheDir: CacheDir,
                     sdkDir: SdkDir,
                     schemaFile: schemaFile,
-                    archiveFile: options.Archive,
+                    archiveFile: archive,
                     sourcesDir: sourcesDir,
                     confDir: ConfDir
                 );

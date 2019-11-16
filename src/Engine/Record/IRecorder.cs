@@ -1,6 +1,8 @@
+using System;
+
 namespace Helium.Engine.Record
 {
-    internal interface IRecorder
+    internal interface IRecorder : IDisposable
     {
     }
 }
