@@ -99,5 +99,39 @@ namespace Helium.Engine
             );
             return 0;
         }
+        
+        
+        [Verb("build", HelpText = "Runs a new build.")]
+        private class BuildOptions
+        {
+            [Option("schema", HelpText = "The TOML file that defines the build.")]
+            public string? Schema { get; set; }
+        
+            [Option("sources", HelpText = "The directory containing the source code for the application.")]
+            public string? Sources { get; set; }
+        
+            [Option("output", HelpText = "The directory that will contain published artifacts.")]
+            public string? Output { get; set; }
+        
+            [Option("archive", HelpText = "The archive file (tar) that will contain the dependencies required to reproduce the build.")]
+            public string? Archive { get; set; }
+        
+            [Value(0, MetaName = "workDir", Required = true, HelpText = "The directory that contains the build.")]
+            public string? WorkDir { get; set; }
+        }
+        
+        [Verb("replay", HelpText = "Replays a build that was previously recorded.")]
+        public class ReplayOptions
+        {
+            [Value(0, Required = true, MetaName = "archive", HelpText = "The archive (tar) file to replay.")]
+            public string? Archive { get; set; }
+
+            [Value(1, Required = true, MetaName = "workDir", HelpText = "The working directory.")]
+            public string? WorkDir { get; set; }
+        
+            [Value(2, Required = true, MetaName = "output", HelpText = "The directory that will contain published artifacts.")]
+            public string? Output { get; set; }
+        }
+        
     }
 }

@@ -1,7 +1,9 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using System.Linq;
 using Helium.Engine.Record;
+using Helium.Util;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -14,8 +16,12 @@ internal static class BuildManager
 {
     public static async Task RunBuild(Func<Task<IRecorder>> createRecorder, string outputDir, string workDir) {
         using var recorder = await createRecorder();
+        
         var artifact = new FSArtifactSaver(outputDir);
-        throw new NotImplementedException();
+        
+        var schema = await recorder.LoadSchema();
+
+        var sdks = await recorder.ListAvailableSdks().ToListAsync();
     }
 
         //CreateHostBuilder().Build().Run();
