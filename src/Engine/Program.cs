@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -31,14 +34,32 @@ namespace Helium.Engine
                         .UseSetting(WebHostDefaults.SuppressStatusMessagesKey, "True")
                         .ConfigureAppConfiguration(((builderContext, config) => {
                             var env = builderContext.HostingEnvironment;
-                            
+
                             config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
-                            config.AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: false);
+                            config.AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true,
+                                reloadOnChange: false);
                         }))
                         .UseKestrel(options => {
                             options.ListenUnixSocket(Path.Combine(Directory.GetCurrentDirectory(), "test.sock"));
                         })
-                        .UseStartup<Startup>();
+                        .ConfigureServices(services => {
+                            services.AddRouting();
+                        })
+                        .Configure(app => {
+                            var env = app.ApplicationServices.GetRequiredService<IWebHostEnvironment>();
+
+                            if(env.IsDevelopment()) {
+                                app.UseDeveloperExceptionPage();
+                            }
+
+                            app.UseRouting();
+
+                            app.UseEndpoints(endpoints => {
+                                endpoints.MapGet("/", async context => {
+                                    await context.Response.WriteAsync("Hello World!");
+                                });
+                            });
+                        });
                 });
     }
 }
