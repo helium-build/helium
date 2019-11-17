@@ -21,8 +21,19 @@ namespace Helium.Engine.Record
             await stream.CopyToAsync(fileStream);
         }
 
-        public Task SaveArtifact(string name, Func<string, Task<string>> nameSelector) {
-            throw new NotImplementedException();
+        public async Task SaveArtifact(Stream stream, Func<string, Task<string>> nameSelector) {
+            var tempFile = Path.Combine(outputDir, Path.GetRandomFileName());
+            await using(var fileStream = File.Create(tempFile)) {
+                await stream.CopyToAsync(fileStream);                
+            }
+
+            var name = await nameSelector(tempFile);
+            
+            if(name.Contains(Path.DirectorySeparatorChar) || name.Contains(Path.AltDirectorySeparatorChar)) {
+                throw new ArgumentException("Invalid file name.", nameof(name));
+            }
+            
+            File.Move(tempFile, Path.Combine(outputDir, name), overwrite: true);
         }
     }
 }

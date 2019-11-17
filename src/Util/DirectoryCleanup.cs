@@ -23,8 +23,7 @@ namespace Helium.Util
     public static class DirectoryCleanup
     {
         public static DirectoryCleanup<Func<T>> CreateTempDir<T>(string parent, Func<string, T> value) {
-            var name = Path.Combine(parent, Path.GetTempFileName());
-            File.Delete(name);
+            var name = Path.Combine(parent, Path.GetRandomFileName());
             Directory.CreateDirectory(name);
             return new DirectoryCleanup<Func<T>>(name, () => value(name));
         }

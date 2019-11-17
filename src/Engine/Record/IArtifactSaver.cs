@@ -7,6 +7,6 @@ namespace Helium.Engine.Record
     public interface IArtifactSaver
     {
         Task SaveArtifact(string name, Stream stream);
-        Task SaveArtifact(string name, Func<string, Task<string>> nameSelector);
+        Task SaveArtifact(Stream stream, Func<string, Task<string>> nameSelector);
     }
 }
