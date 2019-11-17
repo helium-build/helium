@@ -27,7 +27,12 @@ namespace Helium.SdkGenerator
         };
 
 
-        private const string configFile = "registry=http://localhost:9000/npm/\n";
+        private const string configFile =
+@"
+{% if repo.npm != null %}
+registry={{repo.npm.registry}}
+{% endif %}
+";
         
         
         
