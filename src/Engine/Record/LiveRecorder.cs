@@ -22,7 +22,7 @@ namespace Helium.Engine.Record
         public abstract SdkInstallManager CreateSdkInstaller();
 
         
-        public virtual void Dispose() {}
+        public async ValueTask DisposeAsync() { }
         
         protected virtual Task<string> CacheBuildSchema(Func<Task<string>> readBuildSchema) => readBuildSchema();
         protected virtual Task<string> CacheRepoConfig(Func<Task<string>> readRepoConfig) => readRepoConfig();
@@ -40,6 +40,5 @@ namespace Helium.Engine.Record
         public async Task<RepoConfig> LoadRepoConfig() => RepoConfig.Parse(
             await CacheRepoConfig(() => File.ReadAllTextAsync(Path.Combine(ConfDir, "repos.toml"), Encoding.UTF8))
         );
-
     }
 }

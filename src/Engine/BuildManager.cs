@@ -19,7 +19,7 @@ namespace Helium.Engine
     internal static class BuildManager
     {
         public static async Task<int> RunBuild(Func<Task<IRecorder>> createRecorder, string outputDir, string workDir) {
-            using var recorder = await createRecorder();
+            await using var recorder = await createRecorder();
 
             var artifact = new FSArtifactSaver(outputDir);
 
@@ -32,7 +32,7 @@ namespace Helium.Engine
             
             var currentPlatform = PlatformInfo.Current;
             
-            using var launchPropsCleanup = GetDockerLaunchProps(
+            await using var launchPropsCleanup = GetDockerLaunchProps(
                 platform: currentPlatform,
                 sdks: sdks,
                 workDir: workDir,
@@ -44,18 +44,13 @@ namespace Helium.Engine
 
             var launchProps = await launchPropsCleanup.Value();
 
-            using var proxyServer = await ProxyServer.Create(
+            await using var proxyServer = await ProxyServer.Create(
                 Path.Combine(launchProps.SocketDir, "helium.sock"),
                 recorder,
                 artifact
             );
-            try {
-                return await Launcher.Run(currentPlatform, launchProps);
-            }
-            finally {
-                await proxyServer.Stop();
-            }
-
+            
+            return await Launcher.Run(currentPlatform, launchProps);
         }
 
         private static ICleanup<Func<Task<LaunchProperties>>> GetDockerLaunchProps(PlatformInfo platform, List<SdkInfo> sdks, string workDir, string sourcesDir, RepoConfig conf, SdkInstallManager sdkInstallManager, BuildSchema schema) =>

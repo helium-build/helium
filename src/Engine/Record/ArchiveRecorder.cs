@@ -13,7 +13,7 @@ namespace Helium.Engine.Record
             throw new NotImplementedException();
         }
 
-        public void Dispose() {
+        public ValueTask DisposeAsync() {
             throw new NotImplementedException();
         }
     }

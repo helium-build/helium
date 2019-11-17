@@ -8,7 +8,7 @@ using Helium.Sdks;
 
 namespace Helium.Engine.Record
 {
-    internal interface IRecorder : IDisposable
+    internal interface IRecorder : IAsyncDisposable
     {
         Task<BuildSchema> LoadSchema() {
             throw new NotImplementedException();

@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Helium.Engine.Proxy
 {
-    internal class ProxyServer : IDisposable
+    internal class ProxyServer : IAsyncDisposable
     {
         private ProxyServer(IHost host) {
             this.host = host;
@@ -20,9 +20,8 @@ namespace Helium.Engine.Proxy
         
         private readonly IHost host;
 
-        public Task Stop() => host.StopAsync();
-
-        public void Dispose() {
+        public async ValueTask DisposeAsync() {
+            await host.StopAsync();
             host.Dispose();
         }
 

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Helium.Util
 {
@@ -12,7 +13,7 @@ namespace Helium.Util
             Value = value;
         }
         
-        public void Dispose() {
+        public async ValueTask DisposeAsync() {
             Directory.Delete(dir, recursive: true);
         }
 
