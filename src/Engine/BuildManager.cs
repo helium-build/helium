@@ -9,22 +9,16 @@ using Helium.Engine.Build;
 using Helium.Engine.Cache;
 using Helium.Engine.Conf;
 using Helium.Engine.Docker;
+using Helium.Engine.Proxy;
 using Helium.Engine.Record;
 using Helium.Sdks;
 using Helium.Util;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace Helium.Engine
 {
     internal static class BuildManager
     {
-        public static async Task RunBuild(Func<Task<IRecorder>> createRecorder, string outputDir, string workDir) {
+        public static async Task<int> RunBuild(Func<Task<IRecorder>> createRecorder, string outputDir, string workDir) {
             using var recorder = await createRecorder();
 
             var artifact = new FSArtifactSaver(outputDir);
@@ -47,6 +41,17 @@ namespace Helium.Engine
 
             var launchProps = await launchPropsCleanup.Value();
 
+            using var proxyServer = await ProxyServer.Create(
+                Path.Combine(launchProps.SocketDir, "helium.sock"),
+                recorder,
+                artifact
+            );
+            try {
+                return await Launcher.Run(launchProps);
+            }
+            finally {
+                await proxyServer.Stop();
+            }
 
         }
 
@@ -99,7 +104,10 @@ namespace Helium.Engine
                         var (baseDir, path) = GetConfigFilePath(fileName);
 
                         var fileContent = Template.Parse(template).Render(Hash.FromDictionary(conf.ToDictionary()));
-                        await File.WriteAllTextAsync(Path.Combine(installDir, baseDir, path), fileContent, Encoding.UTF8);
+
+                        var fullPath = Path.Combine(installDir, baseDir, path);
+                        Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
+                        await File.WriteAllTextAsync(fullPath, fileContent, Encoding.UTF8);
                     }
 
                     var containerSdkDir = Path.Combine(rootDir, "helium/sdk", sdkHash);
@@ -126,48 +134,6 @@ namespace Helium.Engine
                 throw new Exception("Invalid config path.");
             }
         }
-
-        //CreateHostBuilder().Build().Run();
-
-        private static IHostBuilder CreateHostBuilder() =>
-            new HostBuilder()
-                .UseContentRoot(Directory.GetCurrentDirectory())
-                .ConfigureLogging((hostingContext, logging) => {
-                    logging.AddConfiguration((IConfiguration) hostingContext.Configuration.GetSection("Logging"));
-                    logging.AddConsole();
-                    logging.AddDebug();
-                    logging.AddEventSourceLogger();
-                })
-                .ConfigureWebHost(webBuilder => {
-                    webBuilder
-                        .UseSetting(WebHostDefaults.SuppressStatusMessagesKey, "True")
-                        .ConfigureAppConfiguration(((builderContext, config) => {
-                            var env = builderContext.HostingEnvironment;
-
-                            config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
-                            config.AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: false);
-                        }))
-                        .UseKestrel(options => {
-                            options.ListenUnixSocket(Path.Combine(Directory.GetCurrentDirectory(), "test.sock"));
-                        })
-                        .ConfigureServices(services => {
-                            services.AddRouting();
-                        })
-                        .Configure(app => {
-                            var env = app.ApplicationServices.GetRequiredService<IWebHostEnvironment>();
-
-                            if(env.IsDevelopment()) {
-                                app.UseDeveloperExceptionPage();
-                            }
-
-                            app.UseRouting();
-
-                            app.UseEndpoints(endpoints => {
-                                endpoints.MapGet("/", async context => {
-                                    await context.Response.WriteAsync("Hello World!");
-                                });
-                            });
-                        });
-                });
+        
     }
 }

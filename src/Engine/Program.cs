@@ -11,7 +11,7 @@ namespace Helium.Engine
 {
     public static class Program
     {
-        private static string AppDir { get; } =
+        internal static string AppDir { get; } =
             Environment.GetEnvironmentVariable("HELIUM_BASE_DIR") is {} appDir
                 ? appDir
                 : Environment.CurrentDirectory;
@@ -80,8 +80,7 @@ namespace Helium.Engine
                 );
             }
 
-            await BuildManager.RunBuild(createRecorder: recorder, outputDir: outputDir, workDir: workDir);
-            return 0;
+            return await BuildManager.RunBuild(createRecorder: recorder, outputDir: outputDir, workDir: workDir);
         }
         
         private static async Task<int> ReplayMain(ReplayOptions options) {
@@ -89,7 +88,7 @@ namespace Helium.Engine
                 return 1;
             }
             
-            await BuildManager.RunBuild(
+            return await BuildManager.RunBuild(
                 createRecorder: () => ReplayRecorder.Create(
                     archiveFile: options.Archive,
                     workDir: options.WorkDir
@@ -97,7 +96,6 @@ namespace Helium.Engine
                 outputDir: options.Output,
                 workDir: options.WorkDir
             );
-            return 0;
         }
         
         
