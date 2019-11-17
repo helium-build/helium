@@ -26,7 +26,7 @@ namespace Helium.Engine
             var schema = await recorder.LoadSchema();
 
             var sdks = await recorder.ListAvailableSdks().ToListAsync();
-            var sdkInstallManager = await recorder.CreateSdkInstaller();
+            var sdkInstallManager = recorder.CreateSdkInstaller();
 
             var conf = await recorder.LoadRepoConfig();
             

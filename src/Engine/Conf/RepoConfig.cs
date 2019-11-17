@@ -8,5 +8,9 @@ namespace Helium.Engine.Conf
         
         
         public Dictionary<string, object> ToDictionary() => throw new NotImplementedException();
+
+        public static RepoConfig Parse(string text) {
+            throw new NotImplementedException();
+        }
     }
 }

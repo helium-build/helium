@@ -71,13 +71,13 @@ namespace Helium.Engine
                 );
             }
             else {
-                recorder = () => NullRecorder.Create(
+                recorder = () => Task.FromResult<IRecorder>(new NullRecorder(
                     cacheDir: CacheDir,
                     sdkDir: SdkDir,
                     schemaFile: schemaFile,
                     sourcesDir: sourcesDir,
                     confDir: ConfDir
-                );
+                ));
             }
 
             return await BuildManager.RunBuild(createRecorder: recorder, outputDir: outputDir, workDir: workDir);

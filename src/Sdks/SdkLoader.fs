@@ -21,7 +21,7 @@ let private findFiles dir =
     Directory.EnumerateFiles(dir, "*.json", SearchOption.AllDirectories)
 
 let loadSdks =
-    findFiles >> Seq.map loadSdk >> Task.WhenAll
+    findFiles >> Seq.map loadSdk
     
 let saveSdk (sdk: SdkInfo) (path: string): Task =
     File.WriteAllTextAsync(path, JsonConvert.SerializeObject(sdk, typeof<SdkInfo>, createSerSettings()))

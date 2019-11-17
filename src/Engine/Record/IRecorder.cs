@@ -18,7 +18,7 @@ namespace Helium.Engine.Record
             throw new NotImplementedException();
         }
 
-        Task<SdkInstallManager> CreateSdkInstaller() {
+        SdkInstallManager CreateSdkInstaller() {
             throw new NotImplementedException();
         }
 

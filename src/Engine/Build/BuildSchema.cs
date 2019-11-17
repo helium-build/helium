@@ -18,6 +18,9 @@ namespace Helium.Engine.Build
             public string? name { get; set; }
             public string? version { get; set; }
         }
-        
+
+        public static BuildSchema Parse(string text) {
+            throw new System.NotImplementedException();
+        }
     }
 }
