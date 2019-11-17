@@ -1,6 +1,7 @@
 namespace Helium.Sdks
 
 open System
+open System
 open System.Runtime.InteropServices
 
 [<RequireQualifiedAccess>]
@@ -28,6 +29,12 @@ type PlatformInfo =
     member this.SupportsRunning(execPlatform: PlatformInfo): bool =
         (execPlatform.os = SdkOperatingSystem.None || execPlatform.os = this.os) &&
             (execPlatform.arch = SdkArch.None || execPlatform.arch = this.arch)
+    
+    member this.RootDirectory: string =
+        match this.os with
+        | SdkOperatingSystem.Linux -> "/"
+        | SdkOperatingSystem.Windows -> "C:\\"
+        | _ -> raise (new Exception("Unexpected OS"))
     
     static member Current: PlatformInfo = {
         os = if RuntimeInformation.IsOSPlatform OSPlatform.Windows then SdkOperatingSystem.Windows

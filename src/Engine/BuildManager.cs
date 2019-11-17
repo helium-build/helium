@@ -29,8 +29,11 @@ namespace Helium.Engine
             var sdkInstallManager = await recorder.CreateSdkInstaller();
 
             var conf = await recorder.LoadRepoConfig();
-
+            
+            var currentPlatform = PlatformInfo.Current;
+            
             using var launchPropsCleanup = GetDockerLaunchProps(
+                platform: currentPlatform,
                 sdks: sdks,
                 workDir: workDir,
                 sourcesDir: recorder.SourcesDir,
@@ -47,7 +50,7 @@ namespace Helium.Engine
                 artifact
             );
             try {
-                return await Launcher.Run(launchProps);
+                return await Launcher.Run(currentPlatform, launchProps);
             }
             finally {
                 await proxyServer.Stop();
@@ -55,22 +58,16 @@ namespace Helium.Engine
 
         }
 
-        private static ICleanup<Func<Task<LaunchProperties>>> GetDockerLaunchProps(List<SdkInfo> sdks, string workDir, string sourcesDir, RepoConfig conf, SdkInstallManager sdkInstallManager, BuildSchema schema) =>
+        private static ICleanup<Func<Task<LaunchProperties>>> GetDockerLaunchProps(PlatformInfo platform, List<SdkInfo> sdks, string workDir, string sourcesDir, RepoConfig conf, SdkInstallManager sdkInstallManager, BuildSchema schema) =>
             DirectoryCleanup.CreateTempDir(workDir, async tempDir => {
 
-                var currentPlatform = PlatformInfo.Current;
-
-                var dockerImage = currentPlatform.os switch {
+                var dockerImage = platform.os switch {
                     SdkOperatingSystem.Linux => "helium-build/build-env:debian-buster-20190708",
                     SdkOperatingSystem.Windows => "helium-build/build-env:windows-nanoserver-1903",
                     _ => throw new Exception("Unexpected OS"),
                 };
 
-                var rootDir = currentPlatform.os switch {
-                    SdkOperatingSystem.Linux => "/",
-                    SdkOperatingSystem.Windows => "C:\\",
-                    _ => throw new Exception("Unexpected OS"),
-                };
+                var rootDir = platform.RootDirectory;
                 
                 
                 var socketDir = Path.Combine(tempDir, "socket");
@@ -88,7 +85,7 @@ namespace Helium.Engine
                 );
 
                 foreach(var requiredSdk in schema.sdk) {
-                    var sdk = sdks.First(sdkInfo => sdkInfo.Matches(requiredSdk.name, requiredSdk.version) && sdkInfo.SupportedBy(currentPlatform));
+                    var sdk = sdks.First(sdkInfo => sdkInfo.Matches(requiredSdk.name, requiredSdk.version) && sdkInfo.SupportedBy(platform));
 
                     var (sdkHash, sdkInstallDir) = await sdkInstallManager.GetInstalledSdkDir(sdk);
 
