@@ -41,8 +41,8 @@ namespace Helium.Engine
                 return 1;
             }
             
-            var outputDir = options.Schema ?? Path.Combine(workDir, "output");
-            var sourcesDir = options.Schema ?? Path.Combine(workDir, "sources");
+            var outputDir = options.Output ?? Path.Combine(workDir, "output");
+            var sourcesDir = options.Sources ?? Path.Combine(workDir, "sources");
             var archive = options.Archive;
 
             string schemaFile;

@@ -25,42 +25,35 @@ namespace Helium.Engine.Cache
 
         private readonly string cacheDir;
         private readonly string baseDir;
-        private readonly AsyncLock localLock = new AsyncLock();
         
         private readonly ConcurrentDictionary<string, Task<(string hash, string installDir)>> sdkStore = new ConcurrentDictionary<string, Task<(string hash, string installDir)>>();
         
 
         public Task<(string hash, string installDir)> GetInstalledSdkDir(SdkInfo sdk) {
             var sdkHash = SdkLoader.sdkSha256(sdk);
-            return sdkStore.GetOrAdd(sdkHash, _ => InstalledSdkUncached(sdk, sdkHash));
+            return sdkStore.GetOrAdd(sdkHash, _ => Task.Run(() => InstalledSdkUncached(sdk, sdkHash)));
         }
 
-        private async Task<(string hash, string installDir)> InstalledSdkUncached(SdkInfo sdk, string sdkHash) {
-            using var _ = await localLock.LockAsync();
-            using var semaphore = new Semaphore(1, 1, mutexId);
-            semaphore.WaitOne();
-            try {
-                Directory.CreateDirectory(baseDir);
-                
-                var sdkDir = Path.Combine(baseDir, sdkHash);
-                var installDir = Path.Combine(sdkDir, "install");
-                if(Directory.Exists(sdkDir)) {
-                    return (sdkHash, installDir);
-                }
-
-                var tempDir = Path.Combine(baseDir, Path.GetRandomFileName());
-                var tempInstallDir = Path.Combine(tempDir, "install");
-                Directory.CreateDirectory(tempInstallDir);
-
-                await InstallSdk(sdk, sdkHash, tempInstallDir);
-                
-                Directory.Move(tempDir, sdkDir);
-
+        private (string hash, string installDir) InstalledSdkUncached(SdkInfo sdk, string sdkHash) {
+            using var mutex = new Mutex(true, mutexId);
+            
+            Directory.CreateDirectory(baseDir);
+            
+            var sdkDir = Path.Combine(baseDir, sdkHash);
+            var installDir = Path.Combine(sdkDir, "install");
+            if(Directory.Exists(sdkDir)) {
                 return (sdkHash, installDir);
             }
-            finally {
-                semaphore.Release();
-            }
+
+            var tempDir = Path.Combine(baseDir, Path.GetRandomFileName());
+            var tempInstallDir = Path.Combine(tempDir, "install");
+            Directory.CreateDirectory(tempInstallDir);
+
+            InstallSdk(sdk, sdkHash, tempInstallDir).Wait();
+            
+            Directory.Move(tempDir, sdkDir);
+
+            return (sdkHash, installDir);
         }
 
         private async Task InstallSdk(SdkInfo sdk, string sdkHash, string installDir) {
@@ -69,7 +62,7 @@ namespace Helium.Engine.Cache
                     case SdkSetupStep.Download download:
                     {
                         if(!PathUtil.IsValidSubPath(download.fileName)) {
-                            throw new Exception("Download filenames may not contain . or .. directories");
+                            throw new Exception($"Download filenames may not contain .. directories: {download.fileName}");
                         }
 
                         var fileName = Path.Combine(installDir, download.fileName);
@@ -80,8 +73,12 @@ namespace Helium.Engine.Cache
 
                     case SdkSetupStep.Extract extract:
                     {
-                        if(!PathUtil.IsValidSubPath(extract.fileName) || !PathUtil.IsValidSubPath(extract.directory)) {
-                            throw new Exception("Extract filenames may not contain . or .. directories");
+                        if(!PathUtil.IsValidSubPath(extract.fileName)) {
+                            throw new Exception($"Extract filenames may not contain .. directories: {extract.fileName}");
+                        }
+                        
+                        if(!PathUtil.IsValidSubPath(extract.directory)) {
+                            throw new Exception($"Extract filenames may not contain .. directories: {extract.directory}");
                         }
 
                         var fileName = Path.Combine(installDir, extract.fileName);
@@ -107,7 +104,7 @@ namespace Helium.Engine.Cache
                     case SdkSetupStep.Delete delete:
                     {
                         if(!PathUtil.IsValidSubPath(delete.fileName)) {
-                            throw new Exception("Delete filenames may not contain . or .. directories");
+                            throw new Exception("Delete filenames may not contain .. directories");
                         }
                         
                         var fileName = Path.Combine(installDir, delete.fileName);
@@ -118,7 +115,7 @@ namespace Helium.Engine.Cache
                     case SdkSetupStep.CreateDirectory createDirectory:
                     {
                         if(!PathUtil.IsValidSubPath(createDirectory.fileName)) {
-                            throw new Exception("CreateDirectory filenames may not contain . or .. directories");
+                            throw new Exception("CreateDirectory filenames may not contain .. directories");
                         }
                         
                         var fileName = Path.Combine(installDir, createDirectory.fileName);
@@ -129,7 +126,7 @@ namespace Helium.Engine.Cache
                     case SdkSetupStep.CreateFile createFile:
                     {
                         if(!PathUtil.IsValidSubPath(createFile.fileName)) {
-                            throw new Exception("CreateFile filenames may not contain . or .. directories");
+                            throw new Exception("CreateFile filenames may not contain .. directories");
                         }
                         
                         var fileName = Path.Combine(installDir, createFile.fileName);

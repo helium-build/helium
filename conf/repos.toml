@@ -1,11 +1,11 @@
-[[repo.maven]]
+[[maven]]
 name = "maven-central"
 url = "https://repo1.maven.org/maven2/"
 
-[[repo.nuget]]
+[[nuget]]
 name = "NuGet.org"
 url = "https://api.nuget.org/v3/index.json"
 
-[repo.npm]
+[npm]
 registry = "https://registry.npmjs.com"
 

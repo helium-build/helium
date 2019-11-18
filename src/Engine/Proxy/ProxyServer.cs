@@ -33,7 +33,7 @@ namespace Helium.Engine.Proxy
 
         private static IHostBuilder CreateHostBuilder(string socketPath, IRecorder recorder, IArtifactSaver artifact) =>
             new HostBuilder()
-                .UseContentRoot(Program.AppDir)
+                .UseContentRoot(Path.GetFullPath(Environment.GetEnvironmentVariable("HELIUM_CONTENT_ROOT") ?? Program.AppDir))
                 .ConfigureLogging((hostingContext, logging) => {
                     logging.AddConfiguration((IConfiguration) hostingContext.Configuration.GetSection("Logging"));
                     logging.AddConsole();
@@ -50,7 +50,7 @@ namespace Helium.Engine.Proxy
                             config.AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: false);
                         }))
                         .UseKestrel(options => {
-                            options.ListenUnixSocket(socketPath);
+                            options.ListenUnixSocket(Path.GetFullPath(socketPath));
                         })
                         .ConfigureServices(services => {
                             services.AddRouting();

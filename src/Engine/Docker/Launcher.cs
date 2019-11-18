@@ -50,6 +50,11 @@ namespace Helium.Engine
             var env = new Dictionary<string, string>(props.Environment);
             env["HELIUM_SDK_PATH"] = string.Join(Path.PathSeparator, props.PathDirs);
 
+            foreach(var (name, value) in env) {
+                psi.ArgumentList.Add("-e");
+                psi.ArgumentList.Add($"{name}={value}");
+            }
+
             psi.ArgumentList.Add("-v");
             psi.ArgumentList.Add($"{Path.GetFullPath(props.Sources)}:{rootFSPath}sources");
 
@@ -57,7 +62,7 @@ namespace Helium.Engine
             psi.ArgumentList.Add($"{Path.GetFullPath(props.InstallDir)}:{rootFSPath}helium/install");
 
             psi.ArgumentList.Add(props.DockerImage);
-
+            
             props.Command.ForEach(psi.ArgumentList.Add);
 
             var process = Process.Start(psi) ?? throw new Exception("Could not start docker process.");

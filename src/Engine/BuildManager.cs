@@ -53,7 +53,7 @@ namespace Helium.Engine
             return await Launcher.Run(currentPlatform, launchProps);
         }
 
-        private static ICleanup<Func<Task<LaunchProperties>>> GetDockerLaunchProps(PlatformInfo platform, List<SdkInfo> sdks, string workDir, string sourcesDir, RepoConfig conf, SdkInstallManager sdkInstallManager, BuildSchema schema) =>
+        private static ICleanup<Func<Task<LaunchProperties>>> GetDockerLaunchProps(PlatformInfo platform, List<SdkInfo> sdks, string workDir, string sourcesDir, Config conf, SdkInstallManager sdkInstallManager, BuildSchema schema) =>
             DirectoryCleanup.CreateTempDir(workDir, async tempDir => {
 
                 var dockerImage = platform.os switch {
@@ -75,7 +75,7 @@ namespace Helium.Engine
                     dockerImage: dockerImage,
                     command: schema?.build?.command ?? throw new Exception("Build command not specified."),
                     sources: sourcesDir,
-                    socketDir: Path.Combine(socketDir, "helium.sock"),
+                    socketDir: socketDir,
                     installDir: installDir
                 );
 

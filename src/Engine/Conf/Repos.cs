@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Nett;
 
 namespace Helium.Engine.Conf
 {
@@ -15,5 +16,8 @@ namespace Helium.Engine.Conf
             { "nuget_push_url", "http://localhost:9000/nuget/publish" },
             { "npm", npm?.ToDictionary() },
         };
+
+        public static Repos Parse(string text) =>
+            Toml.ReadString<Repos>(text);
     }
 }

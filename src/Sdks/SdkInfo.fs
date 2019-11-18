@@ -1,8 +1,8 @@
 namespace Helium.Sdks
 
 open System
-open System
 open System.Runtime.InteropServices
+open SemVer
 
 [<RequireQualifiedAccess>]
 type SdkOperatingSystem =
@@ -88,7 +88,7 @@ type SdkInfo =
     
     member this.Matches(name: string, versionRange: string): bool =
         (this.implements |> List.contains name) &&
-            (((new SemVersion.Parser.RangeParser()).Evaluate this.version).Invoke <| SemVersion.SemanticVersion.Parse versionRange)
+            ((new Range(versionRange)).IsSatisfied this.version)
     
     member this.SupportedBy(platform: PlatformInfo): bool =
         this.platforms |> List.exists platform.SupportsRunning

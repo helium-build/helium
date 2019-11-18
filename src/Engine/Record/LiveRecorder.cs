@@ -37,8 +37,10 @@ namespace Helium.Engine.Record
             }
         }
 
-        public async Task<RepoConfig> LoadRepoConfig() => RepoConfig.Parse(
-            await CacheRepoConfig(() => File.ReadAllTextAsync(Path.Combine(ConfDir, "repos.toml"), Encoding.UTF8))
-        );
+        public async Task<Config> LoadRepoConfig() => new Config {
+            repo = Repos.Parse(
+                await CacheRepoConfig(() => File.ReadAllTextAsync(Path.Combine(ConfDir, "repos.toml"), Encoding.UTF8))
+            ),
+        };
     }
 }

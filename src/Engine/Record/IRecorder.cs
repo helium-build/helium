@@ -22,7 +22,7 @@ namespace Helium.Engine.Record
             throw new NotImplementedException();
         }
 
-        Task<RepoConfig> LoadRepoConfig() {
+        Task<Config> LoadRepoConfig() {
             throw new NotImplementedException();
         }
 
