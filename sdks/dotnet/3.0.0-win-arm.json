@@ -1,0 +1,61 @@
+{
+  "implements": [
+    "dotnet"
+  ],
+  "version": "3.0.0",
+  "platforms": [
+    {
+      "os": "Windows",
+      "arch": "Arm"
+    }
+  ],
+  "setupSteps": [
+    {
+      "Case": "Download",
+      "Fields": [
+        "https://dotnetcli.azureedge.net/dotnet/Sdk/3.0.100/dotnet-sdk-3.0.100-win-arm.zip",
+        "dotnet-sdk-3.0.100-win-arm.zip",
+        {
+          "Case": "Sha512",
+          "Fields": [
+            "e858f4db61937eb71eaa93b3382ea556ea8a22dee49767c642a38eb2ffca29c25f0676adf084fda233820e5bc5bb3f9f825e30afc41cc177ec50497a97077842"
+          ]
+        }
+      ]
+    },
+    {
+      "Case": "Extract",
+      "Fields": [
+        "dotnet-sdk-3.0.100-win-arm.zip",
+        "dotnet-3.0.0"
+      ]
+    },
+    {
+      "Case": "Delete",
+      "Fields": [
+        "dotnet-sdk-3.0.100-win-arm.zip"
+      ]
+    }
+  ],
+  "pathDirs": [
+    "dotnet-3.0.0"
+  ],
+  "env": {
+    "DOTNET_CLI_TELEMETRY_OPTOUT": {
+      "Case": "OfString",
+      "Fields": [
+        "1"
+      ]
+    },
+    "DOTNET_SKIP_FIRST_TIME_EXPERIENCE": {
+      "Case": "OfString",
+      "Fields": [
+        "1"
+      ]
+    }
+  },
+  "configFileTemplates": {
+    "$CONFIG/NuGet/NuGet.Config": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<configuration>\n    <packageSources>\n        <clear/>\n        {{ for repo in repos.nuget }}\n        <add key=\"{{ repo.name | escape }}\" value=\"{{ repo.url | escape }}\" />\n        {{ endfor }}\n    </packageSources>\n    \n    <config>\n        <add key=\"defaultPushSource\" value=\"{{ repos.nuget_push_url }}\" />\n    </config>\n</configuration>\n",
+    "~/.nuget/NuGet/NuGet.Config": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<configuration>\n    <packageSources>\n        <clear/>\n        {{ for repo in repos.nuget }}\n        <add key=\"{{ repo.name | escape }}\" value=\"{{ repo.url | escape }}\" />\n        {{ endfor }}\n    </packageSources>\n    \n    <config>\n        <add key=\"defaultPushSource\" value=\"{{ repos.nuget_push_url }}\" />\n    </config>\n</configuration>\n"
+  }
+}

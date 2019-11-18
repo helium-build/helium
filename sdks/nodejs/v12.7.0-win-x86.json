@@ -1,0 +1,47 @@
+{
+  "implements": [
+    "dotnet"
+  ],
+  "version": "12.7.0",
+  "platforms": [
+    {
+      "os": "Windows",
+      "arch": "X86"
+    }
+  ],
+  "setupSteps": [
+    {
+      "Case": "Download",
+      "Fields": [
+        "https://nodejs.org/dist/v12.7.0/node-v12.7.0-win-x86.zip",
+        "node-v12.7.0-win-x86.zip",
+        {
+          "Case": "Sha256",
+          "Fields": [
+            "020e1eea6c0f0cced9f96dbb7d87b474d930b4ce1ad89a1c3dc92e9b6126d279"
+          ]
+        }
+      ]
+    },
+    {
+      "Case": "Extract",
+      "Fields": [
+        "node-v12.7.0-win-x86.zip",
+        "."
+      ]
+    },
+    {
+      "Case": "Delete",
+      "Fields": [
+        "node-v12.7.0-win-x86.zip"
+      ]
+    }
+  ],
+  "pathDirs": [
+    "node-v12.7.0-win-x86/bin"
+  ],
+  "env": {},
+  "configFileTemplates": {
+    "~/.npmrc": "\n{% if repo.npm != null %}\nregistry={{repo.npm.registry}}\n{% endif %}\n"
+  }
+}

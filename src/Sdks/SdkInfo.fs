@@ -1,5 +1,6 @@
 namespace Helium.Sdks
 
+open Newtonsoft.Json
 open System
 open System.Runtime.InteropServices
 open SemVer
@@ -30,6 +31,7 @@ type PlatformInfo =
         (execPlatform.os = SdkOperatingSystem.None || execPlatform.os = this.os) &&
             (execPlatform.arch = SdkArch.None || execPlatform.arch = this.arch)
     
+    [<JsonIgnore>]
     member this.RootDirectory: string =
         match this.os with
         | SdkOperatingSystem.Linux -> "/"

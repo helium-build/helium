@@ -39,7 +39,7 @@ registry={{repo.npm.registry}}
         public async IAsyncEnumerable<(string path, SdkInfo)> GenerateSdks() {
             foreach(var version in versions) {
 
-                var shaMap = HashUtil.ParseSha512File(
+                var shaMap = HashUtil.ParseSha256File(
                     await HttpUtil.FetchString($"https://nodejs.org/dist/v{version}/SHASUMS256.txt")
                 );
                 

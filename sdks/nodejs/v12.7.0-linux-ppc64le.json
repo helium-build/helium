@@ -1,0 +1,47 @@
+{
+  "implements": [
+    "dotnet"
+  ],
+  "version": "12.7.0",
+  "platforms": [
+    {
+      "os": "Linux",
+      "arch": "Ppc64le"
+    }
+  ],
+  "setupSteps": [
+    {
+      "Case": "Download",
+      "Fields": [
+        "https://nodejs.org/dist/v12.7.0/node-v12.7.0-linux-ppc64le.tar.gz",
+        "node-v12.7.0-linux-ppc64le.tar.gz",
+        {
+          "Case": "Sha256",
+          "Fields": [
+            "314630c31f69ee95e41a9eeb5bbe12b4dc4dbcf603b809170dbd5230a2df210d"
+          ]
+        }
+      ]
+    },
+    {
+      "Case": "Extract",
+      "Fields": [
+        "node-v12.7.0-linux-ppc64le.tar.gz",
+        "."
+      ]
+    },
+    {
+      "Case": "Delete",
+      "Fields": [
+        "node-v12.7.0-linux-ppc64le.tar.gz"
+      ]
+    }
+  ],
+  "pathDirs": [
+    "node-v12.7.0-linux-ppc64le/bin"
+  ],
+  "env": {},
+  "configFileTemplates": {
+    "~/.npmrc": "\n{% if repo.npm != null %}\nregistry={{repo.npm.registry}}\n{% endif %}\n"
+  }
+}

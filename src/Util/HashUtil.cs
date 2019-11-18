@@ -12,8 +12,8 @@ namespace Helium.Util
     public static class HashUtil
     {
         private static readonly Regex sha256 = new Regex(@"^(?<hash>[a-fA-F0-9]{64})\s+.");
-        private static readonly Regex sha256File = new Regex(@"^(?<hash>[a-fA-F0-9]{64})\s+.(<fileName>.+)");
-        private static readonly Regex sha512File = new Regex(@"^(?<hash>[a-fA-F0-9]{128})\s+.(<fileName>.+)");
+        private static readonly Regex sha256File = new Regex(@"^(?<hash>[a-fA-F0-9]{64})\s+(?<fileName>.+)");
+        private static readonly Regex sha512File = new Regex(@"^(?<hash>[a-fA-F0-9]{128})\s+(?<fileName>.+)");
 
         public static string? ParseSha256(string input) {
             var match = sha256.Match(input);

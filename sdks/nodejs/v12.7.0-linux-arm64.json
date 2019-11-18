@@ -1,0 +1,47 @@
+{
+  "implements": [
+    "dotnet"
+  ],
+  "version": "12.7.0",
+  "platforms": [
+    {
+      "os": "Linux",
+      "arch": "Aarch64"
+    }
+  ],
+  "setupSteps": [
+    {
+      "Case": "Download",
+      "Fields": [
+        "https://nodejs.org/dist/v12.7.0/node-v12.7.0-linux-arm64.tar.gz",
+        "node-v12.7.0-linux-arm64.tar.gz",
+        {
+          "Case": "Sha256",
+          "Fields": [
+            "4eb18db42c36ac535ab306894f0bd6bf1058e61ef9702108b11fca7c1b44a484"
+          ]
+        }
+      ]
+    },
+    {
+      "Case": "Extract",
+      "Fields": [
+        "node-v12.7.0-linux-arm64.tar.gz",
+        "."
+      ]
+    },
+    {
+      "Case": "Delete",
+      "Fields": [
+        "node-v12.7.0-linux-arm64.tar.gz"
+      ]
+    }
+  ],
+  "pathDirs": [
+    "node-v12.7.0-linux-arm64/bin"
+  ],
+  "env": {},
+  "configFileTemplates": {
+    "~/.npmrc": "\n{% if repo.npm != null %}\nregistry={{repo.npm.registry}}\n{% endif %}\n"
+  }
+}
