@@ -10,7 +10,7 @@ namespace Helium.SdkGenerator
 {
     public class NodeJSCreator : ISdkCreator
     {
-        public string Name => "dotnet";
+        public string Name => "node";
 
         private readonly string[] versions = {
             "12.7.0",
@@ -54,7 +54,7 @@ registry={{repo.npm.registry}}
                     }
 
                     var sdkInfo = new SdkInfo(
-                        implements: ListModule.OfArray(new[] { "dotnet" }),
+                        implements: ListModule.OfArray(new[] { "node" }),
                         version: version,
                         platforms: ListModule.OfArray(new[] {
                             new PlatformInfo(platform.os, platform.arch), 
