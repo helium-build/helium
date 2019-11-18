@@ -89,7 +89,7 @@ namespace Helium.Engine
                             throw new Exception("SDK config filenames may not contain colons.");
                         }
 
-                        if(fileName.Split('/', '\\').Any(seg => seg == "." || seg == "..")) {
+                        if(!PathUtil.IsValidSubPath(fileName)) {
                             throw new Exception("SDK config filenames may not contain . or .. directories");
                         }
 

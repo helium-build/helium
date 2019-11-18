@@ -3,7 +3,7 @@ open Newtonsoft.Json
 open System.IO
 open System.Threading.Tasks
 open FSharp.Control.Tasks.V2
-open Newtonsoft.Json
+open Helium.Util
 
 
 let private createSerSettings () =
@@ -25,3 +25,9 @@ let loadSdks =
     
 let saveSdk (sdk: SdkInfo) (path: string): Task =
     File.WriteAllTextAsync(path, JsonConvert.SerializeObject(sdk, typeof<SdkInfo>, createSerSettings()))
+    
+let sdkSha256 (sdk: SdkInfo): string =
+    let settings = createSerSettings()
+    settings.Formatting <- Formatting.None
+    JsonConvert.SerializeObject(sdk, typeof<SdkInfo>, settings) |> HashUtil.Sha256UTF8
+    
