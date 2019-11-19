@@ -10,6 +10,10 @@ namespace Helium.Engine.Record
 {
     internal interface IRecorder : IAsyncDisposable
     {
+        Task<string> RecordArtifact(string path, Func<string, Task<string>> fetch) {
+            throw new NotImplementedException();
+        }
+        
         Task<BuildSchema> LoadSchema() {
             throw new NotImplementedException();
         }

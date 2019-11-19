@@ -36,13 +36,13 @@ namespace Helium.SdkGenerator
 <configuration>
     <packageSources>
         <clear/>
-        {{ for repo in repos.nuget }}
+        {% for repo in repos.nuget -%}
         <add key=""{{ repo.name | escape }}"" value=""{{ repo.url | escape }}"" />
-        {{ endfor }}
+        {% endfor -%}
     </packageSources>
     
     <config>
-        <add key=""defaultPushSource"" value=""{{ repos.nuget_push_url }}"" />
+        <add key=""defaultPushSource"" value=""{{ repos.nuget_push_url | escape }}"" />
     </config>
 </configuration>
 ";

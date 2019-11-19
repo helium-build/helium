@@ -44,7 +44,7 @@ namespace Helium.Engine
 
             foreach(var (containerDir, hostDir) in props.SdkDirs) {
                 psi.ArgumentList.Add("-v");
-                psi.ArgumentList.Add($"{Path.GetFullPath(hostDir)}:{containerDir}");
+                psi.ArgumentList.Add($"{Path.GetFullPath(hostDir)}:{containerDir}:ro");
             }
 
             var env = new Dictionary<string, string>(props.Environment);
@@ -60,7 +60,7 @@ namespace Helium.Engine
 
             psi.ArgumentList.Add("-v");
             psi.ArgumentList.Add($"{Path.GetFullPath(props.InstallDir)}:{rootFSPath}helium/install");
-
+            
             psi.ArgumentList.Add(props.DockerImage);
             
             props.Command.ForEach(psi.ArgumentList.Add);

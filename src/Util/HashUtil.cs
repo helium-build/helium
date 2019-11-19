@@ -45,7 +45,7 @@ namespace Helium.Util
 
         public static string Sha256UTF8(string str) {
             using var sha256 = SHA256.Create();
-            var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(str));
+            var hash = sha256.ComputeHash(Globals.HeliumEncoding.GetBytes(str));
             return HashToHex(hash);
         }
 

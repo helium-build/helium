@@ -87,7 +87,7 @@ namespace Helium.Engine.Cache
                         if(fileName.EndsWith(".zip", StringComparison.InvariantCultureIgnoreCase)) {
                             ZipFile.ExtractToDirectory(fileName, directory);
                         }
-                        else if(fileName.EndsWith(".tar.gz", StringComparison.InvariantCultureIgnoreCase)) {
+                        else if(fileName.EndsWith(".tar.gz", StringComparison.InvariantCultureIgnoreCase) || fileName.EndsWith(".tgz", StringComparison.InvariantCultureIgnoreCase)) {
                             await using var inStream = File.OpenRead(fileName);
                             await using var gzipStream = new GZipInputStream(inStream);
 
@@ -130,7 +130,7 @@ namespace Helium.Engine.Cache
                         }
                         
                         var fileName = Path.Combine(installDir, createFile.fileName);
-                        await File.WriteAllTextAsync(fileName, createFile.content, Encoding.UTF8);
+                        await File.WriteAllTextAsync(fileName, createFile.content, Globals.HeliumEncoding);
                         ArchiveUtil.MakeExecutable(fileName);
                     }
                         break;

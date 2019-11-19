@@ -13,9 +13,9 @@ namespace Helium.SdkGenerator
         private const string repoTemplate =
 @"
 [repositories]
-{{ for repo in repos.maven }}
+{% for repo in repos.maven -%}
 {{ repo.name }}: {{ repo.url }}
-{{ endfor }}
+{% endfor -%}
 ";
         
         public string Name => "SBT";

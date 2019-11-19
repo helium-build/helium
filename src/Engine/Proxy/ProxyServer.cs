@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Helium.Engine.Conf;
 using Helium.Engine.Record;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -25,24 +26,24 @@ namespace Helium.Engine.Proxy
             host.Dispose();
         }
 
-        public static async Task<ProxyServer> Create(string socketPath, IRecorder recorder, IArtifactSaver artifact) {
-            var host = CreateHostBuilder(socketPath, recorder, artifact).Build();
+        public static async Task<ProxyServer> Create(string socketPath, IRecorder recorder, Config config, IArtifactSaver artifact) {
+            var host = CreateHostBuilder(socketPath, recorder, config, artifact).Build();
             await host.StartAsync();
             return new ProxyServer(host);
         }
 
-        private static IHostBuilder CreateHostBuilder(string socketPath, IRecorder recorder, IArtifactSaver artifact) =>
+        private static IHostBuilder CreateHostBuilder(string socketPath, IRecorder recorder, Config config, IArtifactSaver artifact) =>
             new HostBuilder()
                 .UseContentRoot(Path.GetFullPath(Environment.GetEnvironmentVariable("HELIUM_CONTENT_ROOT") ?? Program.AppDir))
                 .ConfigureLogging((hostingContext, logging) => {
                     logging.AddConfiguration((IConfiguration) hostingContext.Configuration.GetSection("Logging"));
                     logging.AddConsole();
-                    logging.AddDebug();
-                    logging.AddEventSourceLogger();
+                    //logging.AddDebug();
+                    //logging.AddEventSourceLogger();
                 })
                 .ConfigureWebHost(webBuilder => {
                     webBuilder
-                        .UseSetting(WebHostDefaults.SuppressStatusMessagesKey, "True")
+                        //.UseSetting(WebHostDefaults.SuppressStatusMessagesKey, "True")
                         .ConfigureAppConfiguration(((builderContext, config) => {
                             var env = builderContext.HostingEnvironment;
 
@@ -65,9 +66,8 @@ namespace Helium.Engine.Proxy
                             app.UseRouting();
 
                             app.UseEndpoints(endpoints => {
-                                endpoints.MapGet("/", async context => {
-                                    await context.Response.WriteAsync("Hello World!");
-                                });
+                                
+                                MavenRoutes.Build(recorder, config).Register(endpoints);
                             });
                         });
                 });

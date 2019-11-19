@@ -7,10 +7,10 @@ namespace Helium.Engine.Conf
 {
     public sealed class Config
     {
-        public Repos repo { get; set; } = new Repos();
+        public Repos repos { get; set; } = new Repos();
         
         public Dictionary<string, object> ToDictionary() => new Dictionary<string, object> {
-            { "repo", repo.ToDictionary() },
+            { "repos", repos.ToDictionary() },
         };
     }
 }

@@ -42,6 +42,6 @@
   ],
   "env": {},
   "configFileTemplates": {
-    "~/.sbt/repositories": "\n[repositories]\n{{ for repo in repos.maven }}\n{{ repo.name }}: {{ repo.url }}\n{{ endfor }}\n"
+    "~/.sbt/repositories": "\n[repositories]\n{% for repo in repos.maven -%}\n{{ repo.name }}: {{ repo.url }}\n{% endfor -%}\n"
   }
 }

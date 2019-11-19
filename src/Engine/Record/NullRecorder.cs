@@ -26,6 +26,10 @@ namespace Helium.Engine.Record
         protected override string SdkDir { get; }
         protected override string ConfDir { get; }
         
+        
+        public override Task<string> RecordArtifact(string path, Func<string, Task<string>> fetch) =>
+            fetch(cacheDir);
+        
         public override SdkInstallManager CreateSdkInstaller() => new SdkInstallManager(cacheDir);
             
     }

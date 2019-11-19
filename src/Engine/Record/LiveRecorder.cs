@@ -7,6 +7,7 @@ using Helium.Engine.Build;
 using Helium.Engine.Cache;
 using Helium.Engine.Conf;
 using Helium.Sdks;
+using Helium.Util;
 
 namespace Helium.Engine.Record
 {
@@ -23,12 +24,14 @@ namespace Helium.Engine.Record
 
         
         public async ValueTask DisposeAsync() { }
-        
+
+        public abstract Task<string> RecordArtifact(string path, Func<string, Task<string>> fetch);
+
         protected virtual Task<string> CacheBuildSchema(Func<Task<string>> readBuildSchema) => readBuildSchema();
         protected virtual Task<string> CacheRepoConfig(Func<Task<string>> readRepoConfig) => readRepoConfig();
 
         public async Task<BuildSchema> LoadSchema() => BuildSchema.Parse(
-            await CacheBuildSchema(() => File.ReadAllTextAsync(SchemaFile, Encoding.UTF8))
+            await CacheBuildSchema(() => File.ReadAllTextAsync(SchemaFile, Globals.HeliumEncoding))
         );
 
         public async IAsyncEnumerable<SdkInfo> ListAvailableSdks() {
@@ -38,8 +41,8 @@ namespace Helium.Engine.Record
         }
 
         public async Task<Config> LoadRepoConfig() => new Config {
-            repo = Repos.Parse(
-                await CacheRepoConfig(() => File.ReadAllTextAsync(Path.Combine(ConfDir, "repos.toml"), Encoding.UTF8))
+            repos = Repos.Parse(
+                await CacheRepoConfig(() => File.ReadAllTextAsync(Path.Combine(ConfDir, "repos.toml"), Globals.HeliumEncoding))
             ),
         };
     }

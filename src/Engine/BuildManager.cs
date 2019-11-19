@@ -47,6 +47,7 @@ namespace Helium.Engine
             await using var proxyServer = await ProxyServer.Create(
                 Path.Combine(launchProps.SocketDir, "helium.sock"),
                 recorder,
+                conf,
                 artifact
             );
             
@@ -99,7 +100,7 @@ namespace Helium.Engine
 
                         var fullPath = Path.Combine(installDir, baseDir, path);
                         Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
-                        await File.WriteAllTextAsync(fullPath, fileContent, Encoding.UTF8);
+                        await File.WriteAllTextAsync(fullPath, fileContent, Globals.HeliumEncoding);
                     }
 
                     var containerSdkDir = Path.Combine(rootDir, "helium/sdk", sdkHash);
