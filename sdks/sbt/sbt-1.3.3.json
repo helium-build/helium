@@ -2,7 +2,7 @@
   "implements": [
     "sbt"
   ],
-  "version": "1.3.2",
+  "version": "1.3.3",
   "platforms": [
     {
       "os": "None",
@@ -13,12 +13,12 @@
     {
       "Case": "Download",
       "Fields": [
-        "https://piccolo.link/sbt-1.3.2.tgz",
-        "sbt-1.3.2.tgz",
+        "https://piccolo.link/sbt-1.3.3.tgz",
+        "sbt-1.3.3.tgz",
         {
           "Case": "Sha256",
           "Fields": [
-            "ed8cef399129895ad0d757eea812b3f95830a36fa838f8ede1c6cdc2294f326f"
+            "fe64a24ecd26ae02ac455336f664bbd7db6a040144b3106f1c45ebd42e8a476c"
           ]
         }
       ]
@@ -26,14 +26,14 @@
     {
       "Case": "Extract",
       "Fields": [
-        "sbt-1.3.2.tgz",
+        "sbt-1.3.3.tgz",
         "."
       ]
     },
     {
       "Case": "Delete",
       "Fields": [
-        "sbt-1.3.2.tgz"
+        "sbt-1.3.3.tgz"
       ]
     }
   ],
