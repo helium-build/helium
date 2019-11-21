@@ -65,6 +65,10 @@ namespace Helium.Engine
             
             props.Command.ForEach(psi.ArgumentList.Add);
 
+            foreach(var arg in psi.ArgumentList) {
+                Console.WriteLine(arg);
+            }
+
             var process = Process.Start(psi) ?? throw new Exception("Could not start docker process.");
             await WaitForExitAsync(process);
 

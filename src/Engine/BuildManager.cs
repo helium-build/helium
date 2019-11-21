@@ -63,7 +63,7 @@ namespace Helium.Engine
 
                 var dockerImage = platform.os switch {
                     SdkOperatingSystem.Linux => "helium-build/build-env:debian-buster-20190708",
-                    SdkOperatingSystem.Windows => "helium-build/build-env:windows-nanoserver-1903",
+                    SdkOperatingSystem.Windows => "helium-build/build-env:windows-servercore-1903",
                     _ => throw new Exception("Unexpected OS"),
                 };
 

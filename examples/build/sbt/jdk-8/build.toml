@@ -1,5 +1,5 @@
 [build]
-command = ["sbt", "run"]
+command = ["./build"]
 
 [[sdk]]
 name = "jdk"
