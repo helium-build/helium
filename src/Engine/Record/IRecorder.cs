@@ -11,31 +11,21 @@ namespace Helium.Engine.Record
 {
     internal interface IRecorder : IAsyncDisposable
     {
-        Task<string> RecordArtifact(string path, Func<string, Task<string>> fetch) {
-            throw new NotImplementedException();
-        }
+        Task<string> RecordArtifact(string path, Func<string, Task<string>> fetch);
 
-        Task<JObject> RecordTransientMetadata(string path, Func<Task<JObject>> fetch) {
-            throw new NotImplementedException();
-        }
-        
-        Task<BuildSchema> LoadSchema() {
-            throw new NotImplementedException();
-        }
+        Task<JObject> RecordTransientMetadata(string path, Func<Task<JObject>> fetch);
 
-        IAsyncEnumerable<SdkInfo> ListAvailableSdks() {
-            throw new NotImplementedException();
-        }
+        Task<BuildSchema> LoadSchema();
 
-        SdkInstallManager CreateSdkInstaller() {
-            throw new NotImplementedException();
-        }
+        IAsyncEnumerable<SdkInfo> ListAvailableSdks();
 
-        Task<Config> LoadRepoConfig() {
-            throw new NotImplementedException();
-        }
+        ISdkInstallManager CreateSdkInstaller();
 
-        string SourcesDir => throw new NotImplementedException();
+        Task<Config> LoadRepoConfig();
+
+        Task RecordMetadata();
+
+        string SourcesDir { get; }
         
     }
 }

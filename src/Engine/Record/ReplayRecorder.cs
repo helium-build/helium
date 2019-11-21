@@ -1,20 +1,108 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
+using Helium.Engine.Build;
+using Helium.Engine.Cache;
+using Helium.Engine.Conf;
+using Helium.Sdks;
+using Helium.Util;
+using ICSharpCode.SharpZipLib.Tar;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Helium.Engine.Record
 {
     internal class ReplayRecorder : IRecorder
     {
-        public ReplayRecorder(string archiveFile, string workDir) {
-            throw new NotImplementedException();
+        private ReplayRecorder(string extractedDir, JObject dependencyMetadata) {
+            this.extractedDir = extractedDir;
+            this.dependencyMetadata = dependencyMetadata;
+            SourcesDir = Path.Combine(extractedDir, ArchiveRecorder.SourcesPath);
         }
 
-        public static Task<IRecorder> Create(string archiveFile, string workDir) {
-            throw new NotImplementedException();
+        private readonly string extractedDir;
+        private readonly JObject dependencyMetadata;
+
+        public static async Task<IRecorder> Create(string archiveFile, string workDir) {
+            var extractedDir = Path.Combine(workDir, Path.GetRandomFileName());
+            try {
+                Directory.CreateDirectory(extractedDir);
+                
+                await using(var stream = File.OpenRead(archiveFile)) {
+                    await using var tarStream = new TarInputStream(stream);
+                    await ArchiveUtil.ExtractTar(tarStream, extractedDir);
+                }
+
+                var dependencyMetadata = JsonConvert.DeserializeObject<JObject>(
+                    await File.ReadAllTextAsync(Path.Combine(extractedDir, ArchiveRecorder.TransientMetadataPath))
+                );
+                
+                return new ReplayRecorder(extractedDir, dependencyMetadata);
+            }
+            catch {
+                try {
+                    Directory.Delete(extractedDir, recursive: true);
+                }
+                catch {}
+                throw;
+            }
         }
 
         public async ValueTask DisposeAsync() {
-            throw new NotImplementedException();
+            Directory.Delete(extractedDir, recursive: true);
         }
+
+        public async Task<string> RecordArtifact(string path, Func<string, Task<string>> fetch) =>
+            Path.Combine(extractedDir, ArchiveRecorder.ArtifactPath(path));
+
+        public async Task<JObject> RecordTransientMetadata(string path, Func<Task<JObject>> fetch) =>
+            (JObject?)dependencyMetadata[path] ?? throw new Exception("Could not find metadata path.");
+
+        public async Task<BuildSchema> LoadSchema() {
+            var text = await File.ReadAllTextAsync(Path.Combine(extractedDir, ArchiveRecorder.BuildSchemaPath));
+            return BuildSchema.Parse(text);
+        }
+
+        public async IAsyncEnumerable<SdkInfo> ListAvailableSdks() {
+            foreach(var subDir in Directory.GetDirectories(Path.Combine(extractedDir, "sdks"))) {
+                yield return await SdkLoader.loadSdk(Path.Combine(subDir, "sdk.json"));
+            }
+        }
+
+        public ISdkInstallManager CreateSdkInstaller() =>
+            new ReplaySdkManager(this);
+
+        public async Task<Config> LoadRepoConfig() {
+            var confData = await File.ReadAllTextAsync(Path.Combine(extractedDir, ArchiveRecorder.RepoConfigPath));
+            return new Config {
+                repos = Repos.Parse(confData),
+            };
+        }
+
+        public async Task RecordMetadata() { }
+
+        public string SourcesDir { get; }
+
+        private sealed class ReplaySdkManager : ISdkInstallManager
+        {
+            public ReplaySdkManager(ReplayRecorder replayRecorder) {
+                this.replayRecorder = replayRecorder;
+            }
+
+            private readonly ReplayRecorder replayRecorder;
+
+            public async Task<(string hash, string installDir)> GetInstalledSdkDir(SdkInfo sdk) {
+                var sdkHash = SdkLoader.sdkSha256(sdk);
+                var sdkDir = Path.Combine(replayRecorder.extractedDir, ArchiveRecorder.SdkPath(sdkHash));
+
+                if(!Directory.Exists(sdkDir)) {
+                    throw new Exception("Unknown SDK.");
+                }
+
+                return (sdkHash, Path.Combine(sdkDir, "install"));
+            }
+        }
+        
     }
 }

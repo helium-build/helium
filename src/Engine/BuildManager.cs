@@ -51,10 +51,14 @@ namespace Helium.Engine
                 artifact
             );
             
-            return await Launcher.Run(currentPlatform, launchProps);
+            int exitCode = await Launcher.Run(currentPlatform, launchProps);
+
+            await recorder.RecordMetadata();
+            
+            return exitCode;
         }
 
-        private static ICleanup<Func<Task<LaunchProperties>>> GetDockerLaunchProps(PlatformInfo platform, List<SdkInfo> sdks, string workDir, string sourcesDir, Config conf, SdkInstallManager sdkInstallManager, BuildSchema schema) =>
+        private static ICleanup<Func<Task<LaunchProperties>>> GetDockerLaunchProps(PlatformInfo platform, List<SdkInfo> sdks, string workDir, string sourcesDir, Config conf, ISdkInstallManager sdkInstallManager, BuildSchema schema) =>
             DirectoryCleanup.CreateTempDir(workDir, async tempDir => {
 
                 var dockerImage = platform.os switch {

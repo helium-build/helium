@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ using Nito.AsyncEx;
 
 namespace Helium.Engine.Cache
 {
-    public class SdkInstallManager
+    public class SdkInstallManager : ISdkInstallManager
     {
         private const string mutexId = "Global\\{f6157371-da3d-47e5-b825-83bc6a6fd60e}";
         
@@ -29,13 +30,15 @@ namespace Helium.Engine.Cache
         private readonly ConcurrentDictionary<string, Task<(string hash, string installDir)>> sdkStore = new ConcurrentDictionary<string, Task<(string hash, string installDir)>>();
         
 
-        public Task<(string hash, string installDir)> GetInstalledSdkDir(SdkInfo sdk) {
+        public virtual Task<(string hash, string installDir)> GetInstalledSdkDir(SdkInfo sdk) {
             var sdkHash = SdkLoader.sdkSha256(sdk);
             return sdkStore.GetOrAdd(sdkHash, _ => Task.Run(() => InstalledSdkUncached(sdk, sdkHash)));
         }
 
         private (string hash, string installDir) InstalledSdkUncached(SdkInfo sdk, string sdkHash) {
             using var mutex = new Mutex(true, mutexId);
+            
+            Console.Error.WriteLine($"Installing SDK for {sdk.implements.First()} version {sdk.version}");
             
             Directory.CreateDirectory(baseDir);
             
@@ -57,6 +60,8 @@ namespace Helium.Engine.Cache
         }
 
         private async Task InstallSdk(SdkInfo sdk, string sdkHash, string installDir) {
+            await SdkLoader.saveSdk(sdk, Path.Combine(installDir, "../sdk.json"));
+            
             foreach(var step in sdk.setupSteps) {
                 switch(step) {
                     case SdkSetupStep.Download download:

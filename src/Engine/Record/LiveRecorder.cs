@@ -21,20 +21,20 @@ namespace Helium.Engine.Record
 
         public abstract string SourcesDir { get; }
 
-        public abstract SdkInstallManager CreateSdkInstaller();
+        public abstract ISdkInstallManager CreateSdkInstaller();
 
         
-        public async ValueTask DisposeAsync() { }
+        public virtual async ValueTask DisposeAsync() { }
 
         public abstract Task<string> RecordArtifact(string path, Func<string, Task<string>> fetch);
 
         public abstract Task<JObject> RecordTransientMetadata(string path, Func<Task<JObject>> fetch);
 
-        protected virtual Task<string> CacheBuildSchema(Func<Task<string>> readBuildSchema) => readBuildSchema();
-        protected virtual Task<string> CacheRepoConfig(Func<Task<string>> readRepoConfig) => readRepoConfig();
+        protected virtual Task<string> RecordBuildSchema(Func<Task<string>> readBuildSchema) => readBuildSchema();
+        protected virtual Task<string> RecordRepoConfig(Func<Task<string>> readRepoConfig) => readRepoConfig();
 
         public async Task<BuildSchema> LoadSchema() => BuildSchema.Parse(
-            await CacheBuildSchema(() => File.ReadAllTextAsync(SchemaFile, Globals.HeliumEncoding))
+            await RecordBuildSchema(() => File.ReadAllTextAsync(SchemaFile, Globals.HeliumEncoding))
         );
 
         public async IAsyncEnumerable<SdkInfo> ListAvailableSdks() {
@@ -45,8 +45,10 @@ namespace Helium.Engine.Record
 
         public async Task<Config> LoadRepoConfig() => new Config {
             repos = Repos.Parse(
-                await CacheRepoConfig(() => File.ReadAllTextAsync(Path.Combine(ConfDir, "repos.toml"), Globals.HeliumEncoding))
+                await RecordRepoConfig(() => File.ReadAllTextAsync(Path.Combine(ConfDir, "repos.toml"), Globals.HeliumEncoding))
             ),
         };
+
+        public abstract Task RecordMetadata();
     }
 }

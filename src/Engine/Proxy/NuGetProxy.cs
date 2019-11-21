@@ -19,8 +19,6 @@ namespace Helium.Engine.Proxy
             this.serverBaseUrl = serverBaseUrl;
         }
 
-        private const string mode = "maven";
-        
         private readonly IRecorder recorder;
         private readonly string name;
         private readonly string serverBaseUrl;
@@ -28,7 +26,7 @@ namespace Helium.Engine.Proxy
 
         public Task<string> GetPackage(string packageId, string packageVersion) =>
             recorder.RecordArtifact(
-                "nuget/" + packageId + "/" + packageVersion + "/" + packageId + "." + packageVersion + ".nupkg", 
+                "nuget/" + name + "/" + packageId + "/" + packageVersion + "/" + packageId + "." + packageVersion + ".nupkg", 
                 async cacheDir => {
                     var finalFileName = Path.Combine(cacheDir, "dependencies", "nuget", name, packageId, packageVersion, packageId + "." + packageVersion + ".nupkg");
 
@@ -45,7 +43,7 @@ namespace Helium.Engine.Proxy
             );
 
         public Task<JObject> GetPackageIndex(string packageId) =>
-            recorder.RecordTransientMetadata($"nuget/v3/{packageId}/index.json", async () => {
+            recorder.RecordTransientMetadata($"nuget/v3/{name}/{packageId}/index.json", async () => {
                 var packageBaseAddress = await NuGetPackageBaseAddress();
                 
                 var url = packageBaseAddress + (packageBaseAddress.EndsWith("/") ? "" : "/") + packageId + "/index.json";

@@ -7,6 +7,7 @@ using Helium.Engine.Cache;
 using Helium.Engine.Conf;
 using Helium.Sdks;
 using Newtonsoft.Json.Linq;
+using Nito.AsyncEx;
 
 namespace Helium.Engine.Record
 {
@@ -36,7 +37,8 @@ namespace Helium.Engine.Record
         public override Task<JObject> RecordTransientMetadata(string path, Func<Task<JObject>> fetch) =>
             metadataCache.GetOrAdd(path, _ => fetch());
 
-        public override SdkInstallManager CreateSdkInstaller() => new SdkInstallManager(cacheDir);
-            
+        public override ISdkInstallManager CreateSdkInstaller() => new SdkInstallManager(cacheDir);
+
+        public override async Task RecordMetadata() { }
     }
 }

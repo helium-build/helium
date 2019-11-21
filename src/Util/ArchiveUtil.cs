@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Tar;
 using Mono.Unix;
@@ -50,6 +51,37 @@ namespace Helium.Util
             }
         }
 
+        public static async Task AddDirToTar(TarOutputStream tarStream, string path, string directory) {
+            foreach(var file in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories)) {
+                var entryPath = file.Substring(directory.Length);
+                if(entryPath.StartsWith(Path.DirectorySeparatorChar) || entryPath.StartsWith(Path.AltDirectorySeparatorChar)) {
+                    entryPath = entryPath.Substring(1);
+                }
+
+                await AddFileToTar(tarStream, Path.Combine(path, entryPath), file);
+            }
+        }
+
+        public static async Task AddFileToTar(TarOutputStream tarStream, string path, string file) {
+            var entry = TarEntry.CreateTarEntry(path);
+            entry.Size = new FileInfo(file).Length;
+            tarStream.PutNextEntry(entry);
+
+            await using var fileStream = File.OpenRead(file);
+            await fileStream.CopyToAsync(tarStream);
+            tarStream.CloseEntry();
+        }
+
+        public static async Task AddStringToTar(TarOutputStream tarStream, string path, string data) {
+            var buffer = Encoding.UTF8.GetBytes(data);
+            
+            var entry = TarEntry.CreateTarEntry(path);
+            entry.Size = buffer.Length;
+            tarStream.PutNextEntry(entry);
+            await tarStream.WriteAsync(buffer);
+            tarStream.CloseEntry();
+        }
+
         private static void EnsurePathDoesNotEscape(string directory, string path) {
             var combined = Path.Combine(directory, path);
             if(!combined.StartsWith(directory)) {
@@ -91,8 +123,5 @@ namespace Helium.Util
             File = 0,
             Directory = 1,
         }
-        
-
-
     }
 }
