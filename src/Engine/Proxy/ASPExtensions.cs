@@ -38,6 +38,7 @@ namespace Helium.Engine.Proxy
         public static async Task SendJson<T>(this HttpResponse response, T obj) {
             response.PrepareJson();
             var jsonStr = JsonConvert.SerializeObject(obj, typeof(T), new JsonSerializerSettings());
+            response.ContentLength = Encoding.UTF8.GetByteCount(jsonStr);
             await response.WriteAsync(jsonStr, Encoding.UTF8);
         }
         

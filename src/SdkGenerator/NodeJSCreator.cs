@@ -29,9 +29,9 @@ namespace Helium.SdkGenerator
 
         private const string configFile =
 @"
-{% if repo.npm != null %}
-registry={{repo.npm.registry}}
-{% endif %}
+{% if repos.npm != null -%}
+registry={{repos.npm.registry}}
+{% endif -%}
 ";
         
         

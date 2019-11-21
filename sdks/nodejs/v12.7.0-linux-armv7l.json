@@ -42,6 +42,6 @@
   ],
   "env": {},
   "configFileTemplates": {
-    "~/.npmrc": "\n{% if repo.npm != null %}\nregistry={{repo.npm.registry}}\n{% endif %}\n"
+    "~/.npmrc": "\n{% if repos.npm != null -%}\nregistry={{repos.npm.registry}}\n{% endif -%}\n"
   }
 }

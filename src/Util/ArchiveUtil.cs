@@ -30,7 +30,7 @@ namespace Helium.Util
                     
                     EnsurePathDoesNotEscape(directory, target);
 
-                    CreateSymlink(entryFileName, target, entry.IsDirectory);
+                    CreateSymlink(entryFileName, entry.TarHeader.LinkName, entry.IsDirectory);
                 }
                 else {
                     if(entry.IsDirectory) {
