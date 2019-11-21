@@ -38,12 +38,9 @@ namespace Helium.Engine.Proxy
                 .ConfigureLogging((hostingContext, logging) => {
                     logging.AddConfiguration((IConfiguration) hostingContext.Configuration.GetSection("Logging"));
                     logging.AddConsole();
-                    //logging.AddDebug();
-                    //logging.AddEventSourceLogger();
                 })
                 .ConfigureWebHost(webBuilder => {
                     webBuilder
-                        //.UseSetting(WebHostDefaults.SuppressStatusMessagesKey, "True")
                         .ConfigureAppConfiguration(((builderContext, config) => {
                             var env = builderContext.HostingEnvironment;
 
@@ -66,8 +63,8 @@ namespace Helium.Engine.Proxy
                             app.UseRouting();
 
                             app.UseEndpoints(endpoints => {
-                                
                                 MavenRoutes.Build(recorder, config).Register(endpoints);
+                                NuGetRoutes.Build(recorder, artifact, config).Register(endpoints);
                             });
                         });
                 });

@@ -12,7 +12,7 @@ namespace Helium.Engine.Conf
             var name = this.name ?? throw new Exception("NuGet repo name is missing.");
             return new Dictionary<string, object?> {
                 {"name", name},
-                {"url", $"http://localhost:9000/nuget/{name}/v3/index.json"},
+                {"url", $"http://localhost:9000/nuget/v3/{name}/index.json"},
             };
         }
     }

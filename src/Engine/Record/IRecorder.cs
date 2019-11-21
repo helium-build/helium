@@ -5,12 +5,17 @@ using Helium.Engine.Build;
 using Helium.Engine.Cache;
 using Helium.Engine.Conf;
 using Helium.Sdks;
+using Newtonsoft.Json.Linq;
 
 namespace Helium.Engine.Record
 {
     internal interface IRecorder : IAsyncDisposable
     {
         Task<string> RecordArtifact(string path, Func<string, Task<string>> fetch) {
+            throw new NotImplementedException();
+        }
+
+        Task<JObject> RecordTransientMetadata(string path, Func<Task<JObject>> fetch) {
             throw new NotImplementedException();
         }
         
@@ -31,5 +36,6 @@ namespace Helium.Engine.Record
         }
 
         string SourcesDir => throw new NotImplementedException();
+        
     }
 }

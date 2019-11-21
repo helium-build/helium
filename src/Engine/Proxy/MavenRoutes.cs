@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text.RegularExpressions;
+using DotLiquid.Util;
 using Helium.Engine.Conf;
 using Helium.Engine.Record;
 using Microsoft.AspNetCore.Builder;
@@ -16,17 +17,13 @@ namespace Helium.Engine.Proxy
             this.proxies = proxies;
         }
 
-        private const string pathPartFormat = @"[a-z-A-Z0-9_\-][a-z-A-Z0-9_\-\.]*";
+        private const string pathPartFormat = @"[a-zA-Z0-9_\-][a-zA-Z0-9_\-\.]*";
         private static readonly Regex pathRegex = new Regex("^" + pathPartFormat + "(/" + pathPartFormat + ")*$");
-        private static readonly string[] GetHeadMethods = new[] {
-            "GET",
-            "HEAD",
-        };
         
         private readonly Dictionary<string, MavenProxy> proxies;
 
         public void Register(IEndpointRouteBuilder endpoint) {
-            endpoint.MapMethods("maven/{proxyName}/{**path}", GetHeadMethods, async context => {
+            endpoint.MapGetHead("maven/{proxyName}/{**path}", async (context, isGet) => {
                 var proxyName = (string)context.GetRouteValue("proxyName");
                 var path = (string)context.GetRouteValue("path");
                 if(!proxies.TryGetValue(proxyName, out var proxy)) {
@@ -40,7 +37,7 @@ namespace Helium.Engine.Proxy
                 }
 
                 var file = await proxy.GetArtifact(path);
-                if(context.Request.Method == "GET") {
+                if(isGet) {
                     await context.Response.SendFileAsync(file);
                 }
             });

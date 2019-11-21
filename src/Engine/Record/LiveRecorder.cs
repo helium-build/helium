@@ -8,6 +8,7 @@ using Helium.Engine.Cache;
 using Helium.Engine.Conf;
 using Helium.Sdks;
 using Helium.Util;
+using Newtonsoft.Json.Linq;
 
 namespace Helium.Engine.Record
 {
@@ -26,6 +27,8 @@ namespace Helium.Engine.Record
         public async ValueTask DisposeAsync() { }
 
         public abstract Task<string> RecordArtifact(string path, Func<string, Task<string>> fetch);
+
+        public abstract Task<JObject> RecordTransientMetadata(string path, Func<Task<JObject>> fetch);
 
         protected virtual Task<string> CacheBuildSchema(Func<Task<string>> readBuildSchema) => readBuildSchema();
         protected virtual Task<string> CacheRepoConfig(Func<Task<string>> readRepoConfig) => readRepoConfig();

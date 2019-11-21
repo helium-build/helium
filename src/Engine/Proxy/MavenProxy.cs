@@ -30,7 +30,6 @@ namespace Helium.Engine.Proxy
                     if(!url.EndsWith("/")) url += "/";
                     url += path;
                     
-                    Console.WriteLine(url);
                     await HttpUtil.FetchFile(url, tempFile);
                 });
 
