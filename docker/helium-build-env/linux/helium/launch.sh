@@ -2,7 +2,7 @@
 
 export PATH=$PATH:$HELIUM_SDK_PATH
 
-socat TCP-LISTEN:9000,reuseaddr,fork UNIX-CONNECT:/helium/socket/helium.sock &
+/helium/LocalhostToUnix/Helium.LocalhostToUnix /helium/socket/helium.sock 9000 &
 SOCAT_PID=$!
 
 if [ -d "/helium/install/home" ]; then cp -rT /helium/install/home $HOME; fi
