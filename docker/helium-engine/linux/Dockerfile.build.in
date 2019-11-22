@@ -1,4 +1,4 @@
-FROM openjdk:11.0.4-jdk-stretch as build
+FROM mcr.microsoft.com/dotnet/core/sdk:3.0 as build
 
 RUN apt-get update && apt-get install -y build-essential
 
@@ -10,20 +10,12 @@ RUN useradd -m helium && \
 
 USER helium
 
-WORKDIR /tools/
-RUN wget https://piccolo.link/sbt-1.3.3.tgz && tar xf sbt-1.3.3.tgz
+COPY --chown=helium:helium src /src/
+WORKDIR /src/Engine/
+RUN dotnet publish -c Release -r linux-x64 --self-contained true
 
-ENV PATH "/tools/sbt/bin:${PATH}"
-
-WORKDIR /helium-src/
-COPY --chown=helium:helium src /helium-src/src/
-COPY --chown=helium:helium build.sbt /helium-src/build.sbt
-COPY --chown=helium:helium project /helium-src/project/
-
-RUN sbt assembly
-
-WORKDIR /docker-launcher/
 COPY --chown=helium:helium docker/helium-engine/linux/docker-launcher /docker-launcher/
+WORKDIR /docker-launcher/
 
 RUN gcc --std=c99 -D_POSIX_C_SOURCE=200809L -o docker-launcher docker-launcher.c
 

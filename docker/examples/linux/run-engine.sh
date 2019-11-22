@@ -1,6 +1,9 @@
 cd "$(readlink -f "$(dirname "$0")")/../../../"
 
 rm -rf examples/build/dotnet/2.1/output examples/build/dotnet/2.1/sources/bin examples/build/dotnet/2.1/sources/obj
+mkdir -p examples/build/dotnet/2.1/output
+
+chown 1000:1000 examples/build/dotnet/2.1/output
 
 docker run --rm \
  -v "$(pwd)/cache:/helium/cache" \

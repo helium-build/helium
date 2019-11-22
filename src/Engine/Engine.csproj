@@ -1,12 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <AssemblyName>Helium.Engine</AssemblyName>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <OutputType>Exe</OutputType>
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
     <NoWarn>1998</NoWarn>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="appsettings.json" CopyToPublishDirectory="Always" />
+  </ItemGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

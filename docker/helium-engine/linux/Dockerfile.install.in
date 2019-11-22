@@ -1,12 +1,14 @@
 
 COPY --chown=root:root docker/helium-engine/linux/helium/ /helium/
 COPY --chown=root:root sdks /helium/sdks/
-COPY --from=build --chown=root:root /helium-src/target/scala-2.13/Helium-assembly-0.1.0-SNAPSHOT.jar /helium/lib/helium.jar
+COPY --from=build --chown=root:root /src/Engine/bin/Release/netcoreapp3.0/linux-x64/publish/ /helium/lib/
 COPY --from=build --chown=root:root /docker-launcher/docker-launcher /helium/bin/docker-launcher
 
+RUN chmod a+x /helium/lib/Helium.Engine
 RUN chmod u+s /helium/bin/docker-launcher
 
 ENV PATH "/helium/bin:${PATH}"
 ENV HELIUM_BASE_DIR /helium/
 ENV HELIUM_DOCKER_COMMAND /helium/bin/docker-launcher
+ENV HELIUM_CONTENT_ROOT /helium/lib/
 
