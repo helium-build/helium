@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using Helium.Engine.Record;
 using Helium.Util;
@@ -30,7 +31,12 @@ namespace Helium.Engine.Proxy
                     if(!url.EndsWith("/")) url += "/";
                     url += path;
                     
-                    await HttpUtil.FetchFile(url, tempFile);
+                    try {
+                        await HttpUtil.FetchFile(url, tempFile);
+                    }
+                    catch(WebException ex) when ((ex.Response as HttpWebResponse)?.StatusCode == HttpStatusCode.NotFound) {
+                        throw new HttpErrorCodeException(HttpStatusCode.NotFound);
+                    }
                 });
 
                 return finalFileName;

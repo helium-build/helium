@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,12 +17,20 @@ namespace Helium.Engine.Proxy
             if(!File.Exists(outFile)) {
                 var tempFile = Path.Combine(cacheDir, Path.GetRandomFileName());
                 try {
-                    download(tempFile).Wait();
+                    try {
+                        download(tempFile).Wait();
+                    }
+                    catch (AggregateException ex) when (ex.InnerException != null && ex.InnerExceptions.Count == 1)
+                    {
+                        ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                        throw;
+                    }
                     Directory.CreateDirectory(Path.GetDirectoryName(outFile));
                     File.Move(tempFile, outFile);
                 }
                 finally {
-                    File.Delete(tempFile);
+                    try { File.Delete(tempFile); }
+                    catch {}
                 }
             }
             

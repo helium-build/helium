@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,8 +53,15 @@ namespace Helium.Engine.Cache
             var tempInstallDir = Path.Combine(tempDir, "install");
             Directory.CreateDirectory(tempInstallDir);
 
-            InstallSdk(sdk, sdkHash, tempInstallDir).Wait();
-            
+            try {
+                InstallSdk(sdk, sdkHash, tempInstallDir).Wait();
+            }
+            catch(AggregateException ex) when (ex.InnerException != null && ex.InnerExceptions.Count == 1) {
+                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                throw;
+            }
+
+
             Directory.Move(tempDir, sdkDir);
 
             return (sdkHash, installDir);
