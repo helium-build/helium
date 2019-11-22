@@ -21,6 +21,7 @@ namespace Helium.Engine
         public static async Task<int> RunBuild(Func<Task<IRecorder>> createRecorder, string outputDir, string workDir) {
             await using var recorder = await createRecorder();
 
+            Directory.CreateDirectory(outputDir);
             var artifact = new FSArtifactSaver(outputDir);
 
             var schema = await recorder.LoadSchema();
