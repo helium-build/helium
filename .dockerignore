@@ -7,3 +7,4 @@ examples/
 **/bin
 **/obj
 !docker/helium-*/*/helium/bin/
+!docker/jenkins-slave/*/helium/bin/
