@@ -38,9 +38,7 @@ namespace Helium.Engine.Cache
 
         private (string hash, string installDir) InstalledSdkUncached(SdkInfo sdk, string sdkHash) {
             using var mutex = new Mutex(true, mutexId);
-            
-            Console.Error.WriteLine($"Installing SDK for {sdk.implements.First()} version {sdk.version}");
-            
+
             Directory.CreateDirectory(baseDir);
             
             var sdkDir = Path.Combine(baseDir, sdkHash);
@@ -48,6 +46,8 @@ namespace Helium.Engine.Cache
             if(Directory.Exists(sdkDir)) {
                 return (sdkHash, installDir);
             }
+            
+            Console.Error.WriteLine($"Installing SDK for {sdk.implements.First()} version {sdk.version}");
 
             var tempDir = Path.Combine(baseDir, Path.GetRandomFileName());
             var tempInstallDir = Path.Combine(tempDir, "install");
