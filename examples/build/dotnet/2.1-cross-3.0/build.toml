@@ -1,5 +1,5 @@
 [build]
-command = ["./build.sh"]
+command = ["./build"]
 
 # dotnet-merge is a simple sdk that creates an sdk installation by
 # linking or copying other dotnet sdks in the path into a new directory.

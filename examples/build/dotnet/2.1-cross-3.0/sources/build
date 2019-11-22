@@ -1,3 +1,4 @@
+#!/bin/bash -e
 
 dotnet run --framework netcoreapp2.1
 dotnet run --framework netcoreapp3.0
