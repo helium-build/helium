@@ -31,15 +31,15 @@ namespace JobExecutor
 
             public List<DockerBindMount> BindMounts { get; set; } = new List<DockerBindMount>();
 
-            public string ImageName { get; set; }
+            public string? ImageName { get; set; }
 
             public List<string> Command { get; set; } = new List<string>();
         }
 
         sealed class DockerBindMount {
-            public string HostDirectory { get; set; }
-            public string MountPath { get; set; }
-            public bool IsReadOnly { get; set; }
+            public string? HostDirectory { get; set; }
+            public string? MountPath { get; set; }
+            public bool? IsReadOnly { get; set; }
         }
 
         sealed class RunDockerExitCode {

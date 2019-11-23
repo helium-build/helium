@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SdkGenerator", "SdkGenerato
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Sdks", "Sdks\Sdks.fsproj", "{E5F6DC09-0D4F-49F1-87A7-B447F8FE81FF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobExecutor", "JobExecutor\JobExecutor.csproj", "{EE2BACC9-3979-4A29-AB68-31FD309694DA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -86,5 +88,17 @@ Global
 		{E5F6DC09-0D4F-49F1-87A7-B447F8FE81FF}.Release|x64.Build.0 = Release|Any CPU
 		{E5F6DC09-0D4F-49F1-87A7-B447F8FE81FF}.Release|x86.ActiveCfg = Release|Any CPU
 		{E5F6DC09-0D4F-49F1-87A7-B447F8FE81FF}.Release|x86.Build.0 = Release|Any CPU
+		{EE2BACC9-3979-4A29-AB68-31FD309694DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE2BACC9-3979-4A29-AB68-31FD309694DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE2BACC9-3979-4A29-AB68-31FD309694DA}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EE2BACC9-3979-4A29-AB68-31FD309694DA}.Debug|x64.Build.0 = Debug|Any CPU
+		{EE2BACC9-3979-4A29-AB68-31FD309694DA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EE2BACC9-3979-4A29-AB68-31FD309694DA}.Debug|x86.Build.0 = Debug|Any CPU
+		{EE2BACC9-3979-4A29-AB68-31FD309694DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE2BACC9-3979-4A29-AB68-31FD309694DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE2BACC9-3979-4A29-AB68-31FD309694DA}.Release|x64.ActiveCfg = Release|Any CPU
+		{EE2BACC9-3979-4A29-AB68-31FD309694DA}.Release|x64.Build.0 = Release|Any CPU
+		{EE2BACC9-3979-4A29-AB68-31FD309694DA}.Release|x86.ActiveCfg = Release|Any CPU
+		{EE2BACC9-3979-4A29-AB68-31FD309694DA}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
