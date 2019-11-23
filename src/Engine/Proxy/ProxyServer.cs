@@ -66,6 +66,7 @@ namespace Helium.Engine.Proxy
                                 MavenRoutes.Build(recorder, config).Register(endpoints);
                                 NuGetRoutes.Build(recorder, artifact, config).Register(endpoints);
                                 NpmRoutes.Build(recorder, artifact, config)?.Register(endpoints);
+                                new ArtifactRoutes(artifact).Register(endpoints);
                             });
                         });
                 });
