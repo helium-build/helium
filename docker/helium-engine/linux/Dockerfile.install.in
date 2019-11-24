@@ -2,13 +2,14 @@
 COPY --chown=root:root docker/helium-engine/linux/helium/ /helium/
 COPY --chown=root:root sdks /helium/sdks/
 COPY --from=build --chown=root:root /src/Engine/bin/Release/netcoreapp3.0/linux-x64/publish/ /helium/lib/
-COPY --from=build --chown=root:root /docker-launcher/docker-launcher /helium/bin/docker-launcher
+COPY --from=build --chown=root:root /src/JobExecutor/bin/Release/netcoreapp3.0/linux-x64/publish/ /helium/JobExecutor/
 
-RUN chmod a+x /helium/lib/Helium.Engine
-RUN chmod u+s /helium/bin/docker-launcher
+RUN chmod a+x /helium/lib/Helium.Engine && \
+    chmod a+x /helium/JobExecutor/Helium.JobExecutor && \
+    chmod u+s /helium/JobExecutor/Helium.JobExecutor
 
 ENV PATH "/helium/bin:${PATH}"
 ENV HELIUM_BASE_DIR /helium/
-ENV HELIUM_DOCKER_COMMAND /helium/bin/docker-launcher
 ENV HELIUM_CONTENT_ROOT /helium/lib/
-
+ENV HELIUM_LAUNCH_MODE job-executor-cli
+ENV HELIUM_DOCKER_COMMAND /helium/JobExecutor/Helium.JobExecutor

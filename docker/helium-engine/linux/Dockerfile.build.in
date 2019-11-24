@@ -1,7 +1,5 @@
 FROM mcr.microsoft.com/dotnet/core/sdk:3.0 as build
 
-RUN apt-get update && apt-get install -y build-essential
-
 RUN useradd -m helium && \
 	mkdir -p /helium-src/ && \
 	mkdir -p /docker-launcher/ && \
@@ -14,8 +12,6 @@ COPY --chown=helium:helium src /src/
 WORKDIR /src/Engine/
 RUN dotnet publish -c Release -r linux-x64 --self-contained true
 
-COPY --chown=helium:helium docker/helium-engine/linux/docker-launcher /docker-launcher/
-WORKDIR /docker-launcher/
-
-RUN gcc --std=c99 -D_POSIX_C_SOURCE=200809L -o docker-launcher docker-launcher.c
+WORKDIR /src/JobExecutor/
+RUN dotnet publish -c Release -r linux-x64 --self-contained true
 

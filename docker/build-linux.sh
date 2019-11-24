@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -e
 
 mkdir -p helium-build-env/linux/helium/install/root
 mkdir -p helium-build-env/linux/helium/install/home

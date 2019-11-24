@@ -11,45 +11,14 @@ using Docker.DotNet;
 using Docker.DotNet.Models;
 using Fleck;
 using Newtonsoft.Json;
+using static Helium.JobExecutor.JobExecutorProtocol;
 
-namespace JobExecutor
+namespace Helium.JobExecutor
 {
-    class Program
+    internal static class Program
     {
-        enum SocketState {
-            Waiting,
-            Running,
-        }
 
-        abstract class Command {}
-
-        [DisplayName("stop")]
-        sealed class StopCommand : Command {
-            public bool Stop { get; set; }
-        }
-
-        [DisplayName("run-docker")]
-        sealed class RunDockerCommand : Command {
-            public Dictionary<string, string> Environment { get; set; } = new Dictionary<string, string>();
-
-            public List<DockerBindMount> BindMounts { get; set; } = new List<DockerBindMount>();
-
-            public string? ImageName { get; set; }
-
-            public List<string> Command { get; set; } = new List<string>();
-        }
-
-        sealed class DockerBindMount {
-            public string? HostDirectory { get; set; }
-            public string? MountPath { get; set; }
-            public bool IsReadOnly { get; set; }
-        }
-
-        sealed class RunDockerExitCode {
-            public int ExitCode { get; set; }
-        }
-
-        static int Main(string[] args)
+        private static int Main(string[] args)
         {
             if(args.Length == 0) {
                 Console.WriteLine("Invalid arguments.");
@@ -100,7 +69,15 @@ namespace JobExecutor
                                 state = SocketState.Running;
                                 Task.Run(async () => {
                                     var containerId = await LookupContainerIdFromIpAddress(client, new[] { socket.ConnectionInfo.ClientIpAddress }, cancel.Token);
-                                    return await RunDocker(client, command, containerId, new WebSocketOutputObserver(socket), cancel.Token);
+                                    int exitCode;
+                                    try {
+                                        exitCode = await RunDocker(client, command, containerId, new WebSocketOutputObserver(socket), cancel.Token);
+                                    }
+                                    catch {
+                                        await socket.Send(JsonConvert.SerializeObject(new RunDockerExitCode { ExitCode = 1 }));
+                                        throw;
+                                    }
+                                    await socket.Send(JsonConvert.SerializeObject(new RunDockerExitCode { ExitCode = exitCode }));
                                 });
                                 break;
 
@@ -118,7 +95,7 @@ namespace JobExecutor
         static DockerClient CreateDockerClient() {
             var path = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                 ? "npipe://./pipe/docker_engine"
-                : "/var/run/docker.sock:/var/run/docker.sock";
+                : "unix:///var/run/docker.sock";
             
             return new DockerClientConfiguration(new Uri(path)).CreateClient();
         }
