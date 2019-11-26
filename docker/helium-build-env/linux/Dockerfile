@@ -7,7 +7,7 @@ RUN dotnet publish -c Release -r linux-x64 --self-contained true
 
 FROM debian:buster-20190708
 
-RUN apt-get update && apt-get install -y libicu63 wget curl lsof
+RUN apt-get update && apt-get install -y libicu63 libssl1.1 wget curl lsof
 
 RUN useradd -m helium
 

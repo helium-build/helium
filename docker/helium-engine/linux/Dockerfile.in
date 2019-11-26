@@ -1,15 +1,13 @@
 #include "Dockerfile.build.in"
 
-FROM openjdk:11.0.4-jdk-stretch
+FROM debian:buster-20190708
 
 RUN apt-get update && \
-	apt-get install -y libicu57 sudo && \
+	apt-get install -y libicu63 libssl1.1 ca-certificates && \
 	useradd -m helium && \
 	mkdir -p /helium/cache/ && \
 	chown helium:helium /helium/cache/
 
 #include "Dockerfile.install.in"
 
-USER root
-
-ENTRYPOINT ["/helium/bin/helium-bootstrap"]
+USER helium

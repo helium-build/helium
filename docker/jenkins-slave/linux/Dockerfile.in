@@ -13,6 +13,4 @@ RUN apt-get update && \
 
 COPY --chown=root:root docker/jenkins-slave/linux/helium/ /helium/
 
-USER root
-
-ENTRYPOINT ["/helium/bin/helium-bootstrap"]
+USER jenkins
