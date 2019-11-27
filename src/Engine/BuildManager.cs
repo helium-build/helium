@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Text;
 using DotLiquid;
+using Engine.Docker;
 using Helium.Engine.Build;
 using Helium.Engine.Cache;
 using Helium.Engine.Conf;
@@ -18,7 +19,7 @@ namespace Helium.Engine
 {
     internal static class BuildManager
     {
-        public static async Task<int> RunBuild(Func<Task<IRecorder>> createRecorder, string outputDir, string workDir) {
+        public static async Task<int> RunBuild(ILauncher launcher, Func<Task<IRecorder>> createRecorder, string outputDir, string workDir) {
             await using var recorder = await createRecorder();
 
             Directory.CreateDirectory(outputDir);
@@ -52,7 +53,7 @@ namespace Helium.Engine
                 artifact
             );
             
-            int exitCode = await Launcher.Run(currentPlatform, launchProps);
+            var exitCode = await launcher.Run(currentPlatform, launchProps);
 
             await recorder.RecordMetadata();
             

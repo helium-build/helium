@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CommandLine;
 using CommandLine.Text;
+using Engine.Docker;
 using Helium.Engine.Record;
 
 namespace Helium.Engine
@@ -40,6 +41,8 @@ namespace Helium.Engine
             if(workDir == null) {
                 return 1;
             }
+
+            var launcher = DetectLauncher();
             
             var outputDir = options.Output ?? Path.Combine(workDir, "output");
             var sourcesDir = options.Sources ?? Path.Combine(workDir, "sources");
@@ -80,7 +83,7 @@ namespace Helium.Engine
                 ));
             }
 
-            return await BuildManager.RunBuild(createRecorder: recorder, outputDir: outputDir, workDir: workDir);
+            return await BuildManager.RunBuild(launcher, createRecorder: recorder, outputDir: outputDir, workDir: workDir);
         }
         
         private static async Task<int> ReplayMain(ReplayOptions options) {
@@ -88,7 +91,10 @@ namespace Helium.Engine
                 return 1;
             }
             
+            var launcher = DetectLauncher();
+            
             return await BuildManager.RunBuild(
+                launcher,
                 createRecorder: () => ReplayRecorder.Create(
                     archiveFile: options.Archive,
                     workDir: options.WorkDir
@@ -96,6 +102,26 @@ namespace Helium.Engine
                 outputDir: options.Output,
                 workDir: options.WorkDir
             );
+        }
+
+        private static ILauncher DetectLauncher() {
+            var sudoCommand = Environment.GetEnvironmentVariable("HELIUM_SUDO_COMMAND");
+            var dockerCommand = Environment.GetEnvironmentVariable("HELIUM_DOCKER_COMMAND") ?? "docker";
+            
+            switch(Environment.GetEnvironmentVariable("HELIUM_LAUNCH_MODE")) {
+                case "docker-cli":
+                case null:
+                    return new DockerCLILauncher(sudoCommand, dockerCommand);
+                
+                case "job-executor-cli":
+                    return new JobExecutorCLILauncher(sudoCommand, dockerCommand);
+                
+                case "job-executor-websocket":
+                    return new JobExecutorWebSocketLauncher();
+                
+                default:
+                    throw new Exception("Unknown value for HELIUM_LAUNCH_MODE");
+            }
         }
         
         
