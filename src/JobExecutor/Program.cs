@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
@@ -131,12 +132,14 @@ namespace Helium.JobExecutor
                         NetworkMode = "none",
                         Isolation = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "process" : null,
                         
-                        Mounts = command.BindMounts.Select(bindMount => new Docker.DotNet.Models.Mount {
-                            Type = "bind",
-                            Source = bindMount.HostDirectory,
-                            Target = bindMount.MountPath,
-                            ReadOnly = bindMount.IsReadOnly
-                        }).ToList(),
+                        Mounts = command.BindMounts
+                            .Select(bindMount => new Docker.DotNet.Models.Mount {
+                                Type = "bind",
+                                Source = bindMount.HostDirectory,
+                                Target = bindMount.MountPath,
+                                ReadOnly = bindMount.IsReadOnly
+                            })
+                            .ToList(),
                     },
                 },
                 cancellationToken
@@ -184,7 +187,7 @@ namespace Helium.JobExecutor
 
         private static bool ValidateDockerCommand(RunDockerCommand command, IReadOnlyList<AllowedMount> allowedMounts)
         {
-            if(!Regex.IsMatch(command.ImageName, @"^helium-build/build-env\:[a-z0-9\-]+$")) {
+            if(command.ImageName == null || !Regex.IsMatch(command.ImageName, @"^helium-build/build-env\:[a-z0-9\-]+$")) {
                 return false;
             }
 
@@ -197,9 +200,19 @@ namespace Helium.JobExecutor
                     if(allowedMount.BasePath == null || allowedMount.RealPath == null) {
                         continue;
                     }
+
+                    bool isWin = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+                    bool HasTrailingSlash(string path) =>
+                        path.EndsWith("/") || (isWin && path.EndsWith("\\"));
+
+                    if(!HasTrailingSlash(allowedMount.BasePath)) {
+                        continue;
+                    }
                     
                     if(mount.HostDirectory.StartsWith(allowedMount.BasePath)) {
-                        mount.HostDirectory = allowedMount.RealPath + mount.HostDirectory.Substring(allowedMount.BasePath.Length);
+                        var sep = HasTrailingSlash(allowedMount.RealPath) ? "" : Path.DirectorySeparatorChar.ToString();
+                        mount.HostDirectory = allowedMount.RealPath + sep + mount.HostDirectory.Substring(allowedMount.BasePath.Length);
                         mount.IsReadOnly &= !allowedMount.ReadWrite;
                         goto validMount;
                     }
