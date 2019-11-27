@@ -22,7 +22,7 @@ namespace Helium.JobExecutor
         private static int Main(string[] args)
         {
             if(args.Length == 0) {
-                Console.WriteLine("Invalid arguments.");
+                Console.Error.WriteLine("Invalid arguments.");
                 return 1;
             }
 
@@ -33,7 +33,7 @@ namespace Helium.JobExecutor
             switch(args[0]) {
                 case "run":
                     if(args.Length != 2) {
-                        Console.WriteLine("Invalid arguments.");
+                        Console.Error.WriteLine("Invalid arguments.");
                         return 1;
                     }
 
@@ -44,7 +44,7 @@ namespace Helium.JobExecutor
                     return 0;
                 
                 default:
-                    Console.WriteLine($"Unknown command: {args[0]}");
+                    Console.Error.WriteLine($"Unknown command: {args[0]}");
                     return 1;
             }
 
@@ -115,6 +115,7 @@ namespace Helium.JobExecutor
             var allowedMounts = await GetMounts(client, callingContainerId, cancellationToken);
             
             if(!ValidateDockerCommand(command, allowedMounts)) {
+                await Console.Error.WriteLineAsync("Could not validate docker command.");
                 return 1;
             }
 
@@ -205,17 +206,26 @@ namespace Helium.JobExecutor
 
                     bool HasTrailingSlash(string path) =>
                         path.EndsWith("/") || (isWin && path.EndsWith("\\"));
+                    
+                    bool SuffixStartsWithSlash(string prefix, string path) =>
+                        path.Length > prefix.Length &&
+                            path[prefix.Length] is var slash &&
+                            (slash == '/' || (isWin && slash == '\\'));
 
-                    if(!HasTrailingSlash(allowedMount.BasePath)) {
+                    if(!mount.HostDirectory.StartsWith(allowedMount.BasePath)) continue;
+
+                    var suffixHasSlash = SuffixStartsWithSlash(allowedMount.BasePath, mount.HostDirectory);
+                    
+                    if(!HasTrailingSlash(allowedMount.BasePath) && !suffixHasSlash) {
                         continue;
                     }
                     
-                    if(mount.HostDirectory.StartsWith(allowedMount.BasePath)) {
-                        var sep = HasTrailingSlash(allowedMount.RealPath) ? "" : Path.DirectorySeparatorChar.ToString();
-                        mount.HostDirectory = allowedMount.RealPath + sep + mount.HostDirectory.Substring(allowedMount.BasePath.Length);
-                        mount.IsReadOnly &= !allowedMount.ReadWrite;
-                        goto validMount;
-                    }
+                    var subPath = mount.HostDirectory.Substring(allowedMount.BasePath.Length + (suffixHasSlash ? 1 : 0));
+                    
+                    var sep = HasTrailingSlash(allowedMount.RealPath) ? "" : Path.DirectorySeparatorChar.ToString();
+                    mount.HostDirectory = allowedMount.RealPath + sep + subPath;
+                    mount.IsReadOnly &= !allowedMount.ReadWrite;
+                    goto validMount;
                 }
 
                 return false;
