@@ -93,5 +93,8 @@ namespace Engine.Docker
             throw new OperationCanceledException();
         }
 
+        public override Task<int> BuildContainer(PlatformInfo platform, Func<Stream, Task> buildContext) {
+            throw new NotImplementedException();
+        }
     }
 }

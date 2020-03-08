@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -11,8 +12,8 @@ namespace Engine.Docker
     internal abstract class LauncherBase : ILauncher
     {
         public abstract Task<int> Run(PlatformInfo platform, LaunchProperties props);
-        
-        
+        public abstract Task<int> BuildContainer(PlatformInfo platform, Func<Stream, Task> buildContext);
+
 
         protected RunDockerCommand BuildRunCommand(PlatformInfo platform, LaunchProperties props) {
             var rootFSPath = platform.RootDirectory;

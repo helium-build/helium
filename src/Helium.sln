@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobExecutor", "JobExecutor\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JobExecutorProtocol", "JobExecutorProtocol\JobExecutorProtocol.csproj", "{D0193CBD-FD6D-42C4-B8FE-2E351DF9AD4C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContainerBuildProxy", "ContainerBuildProxy\ContainerBuildProxy.csproj", "{DBED433B-602A-41E7-91E7-92A7A8DEE6DC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -114,5 +116,17 @@ Global
 		{D0193CBD-FD6D-42C4-B8FE-2E351DF9AD4C}.Release|x64.Build.0 = Release|Any CPU
 		{D0193CBD-FD6D-42C4-B8FE-2E351DF9AD4C}.Release|x86.ActiveCfg = Release|Any CPU
 		{D0193CBD-FD6D-42C4-B8FE-2E351DF9AD4C}.Release|x86.Build.0 = Release|Any CPU
+		{DBED433B-602A-41E7-91E7-92A7A8DEE6DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBED433B-602A-41E7-91E7-92A7A8DEE6DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBED433B-602A-41E7-91E7-92A7A8DEE6DC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DBED433B-602A-41E7-91E7-92A7A8DEE6DC}.Debug|x64.Build.0 = Debug|Any CPU
+		{DBED433B-602A-41E7-91E7-92A7A8DEE6DC}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DBED433B-602A-41E7-91E7-92A7A8DEE6DC}.Debug|x86.Build.0 = Debug|Any CPU
+		{DBED433B-602A-41E7-91E7-92A7A8DEE6DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBED433B-602A-41E7-91E7-92A7A8DEE6DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBED433B-602A-41E7-91E7-92A7A8DEE6DC}.Release|x64.ActiveCfg = Release|Any CPU
+		{DBED433B-602A-41E7-91E7-92A7A8DEE6DC}.Release|x64.Build.0 = Release|Any CPU
+		{DBED433B-602A-41E7-91E7-92A7A8DEE6DC}.Release|x86.ActiveCfg = Release|Any CPU
+		{DBED433B-602A-41E7-91E7-92A7A8DEE6DC}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

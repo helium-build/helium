@@ -19,7 +19,7 @@ namespace Helium.JobExecutor
     internal static class Program
     {
 
-        private static int Main(string[] args)
+        private static async Task<int> Main(string[] args)
         {
             if(args.Length == 0) {
                 Console.Error.WriteLine("Invalid arguments.");
@@ -37,8 +37,20 @@ namespace Helium.JobExecutor
                         return 1;
                     }
 
-                    return RunConsole(client, args[1], cancel.Token).Result;
-                    
+                    return await RunConsole(client, args[1], cancel.Token);
+
+                case "container-build":
+                {
+                    if(args.Length != 2) {
+                        Console.Error.WriteLine("Invalid arguments.");
+                        return 1;
+                    }
+
+                    await using var workspaceStream = Console.OpenStandardInput();
+
+                    return await ContainerBuildJob.RunBuild(client, JsonConvert.DeserializeObject<RunDockerBuild>(args[1]), workspaceStream, cancel.Token);
+                }
+
                 case "serve":
                     ServeWSApi(client, cancel);
                     return 0;
@@ -70,6 +82,10 @@ namespace Helium.JobExecutor
                                 state = SocketState.Running;
                                 Task.Run(async () => {
                                     var containerId = await LookupContainerIdFromIpAddress(client, new[] { socket.ConnectionInfo.ClientIpAddress }, cancel.Token);
+                                    if(containerId == null) {
+                                        throw new Exception("Could not find caller's container id.");
+                                    }
+                                    
                                     int exitCode;
                                     try {
                                         exitCode = await RunDocker(client, command, containerId, new WebSocketOutputObserver(socket), cancel.Token);
@@ -111,8 +127,10 @@ namespace Helium.JobExecutor
             }).ToList();
         }
 
-        private static async Task<int> RunDocker(IDockerClient client, RunDockerCommand command, string callingContainerId, IOutputObserver outputObserver, CancellationToken cancellationToken) {
-            var allowedMounts = await GetMounts(client, callingContainerId, cancellationToken);
+        private static async Task<int> RunDocker(IDockerClient client, RunDockerCommand command, string? callingContainerId, IOutputObserver outputObserver, CancellationToken cancellationToken) {
+            var allowedMounts = callingContainerId == null
+                ? null
+                : await GetMounts(client, callingContainerId, cancellationToken);
             
             if(!ValidateDockerCommand(command, allowedMounts)) {
                 await Console.Error.WriteLineAsync("Could not validate docker command.");
@@ -186,7 +204,7 @@ namespace Helium.JobExecutor
             return (int)waitResponse.StatusCode;
         }
 
-        private static bool ValidateDockerCommand(RunDockerCommand command, IReadOnlyList<AllowedMount> allowedMounts)
+        private static bool ValidateDockerCommand(RunDockerCommand command, IReadOnlyList<AllowedMount>? allowedMounts)
         {
             if(command.ImageName == null || !Regex.IsMatch(command.ImageName, @"^helium-build/build-env\:[a-z0-9\-]+$")) {
                 return false;
@@ -195,6 +213,10 @@ namespace Helium.JobExecutor
             foreach(var mount in command.BindMounts) {
                 if(mount.HostDirectory == null || mount.MountPath == null) {
                     return false;
+                }
+
+                if(allowedMounts == null) {
+                    continue;
                 }
                 
                 foreach(var allowedMount in allowedMounts) {
@@ -244,18 +266,18 @@ namespace Helium.JobExecutor
             public bool ReadWrite { get; set; }
         }
 
-        private static async Task<string> LookupContainerIdFromIpAddress(IDockerClient client, string[] ip, CancellationToken cancellationToken) {
+        private static async Task<string?> LookupContainerIdFromIpAddress(IDockerClient client, string[] ip, CancellationToken cancellationToken) {
             var containers = await client.Containers.ListContainersAsync(new ContainersListParameters(), cancellationToken);
             foreach(var container in containers) {
                 foreach(var (_, network) in container.NetworkSettings.Networks) {
                     if(ip.Contains(network.IPAddress)) return container.ID;
                 }
             }
-            
-            throw new Exception("Could not find caller's container id.");
+
+            return null;
         }
 
-        private static async Task<string> LookupCurrentContainerId(IDockerClient client, CancellationToken cancellationToken) {
+        private static async Task<string?> LookupCurrentContainerId(IDockerClient client, CancellationToken cancellationToken) {
             var ip = (await Dns.GetHostAddressesAsync(Dns.GetHostName())).Select(addr => addr.ToString()).ToArray();
             return await LookupContainerIdFromIpAddress(client, ip, cancellationToken);
         }

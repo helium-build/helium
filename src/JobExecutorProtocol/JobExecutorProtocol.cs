@@ -39,5 +39,12 @@ namespace Helium.JobExecutor
         public sealed class RunDockerExitCode {
             public int ExitCode { get; set; }
         }
+
+
+        [DisplayName("run-build")]
+        public sealed class RunDockerBuild {
+            public string? ProxyImage { get; set; }
+            public List<string> ProxyHosts { get; } = new List<string>();
+        }
     }
 }

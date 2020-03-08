@@ -1,5 +1,9 @@
+using System;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using Helium.Sdks;
 using static Helium.JobExecutor.JobExecutorProtocol;
 
 namespace Engine.Docker
@@ -9,7 +13,7 @@ namespace Engine.Docker
         public DockerCLILauncher(string? sudoCommand, string dockerCommand) : base(sudoCommand, dockerCommand) {
         }
 
-        protected override void AddArguments(ProcessStartInfo psi, RunDockerCommand run) {
+        protected override void AddRunArguments(ProcessStartInfo psi, RunDockerCommand run) {
             psi.ArgumentList.Add("run");
             psi.ArgumentList.Add("--rm");
 
@@ -42,5 +46,7 @@ namespace Engine.Docker
             run.Command.ForEach(psi.ArgumentList.Add);
         }
 
+        public override Task<int> BuildContainer(PlatformInfo platform, Func<Stream, Task> buildContext) =>
+            throw new NotSupportedException();
     }
 }

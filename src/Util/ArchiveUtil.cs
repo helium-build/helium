@@ -62,6 +62,21 @@ namespace Helium.Util
             }
         }
 
+        public static async Task AddDirToTar(TarOutputStream tarStream, string path, string directory, Func<string, bool> filter) {
+            foreach(var file in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories)) {
+                var entryPath = file.Substring(directory.Length);
+                if(!filter(entryPath)) {
+                    continue;
+                }
+                
+                if(entryPath.StartsWith(Path.DirectorySeparatorChar) || entryPath.StartsWith(Path.AltDirectorySeparatorChar)) {
+                    entryPath = entryPath.Substring(1);
+                }
+
+                await AddFileToTar(tarStream, Path.Combine(path, entryPath), file);
+            }
+        }
+
         public static async Task AddFileToTar(TarOutputStream tarStream, string path, string file) {
             var entry = TarEntry.CreateTarEntry(path);
             entry.Size = new FileInfo(file).Length;

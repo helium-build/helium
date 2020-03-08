@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 using CommandLine;
 using CommandLine.Text;
 using Engine.Docker;
+using Helium.Engine.ContainerBuild;
 using Helium.Engine.Record;
+using Helium.Sdks;
 
 namespace Helium.Engine
 {
@@ -29,10 +31,11 @@ namespace Helium.Engine
         
         
         public static async Task<int> Main(string[] args) =>
-            await Parser.Default.ParseArguments<BuildOptions, ReplayOptions>(args)
-                .MapResult<BuildOptions, ReplayOptions, Task<int>>(
+            await Parser.Default.ParseArguments<BuildOptions, ReplayOptions, ContainerBuild>(args)
+                .MapResult<BuildOptions, ReplayOptions, ContainerBuild, Task<int>>(
                     BuildMain,
                     ReplayMain,
+                    ContainerBuildMain,
                     async errs => 1
                 );
 
@@ -104,6 +107,20 @@ namespace Helium.Engine
             );
         }
 
+        private static async Task<int> ContainerBuildMain(ContainerBuild options) {
+            var platform = new PlatformInfo(
+                os: options.OperatingSystem ?? throw new Exception("Invalid OS."),
+                arch: options.Architecture ?? throw new Exception("Invalid Architecture")
+            );
+
+            if(options.Workspace == null) {
+                throw new Exception("Workspace is missing.");
+            }
+            
+            var dockerfilePath = options.DockerfilePath ?? Path.Combine(options.Workspace, "Dockerfile");
+            return await ContainerBuildManager.Dummy(dockerfilePath, platform);
+        }
+        
         private static ILauncher DetectLauncher() {
             var sudoCommand = Environment.GetEnvironmentVariable("HELIUM_SUDO_COMMAND");
             var dockerCommand = Environment.GetEnvironmentVariable("HELIUM_DOCKER_COMMAND") ?? "docker";
@@ -145,7 +162,7 @@ namespace Helium.Engine
         }
         
         [Verb("replay", HelpText = "Replays a build that was previously recorded.")]
-        public class ReplayOptions
+        private class ReplayOptions
         {
             [Value(0, Required = true, MetaName = "archive", HelpText = "The archive (tar) file to replay.")]
             public string? Archive { get; set; }
@@ -157,5 +174,21 @@ namespace Helium.Engine
             public string? Output { get; set; }
         }
         
+        [Verb("container-build", HelpText = "Builds a container image.")]
+        private class ContainerBuild
+        {
+            [Option("os", Required = true, HelpText = "The operating system inside the container.")]
+            public SdkOperatingSystem? OperatingSystem { get; set; }
+            
+            [Option("arch", Required = true, HelpText = "The architecture of the OS inside the container.")]
+            public SdkArch? Architecture { get; set; }
+            
+            [Option('f', "file", HelpText = "The path to the dockerfile.")]
+            public string? DockerfilePath { get; set; }
+            
+            [Value(0, Required = true, MetaName = "workspace", HelpText = "The workspace for the docker build.")]
+            public string? Workspace { get; set; }
+        }
+
     }
 }

@@ -17,11 +17,8 @@ namespace Engine.Docker
 
         private readonly string? sudoCommand;
         private readonly string dockerCommand;
-        
-        
-        public sealed override async Task<int> Run(PlatformInfo platform, LaunchProperties props) {
-            var runCommand = BuildRunCommand(platform, props);
 
+        protected ProcessStartInfo CreatePSI() {
             var psi = new ProcessStartInfo();
             
             if(sudoCommand != null) {
@@ -31,8 +28,16 @@ namespace Engine.Docker
             else {
                 psi.FileName = dockerCommand;
             }
+
+            return psi;
+        }
+        
+        public sealed override async Task<int> Run(PlatformInfo platform, LaunchProperties props) {
+            var runCommand = BuildRunCommand(platform, props);
+
+            var psi = CreatePSI();
             
-            AddArguments(psi, runCommand);
+            AddRunArguments(psi, runCommand);
 
             var process = Process.Start(psi) ?? throw new Exception("Could not start docker process.");
             await WaitForExitAsync(process);
@@ -40,10 +45,10 @@ namespace Engine.Docker
             return process.ExitCode;
         }
 
-        protected abstract void AddArguments(ProcessStartInfo psi, RunDockerCommand run);
+        protected abstract void AddRunArguments(ProcessStartInfo psi, RunDockerCommand run);
         
         
-        private static Task WaitForExitAsync(Process process) {
+        protected static Task WaitForExitAsync(Process process) {
             var tcs = new TaskCompletionSource<object?>();
 
             process.EnableRaisingEvents = true;
