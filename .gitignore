@@ -13,5 +13,6 @@ output/
 !docker/helium-*/*/helium/bin/
 
 *.gen
+gen-*/
 
 .env
