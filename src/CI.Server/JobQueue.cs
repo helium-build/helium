@@ -22,14 +22,14 @@ namespace Helium.CI.Server
         private readonly AsyncMonitor monitor = new AsyncMonitor();
         private readonly LinkedList<RunnableJob> jobQueue = new LinkedList<RunnableJob>();
         
-        public async Task<Dictionary<BuildJob, IJobStatus>> Add(IPipelineManager pipelineManager, IEnumerable<BuildJob> jobs, CancellationToken cancellationToken) {
+        public async Task<Dictionary<BuildJob, IJobStatus>> Add(IPipelineRunManager pipelineRunManager, IEnumerable<BuildJob> jobs, CancellationToken cancellationToken) {
             var dependentJobs = new HashSet<BuildJob>();
             var jobMap = new Dictionary<BuildJob, IJobStatus>();
 
             var runnableJobs = new List<RunnableJob>();
             
             foreach(var job in jobs) {
-                AddBuildJob(pipelineManager, job, runnableJobs, dependentJobs, jobMap);
+                AddBuildJob(pipelineRunManager, job, runnableJobs, dependentJobs, jobMap);
             }
             
             runnableJobs.Reverse();
@@ -45,7 +45,7 @@ namespace Helium.CI.Server
             return jobMap;
         }
 
-        private void AddBuildJob(IPipelineManager pipelineManager, BuildJob job, List<RunnableJob> runnableJobs, HashSet<BuildJob> dependentJobs, IDictionary<BuildJob, IJobStatus> jobMap) {
+        private void AddBuildJob(IPipelineRunManager pipelineRunManager, BuildJob job, List<RunnableJob> runnableJobs, HashSet<BuildJob> dependentJobs, IDictionary<BuildJob, IJobStatus> jobMap) {
             if(dependentJobs.Contains(job)) throw new CircularDependencyException();
 
             if(jobMap.ContainsKey(job)) return;
@@ -55,30 +55,29 @@ namespace Helium.CI.Server
             foreach(var input in job.Input) {
                 switch(input.Source) {
                     case ArtifactBuildInput artifact:
-                        AddBuildJob(pipelineManager, job, runnableJobs, dependentJobs, jobMap);
+                        AddBuildJob(pipelineRunManager, job, runnableJobs, dependentJobs, jobMap);
                         break;
                 }
             }
 
             dependentJobs.Remove(job);
 
-            var runnable = new RunnableJob(pipelineManager, job, jobMap);
+            var runnable = new RunnableJob(pipelineRunManager, job, jobMap);
             jobMap.Add(job, runnable.Status);
             runnableJobs.Add(runnable);
         }
 
         private class RunnableJob : IRunnableJob
         {
-            public RunnableJob(IPipelineManager pipelineManager, BuildJob job, IDictionary<BuildJob, IJobStatus> jobMap) {
-                this.pipelineManager = pipelineManager;
+            public RunnableJob(IPipelineRunManager pipelineRunManager, BuildJob job, IDictionary<BuildJob, IJobStatus> jobMap) {
                 BuildTask = job.Task;
-                Status = new JobStatus(pipelineManager.NextArtifactDir());
+                Status = new JobStatus(pipelineRunManager.NextArtifactDir());
                 
                 var inputHandlers = new List<(BuildInputHandler handler, string path)>();
                 foreach(var input in job.Input) {
                     var handler = input.Source switch {
-                        GitBuildInput git => HandleGitInput(git),
-                        HttpRequestBuildInput http => HandleHttpInput(http),
+                        GitBuildInput git => HandleGitInput(pipelineRunManager, git),
+                        HttpRequestBuildInput http => HandleHttpInput(pipelineRunManager, http),
                         ArtifactBuildInput artifact => HandleArtifactInput(artifact, jobMap[artifact.Job]),
                         _ => throw new Exception("Unknown build input type")
                     };
@@ -88,7 +87,6 @@ namespace Helium.CI.Server
                 this.inputHandlers = inputHandlers;
             }
             
-            private readonly IPipelineManager pipelineManager;
             private readonly IReadOnlyList<(BuildInputHandler handler, string path)> inputHandlers;
             private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
@@ -162,8 +160,8 @@ namespace Helium.CI.Server
                 }
             }
 
-            private BuildInputHandler HandleGitInput(GitBuildInput git) => async cancellationToken => {
-                var dir = pipelineManager.NextInputPath();
+            private static BuildInputHandler HandleGitInput(IPipelineRunManager pipelineRunManager, GitBuildInput git) => async cancellationToken => {
+                var dir = pipelineRunManager.NextInputPath();
 
                 Directory.CreateDirectory(dir);
 
@@ -175,21 +173,21 @@ namespace Helium.CI.Server
                 return dir;
             };
 
-            private BuildInputHandler HandleHttpInput(HttpRequestBuildInput http) => async cancellationToken => {
-                var tempFile = pipelineManager.NextInputPath();
+            private static BuildInputHandler HandleHttpInput(IPipelineRunManager pipelineRunManager, HttpRequestBuildInput http) => async cancellationToken => {
+                var tempFile = pipelineRunManager.NextInputPath();
                 
                 await HttpUtil.FetchFileValidate(http.Url, tempFile, http.Hash.Validate);
                 return tempFile;
             };
 
-            private BuildInputHandler HandleArtifactInput(ArtifactBuildInput artifact, IJobStatus jobStatus) => async cancellationToken => {
+            private static BuildInputHandler HandleArtifactInput(ArtifactBuildInput artifact, IJobStatus jobStatus) => async cancellationToken => {
                 if(!PathUtil.IsValidSubPath(artifact.ArtifactPath)) {
                     throw new Exception("Invalid artifact path");
                 }
 
                 await jobStatus.WaitForComplete(cancellationToken);
 
-                return Path.Combine(Status.ArtifactDir, artifact.ArtifactPath);
+                return Path.Combine(jobStatus.ArtifactDir, artifact.ArtifactPath);
             };
 
             public void CancelBuild() {
