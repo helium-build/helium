@@ -79,8 +79,7 @@ namespace Helium.Engine.Cache
                         }
 
                         var fileName = Path.Combine(installDir, download.fileName);
-                        await HttpUtil.FetchFile(download.url, fileName);
-                        await ValidateHash(download.Item3, fileName);
+                        await HttpUtil.FetchFileValidate(download.url, fileName, download.Item3.Validate);
                     }
                         break;
 
@@ -153,19 +152,6 @@ namespace Helium.Engine.Cache
                         throw new Exception("Unexpected setup step.");
 
                 }
-            }
-        }
-
-        private async Task ValidateHash(SdkHash hash, string fileName) {
-            await using var stream = File.OpenRead(fileName);
-            bool isValid = hash switch {
-                SdkHash.Sha256 sha256 => await HashUtil.ValidateSha256(stream, sha256.Item),
-                SdkHash.Sha512 sha512 => await HashUtil.ValidateSha512(stream, sha512.Item),
-                _ => throw new Exception("Unexpected hash type."),
-            };
-            
-            if(!isValid) {
-                throw new Exception($"Unexpected hash for downloaded file {fileName}");
             }
         }
     }

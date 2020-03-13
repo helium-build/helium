@@ -1,7 +1,10 @@
 namespace Helium.Sdks
 
+open Helium.Util
+open Helium.Util
 open Newtonsoft.Json
 open System
+open System.Collections.Generic
 open System.Runtime.InteropServices
 open SemVer
 
@@ -50,6 +53,12 @@ type PlatformInfo =
                | Architecture.Arm64 -> SdkArch.Aarch64
                | _ -> raise (new PlatformNotSupportedException());
     }
+    
+    static member From (dict: IDictionary<string, obj>): PlatformInfo =
+        {
+            os = dict.["os"] :?> SdkOperatingSystem;
+            arch = dict.["arch"] :?> SdkArch;
+        }
 
 [<RequireQualifiedAccess>]
 type EnvValue =
@@ -67,6 +76,11 @@ type EnvValue =
 type SdkHash =
     | Sha256 of string
     | Sha512 of string
+    
+    member this.Validate (stream: System.IO.Stream): bool System.Threading.Tasks.Task =
+        match this with
+        | SdkHash.Sha256 sha256 -> HashUtil.ValidateSha256(stream, sha256)
+        | SdkHash.Sha512 sha512 -> HashUtil.ValidateSha512(stream, sha512)
 
 
 [<RequireQualifiedAccess>]

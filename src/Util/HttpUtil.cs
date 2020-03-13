@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -30,6 +31,15 @@ namespace Helium.Util
         public static async Task FetchFile(string url, string fileName) {
             await using var stream = File.Create(fileName);
             await FetchWriteStream(url, stream);
+        }
+        
+        public static async Task FetchFileValidate(string url, string fileName, Func<Stream, Task<bool>> validate) {
+            await FetchFile(url, fileName);
+            
+            await using var stream = File.OpenRead(fileName);
+            if(!await validate(stream)) {
+                throw new Exception($"Unexpected hash for downloaded file {fileName}");
+            }
         }
     }
 }

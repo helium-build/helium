@@ -4,74 +4,88 @@ using Helium.Sdks;
 
 namespace Helium.Pipeline
 {
-    public abstract class BuildInput
+    public sealed class BuildInput
     {
-        internal BuildInput() {}
-        
-        public abstract string Path { get; }
+        internal BuildInput(BuildInputSource source, string path) {
+            Source = source;
+            Path = path;
+        }
+
+        public BuildInputSource Source { get; }
+        public string Path { get; }
+    }
+    
+    public abstract class BuildInputSource
+    {
+        internal BuildInputSource() {}
     }
 
-    public sealed class GitBuildInput : BuildInput
+    public sealed class GitBuildInput : BuildInputSource
     {
-        public GitBuildInput(string url, string path, string? @ref) {
+        public GitBuildInput(string url, string? @ref) {
             Url = url;
-            Path = path;
             Ref = @ref ?? throw new ArgumentNullException(nameof(@ref));
         }
         
         public GitBuildInput(IDictionary<string, object> obj)
             : this(
                 url: (string)obj["url"],
-                path: (string)obj["path"],
                 @ref: (string)obj["ref"]
             ) {}
         
         public string Url { get; }
         public string? Ref { get; }
-        
-        public override string Path { get; }
+
+        public override bool Equals(object? obj) =>
+            obj is GitBuildInput other &&
+                Url == other.Url &&
+                Ref == other.Ref;
+
+
+        public override int GetHashCode() =>
+            HashCode.Combine(Url, Ref);
     }
 
-    public sealed class HttpRequestBuildInput : BuildInput
+    public sealed class HttpRequestBuildInput : BuildInputSource
     {
-        public HttpRequestBuildInput(string url, SdkHash hash, string path) {
+        public HttpRequestBuildInput(string url, SdkHash hash) {
             Url = url ?? throw new ArgumentNullException(nameof(url));
             Hash = hash ?? throw new ArgumentNullException(nameof(hash));
-            Path = path ?? throw new ArgumentNullException(nameof(path));
         }
         
         public HttpRequestBuildInput(IDictionary<string, object> obj)
             : this(
                 url: (string)obj["url"],
-                hash: (SdkHash)obj["hash"],
-                path: (string)obj["path"]
+                hash: (SdkHash)obj["hash"]
             ) {}
         
         public string Url { get; }
         public SdkHash Hash { get; }
-        
-        public override string Path { get; }
+
+        public override bool Equals(object? obj) =>
+            obj is HttpRequestBuildInput other &&
+                Url == other.Url &&
+                Hash.Equals(other.Hash);
+
+        public override int GetHashCode() =>
+            HashCode.Combine(Url, Hash);
     }
 
-    public sealed class ArtifactBuildInput : BuildInput
+    public sealed class ArtifactBuildInput : BuildInputSource
     {
-        public ArtifactBuildInput(BuildJob job, string artifactPath, string path) {
+        public ArtifactBuildInput(BuildJob job, string artifactPath) {
             Job = job ?? throw new ArgumentNullException(nameof(job));
             ArtifactPath = artifactPath ?? throw new ArgumentNullException(nameof(job));
-            Path = path ?? throw new ArgumentNullException(nameof(path));
         }
 
         public ArtifactBuildInput(IDictionary<string, object> obj)
             : this(
                 job: (BuildJob)obj["job"],
-                artifactPath: (string)obj["artifactPath"],
-                path: (string)obj["path"]
+                artifactPath: (string)obj["artifactPath"]
             ) {}
 
         public BuildJob Job { get; }
         public string ArtifactPath { get; }
-
-        public override string Path { get; }
     }
 
 }

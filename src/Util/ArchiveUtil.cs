@@ -65,12 +65,13 @@ namespace Helium.Util
         public static async Task AddDirToTar(TarOutputStream tarStream, string path, string directory, Func<string, bool> filter) {
             foreach(var file in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories)) {
                 var entryPath = file.Substring(directory.Length);
-                if(!filter(entryPath)) {
-                    continue;
-                }
                 
                 if(entryPath.StartsWith(Path.DirectorySeparatorChar) || entryPath.StartsWith(Path.AltDirectorySeparatorChar)) {
                     entryPath = entryPath.Substring(1);
+                }
+                
+                if(!filter(entryPath)) {
+                    continue;
                 }
 
                 await AddFileToTar(tarStream, Path.Combine(path, entryPath), file);
@@ -80,11 +81,21 @@ namespace Helium.Util
         public static async Task AddFileToTar(TarOutputStream tarStream, string path, string file) {
             var entry = TarEntry.CreateTarEntry(path);
             entry.Size = new FileInfo(file).Length;
+            if(GetUnixMode(file) is int mode) entry.TarHeader.Mode = mode;
             tarStream.PutNextEntry(entry);
 
             await using var fileStream = File.OpenRead(file);
             await fileStream.CopyToAsync(tarStream);
             tarStream.CloseEntry();
+        }
+
+        public static async Task AddFileOrDirToTar(TarOutputStream tarStream, string path, string file) {
+            if(Directory.Exists(file)) {
+                await AddDirToTar(tarStream, path, file);
+            }
+            else {
+                await AddFileToTar(tarStream, path, file);
+            }
         }
 
         public static async Task AddStringToTar(TarOutputStream tarStream, string path, string data) {
@@ -110,6 +121,14 @@ namespace Helium.Util
             }
 
             new UnixFileInfo(entryFileName).Protection = (FilePermissions)mode;
+        }
+
+        public static int? GetUnixMode(string entryFileName) {
+            if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                return null;
+            }
+
+            return (int)new UnixFileInfo(entryFileName).Protection;
         }
 
         public static void MakeExecutable(string entryFileName) {

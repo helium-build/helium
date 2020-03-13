@@ -9,10 +9,10 @@ using Jint.Runtime.Interop;
 
 namespace Helium.CI.Server
 {
-    public static class PipelineBuilder
+    public static class PipelineLoader
     {
 
-        public static PipelineInfo Build(string pipelineScript, IReadOnlyDictionary<string, string> arguments) {
+        public static PipelineInfo Load(string pipelineScript, IReadOnlyDictionary<string, string> arguments) {
 
             var engine = new Engine(options => options
                 .Culture(CultureInfo.InvariantCulture)

@@ -10,10 +10,14 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Pipeline\Pipeline.csproj" />
+    <ProjectReference Include="..\CI.Common\CI.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Jint" Version="3.0.0-beta-1715" />
+    <PackageReference Include="LibGit2Sharp" Version="0.26.2" />
+    <PackageReference Include="Nito.AsyncEx" Version="5.0.0" />
+    <PackageReference Include="System.Linq.Async" Version="4.0.0" />
   </ItemGroup>
 
 </Project>
