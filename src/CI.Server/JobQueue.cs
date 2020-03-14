@@ -199,12 +199,15 @@ namespace Helium.CI.Server
             using(await monitor.EnterAsync(cancellationToken)) {
                 while(true) {
                     cancellationToken.ThrowIfCancellationRequested();
-                    
-                    var job = await jobQueue.ToAsyncEnumerable().FirstOrDefaultAwaitAsync(async j => await jobFilter(j.BuildTask), cancellationToken);
-                    if(job != null) {
-                        return job;
-                    }
 
+                    for(var node = jobQueue.First; node != null; node = node.Next) {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        if(await jobFilter(node.Value.BuildTask)) {
+                            jobQueue.Remove(node);
+                            return node.Value;
+                        }
+                    }
+                    
                     await monitor.WaitAsync(cancellationToken);
                 }
             }

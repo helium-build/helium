@@ -18,8 +18,7 @@ enum OutputType {
 }
 
 service BuildAgent {
-    bool authenticate(1: string serverKey) throws (1: InvalidState error),
-    bool supportsPlatform(1: string platform) throws (1: InvalidState error)
+    bool supportsPlatform(1: string platform),
     void sendWorkspace(1: binary chunk) throws (1: InvalidState error),
     void startBuild(1: string task) throws (1: InvalidState error),
     BuildStatus getStatus() throws (1: InvalidState error),

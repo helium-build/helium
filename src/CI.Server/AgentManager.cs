@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Helium.CI.Common.Protocol;
 using Helium.Pipeline;
+using Helium.Sdks;
 using Newtonsoft.Json;
 using Nito.AsyncEx;
 using Thrift.Protocol;
@@ -29,7 +30,6 @@ namespace Helium.CI.Server
         public int Workers => workers;
 
         protected abstract TTransport CreateTransport();
-        protected abstract Task<string> ReadServerKey();
         
         protected virtual TProtocol CreateProtocol(TTransport transport) =>
             new TBinaryProtocol(transport);
@@ -42,11 +42,15 @@ namespace Helium.CI.Server
         public async Task AcceptJobs(CancellationToken cancellationToken) {
             try {
                 while(!cancellationToken.IsCancellationRequested) {
-                    await semaphore.WaitAsync();
+                    await semaphore.WaitAsync(cancellationToken);
                     try {
                         using var transport = CreateTransport();
                         using var protocol = CreateProtocol(transport);
                         using var client = new BuildAgent.Client(protocol);
+
+                        await transport.OpenAsync(cancellationToken);
+
+                        await client.supportsPlatformAsync(JsonConvert.SerializeObject(PlatformInfo.Current), cancellationToken);
                         
                         var job = await jobQueue.AcceptJob(task => JobFilter(client, task, cancellationToken), cancellationToken);
                         CompleteJob(client, job, cancellationToken);

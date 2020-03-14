@@ -6,6 +6,9 @@ cache/
 workspace/
 *.user
 
+*.pfx
+agent.toml
+
 bin/
 obj/
 node_modules/

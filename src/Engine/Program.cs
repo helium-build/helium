@@ -9,27 +9,13 @@ using Engine.Docker;
 using Helium.Engine.ContainerBuild;
 using Helium.Engine.Record;
 using Helium.Sdks;
+using static Helium.Env.Directories;
 
 namespace Helium.Engine
 {
     public static class Program
     {
-        internal static string AppDir { get; } =
-            Environment.GetEnvironmentVariable("HELIUM_BASE_DIR") is {} appDir
-                ? appDir
-                : Environment.CurrentDirectory;
 
-        private static string ConfDir { get; } =
-            Path.Combine(AppDir, "conf");
-
-        private static string CacheDir { get; } =
-            Path.Combine(AppDir, "cache");
-
-        private static string SdkDir { get; } =
-            Path.Combine(AppDir, "sdks");
-        
-        
-        
         public static async Task<int> Main(string[] args) =>
             await Parser.Default.ParseArguments<BuildOptions, ReplayOptions, ContainerBuild>(args)
                 .MapResult<BuildOptions, ReplayOptions, ContainerBuild, Task<int>>(

@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using static Helium.Env.Directories;
 
 namespace Helium.Engine.Proxy
 {
@@ -34,9 +35,9 @@ namespace Helium.Engine.Proxy
 
         private static IHostBuilder CreateHostBuilder(string socketPath, IRecorder recorder, Config config, IArtifactSaver artifact) =>
             new HostBuilder()
-                .UseContentRoot(Path.GetFullPath(Environment.GetEnvironmentVariable("HELIUM_CONTENT_ROOT") ?? Program.AppDir))
+                .UseContentRoot(Path.GetFullPath(EngineContentRoot))
                 .ConfigureLogging((hostingContext, logging) => {
-                    logging.AddConfiguration((IConfiguration) hostingContext.Configuration.GetSection("Logging"));
+                    logging.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
                     logging.AddConsole();
                 })
                 .ConfigureWebHost(webBuilder => {
