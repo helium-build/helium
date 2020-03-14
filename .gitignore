@@ -5,6 +5,7 @@ target/
 cache/
 workspace/
 *.user
+launchSettings.json
 
 *.pfx
 agent.toml
