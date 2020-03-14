@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Helium.Util;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -58,7 +59,24 @@ namespace Helium.CI.Server
                         .ConfigureServices(services => {
                             services.AddRouting();
                         })
-                        .UseStartup<Startup>();
+                        .Configure(app => {
+                            var env = app.ApplicationServices.GetRequiredService<IWebHostEnvironment>();
+                            
+                            if (env.IsDevelopment())
+                            {
+                                app.UseDeveloperExceptionPage();
+                            }
+
+                            app.UseRouting();
+
+                            app.UseEndpoints(endpoints =>
+                            {
+                                endpoints.MapGet("/", async context =>
+                                {
+                                    await context.Response.WriteAsync("Hello World!");
+                                });
+                            });
+                        });
                 });
     }
 }
