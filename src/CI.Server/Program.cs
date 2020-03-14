@@ -57,7 +57,9 @@ namespace Helium.CI.Server
 
                         })
                         .ConfigureServices(services => {
+                            services.AddRazorPages();
                             services.AddRouting();
+                            services.AddServerSideBlazor();
                         })
                         .Configure(app => {
                             var env = app.ApplicationServices.GetRequiredService<IWebHostEnvironment>();
@@ -67,14 +69,15 @@ namespace Helium.CI.Server
                                 app.UseDeveloperExceptionPage();
                             }
 
+                            app.UseStaticFiles();
+                            
                             app.UseRouting();
+                            
 
                             app.UseEndpoints(endpoints =>
                             {
-                                endpoints.MapGet("/", async context =>
-                                {
-                                    await context.Response.WriteAsync("Hello World!");
-                                });
+                                endpoints.MapBlazorHub();
+                                endpoints.MapFallbackToPage("/_Host");
                             });
                         });
                 });
