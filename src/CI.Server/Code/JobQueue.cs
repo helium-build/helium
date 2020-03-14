@@ -55,7 +55,7 @@ namespace Helium.CI.Server
             foreach(var input in job.Input) {
                 switch(input.Source) {
                     case ArtifactBuildInput artifact:
-                        AddBuildJob(pipelineRunManager, job, runnableJobs, dependentJobs, jobMap);
+                        AddBuildJob(pipelineRunManager, artifact.Job, runnableJobs, dependentJobs, jobMap);
                         break;
                 }
             }
