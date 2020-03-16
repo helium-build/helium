@@ -26,7 +26,7 @@ namespace Helium.CI.Server
         }
         
         
-        private const int MaxWorkers = 100;
+        public const int MaxWorkers = 100;
         
         private int runningJobs = 0;
         private readonly IJobQueue jobQueue;

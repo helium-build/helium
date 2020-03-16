@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -31,7 +32,7 @@ namespace Helium.CI.Server
 
         public IAgent? GetAgent(Guid id) => agents.TryGetValue(id, out var agent) ? agent : null;
 
-        public IEnumerable<IAgent> AllAgents() => agents.Values;
+        public IReadOnlyCollection<IAgent> Agents => new ReadOnlyCollectionNoList<IAgent>(agents.Values);
 
         public async Task<IAgent> AddAgent(AgentConfig config) {
             Guid id;
@@ -86,6 +87,8 @@ namespace Helium.CI.Server
 
         public static async Task<IAgentManager> Load(string agentsDir, IJobQueue jobQueue, ServerConfig serverConfig, CancellationToken cancellationToken) {
             var agents = new Dictionary<Guid, IAgent>();
+
+            Directory.CreateDirectory(agentsDir);
 
             foreach(var agentDir in Directory.EnumerateDirectories(agentsDir)) {
                 cancellationToken.ThrowIfCancellationRequested();

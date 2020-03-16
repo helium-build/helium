@@ -28,16 +28,20 @@ namespace Helium.CI.Server
             Console.WriteLine("Helium CI Agent");
             Console.WriteLine("TLS Key");
             Console.WriteLine(Convert.ToBase64String(cert.Export(X509ContentType.Cert)));
+
+            var serverConfig = new ServerConfig(cert);
+
+            var agentManager = await AgentManager.Load(Path.Combine(ConfDir, "agents"), jobQueue, serverConfig, cancel.Token);
             
             try {
-                await CreateHostBuilder(args).Build().RunAsync();
+                await CreateHostBuilder(agentManager).Build().RunAsync();
             }
             finally {
                 cancel.Cancel();
             }
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
+        public static IHostBuilder CreateHostBuilder(IAgentManager agentManager) =>
             new HostBuilder()
                 .UseContentRoot(Path.GetFullPath(AgentContentRoot))
                 .ConfigureLogging((hostingContext, logging) => {
@@ -60,6 +64,7 @@ namespace Helium.CI.Server
                             services.AddRazorPages();
                             services.AddRouting();
                             services.AddServerSideBlazor();
+                            services.AddSingleton<IAgentManager>(_ => agentManager);
                         })
                         .Configure(app => {
                             var env = app.ApplicationServices.GetRequiredService<IWebHostEnvironment>();

@@ -4,9 +4,9 @@ using Newtonsoft.Json;
 
 namespace Helium.CI.Server
 {
-    public abstract class AgentConfig
+    public sealed class AgentConfig
     {
-        internal AgentConfig(string name, int workers, AgentConnection connection) {
+        public AgentConfig(string name, int workers, AgentConnection connection) {
             Name = name;
             Workers = workers;
             Connection = connection;

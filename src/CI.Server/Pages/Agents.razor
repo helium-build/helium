@@ -1,0 +1,27 @@
+﻿@page "/agents"
+
+@inject IAgentManager AgentManager
+
+<h1>Agents</h1>
+
+<a href="agents/add" class="btn btn-primary" role="button">Add</a>
+
+@if(AgentManager.Agents.Count == 0) {
+    <p>No agents have been configured.</p>
+}
+else {
+    <table>
+        <thead>
+            <tr>
+                <td>Name</td>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var agent in AgentManager.Agents.OrderBy(a => a.Config.Name)) {
+                <tr>
+                    <td>@(agent.Config.Name)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
