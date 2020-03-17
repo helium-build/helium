@@ -10,13 +10,7 @@ namespace Helium.CI.Agent
     {
         public ITAsyncProcessor GetAsyncProcessor(TTransport trans, TServer? baseServer = null) {
             var buildDir = (TransportBuildDir) trans;
-            return new BuildAgent.AsyncProcessor(new BuildAgentImpl(
-                buildDir,
-                buildDir.WorkspacePipe,
-                buildDir.BuildTaskTCS,
-                buildDir.BuildOutputStream,
-                buildDir.BuildResult
-            ));
+            return new BuildAgent.AsyncProcessor(new BuildAgentImpl(buildDir));
         }
             
         

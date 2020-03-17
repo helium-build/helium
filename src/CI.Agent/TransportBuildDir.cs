@@ -28,36 +28,30 @@ namespace Helium.CI.Agent
         private readonly Pipe buildOutputPipe = new Pipe();
         private readonly TaskCompletionSource<Stream> buildOutputTcs = new TaskCompletionSource<Stream>();
         private readonly Task<int> buildRunTask;
+        
+        
 
         public PipeWriter WorkspacePipe => workspacePipe.Writer;
         public TaskCompletionSource<BuildTask> BuildTaskTCS => buildStartTask;
         public Task<Stream> BuildOutputStream => buildOutputTcs.Task;
         public Task<int> BuildResult => buildRunTask;
-        
+        public string ArtifactDir => Path.Combine(buildDir.Value, "artifacts");
+        public string ReplayFile => Path.Combine(buildDir.Value, "replay.tar");
+
+        public FileStream? CurrentFileAccess { get; set; }
 
         
         
         public override bool IsOpen => transport.IsOpen;
+        
 
-        public async Task<T> UseWorkspace<T>(Func<string, Task<T>> f, CancellationToken cancellationToken) {
+        private async Task<int> RunBuild(CancellationToken cancellationToken) {
             using(await workspaceLock.LockAsync(cancellationToken)) {
-                return await f(buildDir.Value);
-            }
-        }
-
-        public Task UseWorkspace<T>(Func<string, Task> f, CancellationToken cancellationToken) =>
-            UseWorkspace<object?>(async dir => {
-                await f(dir);
-                return null;
-            }, cancellationToken);
-
-
-        public Task<int> RunBuild(CancellationToken cancellationToken) =>
-            UseWorkspace(async dir => {
                 await ExtractWorkspace(Path.Combine(buildDir.Value, "workspace"), workspacePipe.Reader.AsStream());
                 var buildTask = await buildStartTask.Task.WaitAsync(cancellationToken);
                 return await ExecBuild(buildOutputPipe.Writer, buildTask, cancellationToken);
-            }, cancellationToken);
+            }
+        }
 
         private async Task ExtractWorkspace(string workspaceDir, Stream workspaceStream) {
             Directory.CreateDirectory(workspaceDir);
@@ -89,6 +83,9 @@ namespace Helium.CI.Agent
                 using(workspaceLock.Lock()) {
                     buildDir.DisposeAsync().AsTask().Wait();
                 }
+                
+                CurrentFileAccess?.Dispose();
+                
                 transport.Dispose();
             }
         }

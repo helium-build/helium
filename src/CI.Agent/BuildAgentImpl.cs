@@ -5,6 +5,7 @@ using System.IO.Pipelines;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using FSharp.Control.Tasks;
 using Helium.CI.Common.Protocol;
 using Helium.Pipeline;
 using Helium.Sdks;
@@ -18,27 +19,14 @@ namespace Helium.CI.Agent
     public class BuildAgentImpl : BuildAgent.IAsync
     {
         public BuildAgentImpl(
-            TransportBuildDir buildDir,
-            PipeWriter workspacePipe,
-            TaskCompletionSource<BuildTask> buildTaskTcs,
-            Task<Stream> buildOutputStream,
-            Task<int> buildResult
+            TransportBuildDir buildDir
         ) {
             this.buildDir = buildDir;
-            this.workspacePipe = workspacePipe;
-            this.buildTaskTcs = buildTaskTcs;
-            this.buildOutputStream = buildOutputStream;
-            this.buildResult = buildResult;
         }
 
         private readonly TransportBuildDir buildDir;
         private readonly AsyncLock stateLock = new AsyncLock();
         private AgentState state = AgentState.Initial;
-
-        private readonly PipeWriter workspacePipe;
-        private readonly TaskCompletionSource<BuildTask> buildTaskTcs;
-        private readonly Task<Stream> buildOutputStream;
-        private readonly Task<int> buildResult;
 
 
         public async Task<bool> supportsPlatformAsync(string platform, CancellationToken cancellationToken = default(CancellationToken)) {
@@ -56,7 +44,7 @@ namespace Helium.CI.Agent
                     throw new InvalidState();
                 }
 
-                await workspacePipe.WriteAsync(chunk.AsMemory(), cancellationToken);
+                await buildDir.WorkspacePipe.WriteAsync(chunk.AsMemory(), cancellationToken);
             }
         }
 
@@ -70,10 +58,10 @@ namespace Helium.CI.Agent
                 
                 try {
                     var buildTask = JsonConvert.DeserializeObject<BuildTask>(task);
-                    buildTaskTcs.SetResult(buildTask);
+                    buildDir.BuildTaskTCS.SetResult(buildTask);
                 }
                 catch(Exception ex) {
-                    buildTaskTcs.TrySetException(ex);
+                    buildDir.BuildTaskTCS.TrySetException(ex);
                 }
             }
         }
@@ -84,13 +72,13 @@ namespace Helium.CI.Agent
                     throw new InvalidState();
                 }
 
-                var stream = await buildOutputStream;
+                var stream = await buildDir.BuildOutputStream;
 
                 var buffer = new byte[4096];
                 int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
 
                 if(bytesRead == 0) {
-                    state = AgentState.PostBuild;
+                    state = AgentState.BuildStopping;
                 }
                 
                 return new BuildStatus {
@@ -101,26 +89,80 @@ namespace Helium.CI.Agent
 
         public async Task<BuildExitCode> getExitCodeAsync(CancellationToken cancellationToken = default(CancellationToken)) {
             using(await stateLock.LockAsync()) {
-                if(state != AgentState.PostBuild) {
+                if(state != AgentState.BuildStopping) {
                     throw new InvalidState();
                 }
 
                 var result = new BuildExitCode();
-                result.ExitCode = await buildResult;
+                result.ExitCode = await buildDir.BuildResult;
+
+                state = AgentState.PostBuild;
                 return result;
             }
         }
 
-        public Task<List<string>> artifactsAsync(CancellationToken cancellationToken = default(CancellationToken)) {
-            throw new System.NotImplementedException();
+        public async Task<List<string>> artifactsAsync(CancellationToken cancellationToken = default(CancellationToken)) {
+            using(await stateLock.LockAsync()) {
+                if(state != AgentState.PostBuild) {
+                    throw new InvalidState();
+                }
+
+                return Directory.EnumerateFiles(buildDir.ArtifactDir, "*", SearchOption.AllDirectories).ToList();
+            }
         }
 
-        public Task openOutputAsync(OutputType type, string name, CancellationToken cancellationToken = default(CancellationToken)) {
-            throw new System.NotImplementedException();
+        public async Task openOutputAsync(OutputType type, string name, CancellationToken cancellationToken = default(CancellationToken)) {
+            using(await stateLock.LockAsync()) {
+                if(state != AgentState.PostBuild) {
+                    throw new InvalidState();
+                }
+
+                if(buildDir.CurrentFileAccess != null) await buildDir.CurrentFileAccess.DisposeAsync();
+
+                buildDir.CurrentFileAccess = null;
+
+                if(PathUtil.IsValidSubPath(name)) {
+                    throw new UnknownOutput();
+                }
+
+                string fileName = type switch {
+                    OutputType.REPLAY => buildDir.ReplayFile,
+                    OutputType.ARTIFACT => Path.Combine(buildDir.ArtifactDir, name),
+                    _ => throw new UnknownOutput()
+                };
+
+                try {
+                    buildDir.CurrentFileAccess = new FileStream(fileName, FileMode.Open, FileAccess.Read,
+                        FileShare.Read | FileShare.Delete, 4096, true);
+                }
+                catch {
+                    throw new UnknownOutput();
+                }
+            }
         }
 
-        public Task<byte[]> readOutputAsync(CancellationToken cancellationToken = default(CancellationToken)) {
-            throw new System.NotImplementedException();
+        public async Task<byte[]> readOutputAsync(CancellationToken cancellationToken = default(CancellationToken)) {
+            using(await stateLock.LockAsync()) {
+                if(state != AgentState.PostBuild) {
+                    throw new InvalidState();
+                }
+
+                var stream = buildDir.CurrentFileAccess;
+
+                if(stream == null) {
+                    throw new InvalidState();
+                }
+
+                byte[] buffer = new byte[4096];
+                int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+                
+                if(bytesRead == 0) {
+                    await stream.DisposeAsync();
+                    buildDir.CurrentFileAccess = null;
+                }
+
+                return buffer.Take(bytesRead).ToArray();
+            }
         }
     }
 }

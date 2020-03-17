@@ -5,6 +5,7 @@ namespace Helium.CI.Agent
         Initial,
         UploadingWorkspace,
         RunningBuild,
+        BuildStopping,
         PostBuild,
     }
 }
