@@ -11,6 +11,7 @@ using Helium.CI.Common.Protocol;
 using Helium.Util;
 using Microsoft.Extensions.Logging;
 using Nett;
+using Nito.AsyncEx;
 using Thrift.Processor;
 using Thrift.Protocol;
 using Thrift.Server;
@@ -42,7 +43,7 @@ namespace Helium.CI.Agent
             Console.WriteLine("TLS Key");
             Console.WriteLine(Convert.ToBase64String(cert.Export(X509ContentType.Cert)));
             
-            var transport = new TTlsServerSocketTransport(8080, cert, clientCertValidator: ValidateCert(allowedCerts));
+            var transport = new ServerTransportWorkspace(Path.Combine(AppDir, "builds"), 8080, cert, clientCertValidator: ValidateCert(allowedCerts));
             var server = new TThreadPoolAsyncServer(
                 new BuildAgentFactory(),
                 transport,
@@ -63,9 +64,27 @@ namespace Helium.CI.Agent
                 }
             };
 
+            TServerEventHandler eventHandler = new ServerEventHandler();
+            server.SetEventHandler(eventHandler);
             
             await server.ServeAsync(cancel.Token);
         }
+
+        private class ServerEventHandler : TServerEventHandler
+        {
+            public async Task PreServeAsync(CancellationToken cancellationToken) { }
+
+            public Task<object> CreateContextAsync(TProtocol input, TProtocol output, CancellationToken cancellationToken) {
+                throw new NotImplementedException();
+            }
+
+            public Task DeleteContextAsync(object serverContext, TProtocol input, TProtocol output, CancellationToken cancellationToken) {
+                throw new NotImplementedException();
+            }
+
+            public async Task ProcessContextAsync(object serverContext, TTransport transport, CancellationToken cancellationToken) { }
+        }
+
         private static async Task<AgentConfig> LoadConfig() {
             var file = Path.Combine(ConfDir, "agent.toml");
             return Toml.ReadString<AgentConfig>(await File.ReadAllTextAsync(file));
