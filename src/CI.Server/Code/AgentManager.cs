@@ -41,7 +41,7 @@ namespace Helium.CI.Server
                 cancellationToken.ThrowIfCancellationRequested();
                 id = Guid.NewGuid();
                 var dir = Path.Combine(agentsDir, id.ToString());
-                agent = new Agent(dir, jobQueue, serverConfig, config);
+                agent = new Agent(dir, id, jobQueue, serverConfig, config);
             } while(!agents.TryAdd(id, agent));
 
             await agent.WriteConfig(null, cancellationToken);
@@ -51,8 +51,9 @@ namespace Helium.CI.Server
 
         private class Agent : IAgent
         {
-            public Agent(string agentDir, IJobQueue jobQueue, ServerConfig serverConfig, AgentConfig config) {
+            public Agent(string agentDir, Guid id, IJobQueue jobQueue, ServerConfig serverConfig, AgentConfig config) {
                 AgentDir = agentDir;
+                Id = id;
                 exec = new AgentExecutor(jobQueue, config, serverConfig);
             }
             
@@ -61,6 +62,7 @@ namespace Helium.CI.Server
             public AgentConfig Config => exec.Config;
 
             public string AgentDir { get; }
+            public Guid Id { get; }
 
             public async Task WriteConfig(AgentConfig? config, CancellationToken cancellationToken) {
                 if(config == null) config = Config;
@@ -79,10 +81,21 @@ namespace Helium.CI.Server
                 await WriteConfig(config, cancellationToken);
                 await exec.UpdateConfig(config, cancellationToken);
             }
+
+            public void Startup(CancellationToken cancellationToken) =>
+                Task.Run(() => exec.AcceptJobs(cancellationToken), cancellationToken);
+
+            public void Stop() => exec.Stop();
         }
 
         public async Task RemoveAgent(IAgent agent) {
-            Directory.Delete(((Agent)agent).AgentDir);
+            var agent2 = (Agent)agent;
+            if(!agents.TryRemove(agent2.Id, out _)) {
+                return;
+            }
+
+            agent2.Stop();
+            Directory.Delete(agent2.AgentDir);
         }
 
         public static async Task<IAgentManager> Load(string agentsDir, IJobQueue jobQueue, ServerConfig serverConfig, CancellationToken cancellationToken) {
@@ -100,7 +113,9 @@ namespace Helium.CI.Server
                 var configStr = await File.ReadAllTextAsync(Path.Combine(agentDir, "agent.json"), cancellationToken);
                 var config = JsonConvert.DeserializeObject<AgentConfig>(configStr);
                 
-                agents[id] = new Agent(Path.GetFullPath(agentDir), jobQueue, serverConfig, config);
+                var agent = new Agent(Path.GetFullPath(agentDir), id, jobQueue, serverConfig, config);
+                agent.Startup(cancellationToken);
+                agents[id] = agent;
             }
             
             return new AgentManager(agentsDir, jobQueue, serverConfig, agents, cancellationToken);

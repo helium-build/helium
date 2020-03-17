@@ -77,17 +77,24 @@ namespace Helium.CI.Server
 
                         ++runningJobs;
                     }
-                    
-                    using var transport = CreateTransport(config.Connection);
-                    using var protocol = new TBinaryProtocol(transport);
-                    using var client = new BuildAgent.Client(protocol);
 
-                    await client.supportsPlatformAsync(JsonConvert.SerializeObject(PlatformInfo.Current), cancellationToken);
-                        
-                    var job = await jobQueue.AcceptJob(task => JobFilter(client, task, cancellationToken), cancellationToken);
-                    Interlocked.Increment(ref runningJobs);
-                        
-                    CompleteJob(client, job, cancellationToken);
+                    var jobToken = new RunningJobToken(this);
+                    try {
+                        using var transport = CreateTransport(config.Connection);
+                        using var protocol = new TBinaryProtocol(transport);
+                        using var client = new BuildAgent.Client(protocol);
+
+                        await client.supportsPlatformAsync(JsonConvert.SerializeObject(PlatformInfo.Current), cancellationToken);
+
+                        var job = await jobQueue.AcceptJob(task => JobFilter(client, task, cancellationToken), cancellationToken);
+                        Interlocked.Increment(ref runningJobs);
+
+                        CompleteJob(client, job, jobToken, cancellationToken);
+                    }
+                    catch {
+                        await jobToken.MarkFinished(cancellationToken);
+                        await Task.Delay(1000, cancellationToken);
+                    }
                 }
             }
             catch(OperationCanceledException) {
@@ -97,7 +104,7 @@ namespace Helium.CI.Server
             await Task.WhenAll(workerTasks.Values.ToArray());
         }
 
-        private void CompleteJob(BuildAgent.Client agent, IRunnableJob job, CancellationToken cancellationToken) {
+        private void CompleteJob(BuildAgent.Client agent, IRunnableJob job, RunningJobToken jobToken, CancellationToken cancellationToken) {
             var task = Task.Run(() => job.Run(agent, cancellationToken), cancellationToken);
             workerTasks.TryAdd(job, task);
             Task.Run(async () => {
@@ -105,10 +112,7 @@ namespace Helium.CI.Server
                     await task;
                 }
                 finally {
-                    using(await workerUpdate.EnterAsync(cancellationToken)) {
-                        --runningJobs;
-                        workerUpdate.PulseAll();
-                    }
+                    await jobToken.MarkFinished(cancellationToken);
                     workerTasks.TryRemove(job, out _);
                 }
             }, cancellationToken);
@@ -116,5 +120,25 @@ namespace Helium.CI.Server
 
         private async Task<bool> JobFilter(BuildAgent.Client agent, BuildTask arg, CancellationToken cancellationToken) =>
             await agent.supportsPlatformAsync(JsonConvert.ToString(arg.Platform), cancellationToken);
+        
+        private sealed class RunningJobToken
+        {
+            public RunningJobToken(AgentExecutor executor) {
+                this.executor = executor;
+            }
+            
+            private readonly AgentExecutor executor;
+            private int hasFinished = 0;
+
+            public async Task MarkFinished(CancellationToken cancellationToken) {
+                if(Interlocked.Exchange(ref hasFinished, 1) != 0) return;
+                
+                using(await executor.workerUpdate.EnterAsync(cancellationToken)) {
+                    --executor.runningJobs;
+                    executor.workerUpdate.PulseAll();
+                }
+            }
+        }
+        
     }
 }
