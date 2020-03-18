@@ -104,7 +104,7 @@ namespace Helium.CI.Server
 
                     await ReadConsole(agent, combinedToken);
 
-                    int exitCode = await agent.getExitCodeAsync(combinedToken);
+                    int exitCode = (await agent.getExitCodeAsync(combinedToken)).ExitCode;
                     if(exitCode != 0) {
                         Status.FailedWith(exitCode);
                         return;
@@ -142,7 +142,7 @@ namespace Helium.CI.Server
             private async Task ReadConsole(BuildAgent.IAsync agent, CancellationToken cancellationToken) {
                 while(true) {
                     var status = await agent.getStatusAsync(cancellationToken);
-                    if(string.IsNullOrEmpty(status.Output)) {
+                    if(status.Output == null || status.Output.Length == 0) {
                         break;
                     }
 

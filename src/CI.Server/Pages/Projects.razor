@@ -1,6 +1,27 @@
 ﻿@page "/projects"
 
+@inject IProjectManager ProjectManager
+
 <h1>Projects</h1>
 
-@code {
+<a href="projects/add" class="btn btn-primary" role="button">Add</a>
+
+@if(ProjectManager.Projects.Count == 0) {
+    <p>No projects have been configured.</p>
+}
+else {
+    <table>
+        <thead>
+        <tr>
+            <td>Name</td>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach(var project in ProjectManager.Projects.OrderBy(p => p.Config.Name)) {
+            <tr>
+                <td>@(project.Config.Name)</td>
+            </tr>
+        }
+        </tbody>
+    </table>
 }

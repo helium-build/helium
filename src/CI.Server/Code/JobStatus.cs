@@ -18,7 +18,7 @@ namespace Helium.CI.Server
 
         public Task WaitForComplete(CancellationToken cancellationToken) => complete.Task.WaitAsync(cancellationToken);
 
-        public async Task AppendOutput(string statusOutput, CancellationToken cancellationToken) {
+        public async Task AppendOutput(byte[] statusOutput, CancellationToken cancellationToken) {
             
         }
 

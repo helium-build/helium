@@ -8,7 +8,7 @@ namespace Helium.CI.Server
             Branch = branch;
             Path = path;
         }
-        
+
         public string Name { get; }
         public string Url { get; }
         public string Branch { get; }

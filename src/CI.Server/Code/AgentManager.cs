@@ -13,7 +13,7 @@ using Newtonsoft.Json;
 
 namespace Helium.CI.Server
 {
-    public class AgentManager : IAgentManager
+    public sealed class AgentManager : IAgentManager
     {
         private AgentManager(string agentsDir, IJobQueue jobQueue, ServerConfig serverConfig, IDictionary<Guid, IAgent> agents, CancellationToken cancellationToken) {
             this.agentsDir = agentsDir;
@@ -49,45 +49,6 @@ namespace Helium.CI.Server
             return agent;
         }
 
-        private class Agent : IAgent
-        {
-            public Agent(string agentDir, Guid id, IJobQueue jobQueue, ServerConfig serverConfig, AgentConfig config) {
-                AgentDir = agentDir;
-                Id = id;
-                exec = new AgentExecutor(jobQueue, config, serverConfig);
-            }
-            
-            private readonly AgentExecutor exec;
-
-            public AgentConfig Config => exec.Config;
-
-            public string AgentDir { get; }
-            public Guid Id { get; }
-
-            public async Task WriteConfig(AgentConfig? config, CancellationToken cancellationToken) {
-                if(config == null) config = Config;
-                var dir = AgentDir;
-                var tmpFile = Path.Combine(dir, "agent.json.tmp");
-                var configStr = JsonConvert.SerializeObject(config);
-                
-                Directory.CreateDirectory(dir);
-                
-                await FileUtil.WriteAllTextToDiskAsync(tmpFile, configStr, Encoding.UTF8, cancellationToken);
-                File.Move(tmpFile, Path.Combine(dir, "agent.json"), true);
-;            }
-
-
-            public async Task UpdateConfig(AgentConfig config, CancellationToken cancellationToken) {
-                await WriteConfig(config, cancellationToken);
-                await exec.UpdateConfig(config, cancellationToken);
-            }
-
-            public void Startup(CancellationToken cancellationToken) =>
-                Task.Run(() => exec.AcceptJobs(cancellationToken), cancellationToken);
-
-            public void Stop() => exec.Stop();
-        }
-
         public async Task RemoveAgent(IAgent agent) {
             var agent2 = (Agent)agent;
             if(!agents.TryRemove(agent2.Id, out _)) {
@@ -119,6 +80,45 @@ namespace Helium.CI.Server
             }
             
             return new AgentManager(agentsDir, jobQueue, serverConfig, agents, cancellationToken);
+        }
+
+        private sealed class Agent : IAgent
+        {
+            public Agent(string agentDir, Guid id, IJobQueue jobQueue, ServerConfig serverConfig, AgentConfig config) {
+                AgentDir = agentDir;
+                Id = id;
+                exec = new AgentExecutor(jobQueue, config, serverConfig);
+            }
+            
+            private readonly AgentExecutor exec;
+
+            public AgentConfig Config => exec.Config;
+
+            public string AgentDir { get; }
+            public Guid Id { get; }
+
+            public async Task WriteConfig(AgentConfig? config, CancellationToken cancellationToken) {
+                if(config == null) config = Config;
+                var dir = AgentDir;
+                var tmpFile = Path.Combine(dir, "agent.json.tmp");
+                var configStr = JsonConvert.SerializeObject(config);
+                
+                Directory.CreateDirectory(dir);
+                
+                await FileUtil.WriteAllTextToDiskAsync(tmpFile, configStr, Encoding.UTF8, cancellationToken);
+                File.Move(tmpFile, Path.Combine(dir, "agent.json"), true);
+            }
+
+
+            public async Task UpdateConfig(AgentConfig config, CancellationToken cancellationToken) {
+                await WriteConfig(config, cancellationToken);
+                await exec.UpdateConfig(config, cancellationToken);
+            }
+
+            public void Startup(CancellationToken cancellationToken) =>
+                Task.Run(() => exec.AcceptJobs(cancellationToken), cancellationToken);
+
+            public void Stop() => exec.Stop();
         }
         
     }

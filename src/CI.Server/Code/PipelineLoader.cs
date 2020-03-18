@@ -2,21 +2,36 @@ using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Globalization;
+using System.Linq;
 using Helium.Pipeline;
 using Helium.Sdks;
 using Jint;
 using Jint.Runtime.Interop;
+using Microsoft.AspNetCore.Http;
 
 namespace Helium.CI.Server
 {
-    public static class PipelineLoader
+    public class PipelineLoader
     {
+        private PipelineLoader(PipelineBuilderState builderState) {
+            this.builderState = builderState;
+        }
+        
+        private readonly PipelineBuilderState builderState;
 
-        public static PipelineInfo Load(string pipelineScript, IReadOnlyDictionary<string, string> arguments) {
+        public IReadOnlyList<BuildArgInfo> Arguments => builderState.BuildArgs.ToList();
+        
+        public PipelineInfo BuildPipeline(IReadOnlyDictionary<string, string> arguments) =>
+            builderState.PipelineBuilder?.Invoke(arguments) ?? throw new Exception("Pipeline was not set.");
+
+        private void Load(string pipelineScript) {
 
             var engine = new Engine(options => options
                 .Culture(CultureInfo.InvariantCulture)
+                .TimeoutInterval(TimeSpan.FromSeconds(2))
             );
+            
+            
 
             dynamic console = new ExpandoObject();
             console.log = new Action<object>(ConsoleLog);
@@ -36,14 +51,10 @@ namespace Helium.CI.Server
             engine.SetValue(nameof(ArtifactBuildInput), TypeReference.CreateTypeReference(engine, typeof(ArtifactBuildInput)));
             engine.SetValue(nameof(PipelineInfo), TypeReference.CreateTypeReference(engine, typeof(PipelineInfo)));
             
-            var builderState = new PipelineBuilderState(arguments);
             engine.SetValue("helium", builderState);
 
 
             engine.Execute(pipelineScript);
-
-            return builderState.Pipeline ?? throw new Exception("Pipeline was not set.");
-
         }
 
         private static void ConsoleLog(object obj) {
@@ -51,5 +62,14 @@ namespace Helium.CI.Server
                 Console.WriteLine("Pipeline: {0}", line);
             }
         }
+
+        public static PipelineLoader Create(string pipelineScript) {
+            var builderState = new PipelineBuilderState();
+            var loader = new PipelineLoader(builderState);
+            loader.Load(pipelineScript);
+            return loader;
+        }
+        
+        
     }
 }
