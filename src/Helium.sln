@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CI.Agent", "CI.Agent\CI.Age
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Env", "Env\Env.csproj", "{C396A7AF-CBFD-427F-B615-6FD8EE1B8FB5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CI.Server.UI", "CI.Server.UI\CI.Server.UI.csproj", "{6F52FCB1-E9A1-49B7-ADC3-A66A76AEEAC0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -198,5 +200,17 @@ Global
 		{C396A7AF-CBFD-427F-B615-6FD8EE1B8FB5}.Release|x64.Build.0 = Release|Any CPU
 		{C396A7AF-CBFD-427F-B615-6FD8EE1B8FB5}.Release|x86.ActiveCfg = Release|Any CPU
 		{C396A7AF-CBFD-427F-B615-6FD8EE1B8FB5}.Release|x86.Build.0 = Release|Any CPU
+		{6F52FCB1-E9A1-49B7-ADC3-A66A76AEEAC0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F52FCB1-E9A1-49B7-ADC3-A66A76AEEAC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F52FCB1-E9A1-49B7-ADC3-A66A76AEEAC0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6F52FCB1-E9A1-49B7-ADC3-A66A76AEEAC0}.Debug|x64.Build.0 = Debug|Any CPU
+		{6F52FCB1-E9A1-49B7-ADC3-A66A76AEEAC0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6F52FCB1-E9A1-49B7-ADC3-A66A76AEEAC0}.Debug|x86.Build.0 = Debug|Any CPU
+		{6F52FCB1-E9A1-49B7-ADC3-A66A76AEEAC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F52FCB1-E9A1-49B7-ADC3-A66A76AEEAC0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F52FCB1-E9A1-49B7-ADC3-A66A76AEEAC0}.Release|x64.ActiveCfg = Release|Any CPU
+		{6F52FCB1-E9A1-49B7-ADC3-A66A76AEEAC0}.Release|x64.Build.0 = Release|Any CPU
+		{6F52FCB1-E9A1-49B7-ADC3-A66A76AEEAC0}.Release|x86.ActiveCfg = Release|Any CPU
+		{6F52FCB1-E9A1-49B7-ADC3-A66A76AEEAC0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -17,7 +17,7 @@ namespace Helium.CI.Server
 {
     using BuildInputHandler = Func<CancellationToken, Task<string>>;
     
-    internal class JobQueue : IJobQueue
+    public class JobQueue : IJobQueue
     {
         private readonly AsyncMonitor monitor = new AsyncMonitor();
         private readonly LinkedList<RunnableJob> jobQueue = new LinkedList<RunnableJob>();

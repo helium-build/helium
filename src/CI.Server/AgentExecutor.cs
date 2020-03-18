@@ -17,9 +17,9 @@ using Thrift.Transport.Client;
 
 namespace Helium.CI.Server
 {
-    internal sealed class AgentExecutor
+    public sealed class AgentExecutor
     {
-        public AgentExecutor(IJobQueue jobQueue, AgentConfig config, ServerConfig serverConfig) {
+        internal AgentExecutor(IJobQueue jobQueue, AgentConfig config, ServerConfig serverConfig) {
             this.jobQueue = jobQueue;
             this.config = config;
             this.cert = serverConfig.Cert;

@@ -15,7 +15,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using static Helium.Env.Directories;
 
-namespace Helium.CI.Server
+namespace Helium.CI.Server.UI
 {
     public class Program
     {

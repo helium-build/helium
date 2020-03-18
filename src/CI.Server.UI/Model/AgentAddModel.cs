@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Helium.CI.Server
+namespace Helium.CI.Server.UI
 {
     public sealed class AgentAddModel
     {
