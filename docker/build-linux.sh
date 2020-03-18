@@ -8,6 +8,5 @@ docker build -t helium-build/build-env:debian-buster-20190708 -f helium-build-en
 cpp -traditional-cpp -undef -o helium-engine/linux/Dockerfile.gen helium-engine/linux/Dockerfile.in
 docker build -t helium-build/engine -f helium-engine/linux/Dockerfile.gen ../
 
-cpp -traditional-cpp -undef -o jenkins-slave/linux/Dockerfile.gen jenkins-slave/linux/Dockerfile.in
-docker build -t helium-build/jenkins-slave -f jenkins-slave/linux/Dockerfile.gen ../
-
+cpp -traditional-cpp -undef -o helium-agent/linux/Dockerfile.gen helium-agent/linux/Dockerfile.in
+docker build -t helium-build/agent -f helium-agent/linux/Dockerfile.gen ../

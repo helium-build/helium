@@ -18,6 +18,9 @@ namespace Helium.Env
 
         public static string SdkDir { get; } =
             Path.Combine(AppDir, "sdks");
+
+        public static string AgentWorkspacesDir { get; } =
+            Environment.GetEnvironmentVariable("HELIUM_AGENT_WORKSPACES_DIR") ?? Path.Combine(AppDir, "workspaces");
         
         public static string EngineContentRoot { get; } =
             Environment.GetEnvironmentVariable("HELIUM_ENGINE_CONTENT_ROOT") ?? AppDir;

@@ -1,10 +1,6 @@
 FROM mcr.microsoft.com/dotnet/core/sdk:3.0 as build
 
-RUN useradd -m helium && \
-	mkdir -p /helium-src/ && \
-	mkdir -p /docker-launcher/ && \
-	mkdir -p /tools/ && \
-	chown -R helium:helium /helium-src/ /docker-launcher/ /tools/
+RUN useradd -m helium
 
 USER helium
 
@@ -15,3 +11,7 @@ RUN dotnet publish -c Release -r linux-x64 --self-contained true
 WORKDIR /src/JobExecutor/
 RUN dotnet publish -c Release -r linux-x64 --self-contained true
 
+#ifdef INCLUDE_AGENT
+WORKDIR /src/CI.Agent/
+RUN dotnet publish -c Release -r linux-x64 --self-contained true
+#endif

@@ -43,7 +43,7 @@ namespace Helium.CI.Agent
             Console.WriteLine("TLS Key");
             Console.WriteLine(Convert.ToBase64String(cert.Export(X509ContentType.Cert)));
             
-            var transport = new ServerTransportWorkspace(Path.Combine(AppDir, "builds"), 8080, cert, clientCertValidator: ValidateCert(allowedCerts));
+            var transport = new ServerTransportWorkspace(AgentWorkspacesDir, 8080, cert, clientCertValidator: ValidateCert(allowedCerts));
             var server = new TThreadPoolAsyncServer(
                 new BuildAgentFactory(),
                 transport,
