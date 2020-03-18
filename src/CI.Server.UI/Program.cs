@@ -32,16 +32,17 @@ namespace Helium.CI.Server.UI
             var serverConfig = new ServerConfig(cert);
 
             var agentManager = await AgentManager.Load(Path.Combine(ConfDir, "agents"), jobQueue, serverConfig, cancel.Token);
+            var projectManager = await ProjectManager.Load(Path.Combine(ConfDir, "projects"), jobQueue, cancel.Token);
             
             try {
-                await CreateHostBuilder(agentManager).Build().RunAsync();
+                await CreateHostBuilder(agentManager, projectManager).Build().RunAsync();
             }
             finally {
                 cancel.Cancel();
             }
         }
 
-        public static IHostBuilder CreateHostBuilder(IAgentManager agentManager) =>
+        public static IHostBuilder CreateHostBuilder(IAgentManager agentManager, IProjectManager projectManager) =>
             new HostBuilder()
                 .UseContentRoot(Path.GetFullPath(AgentContentRoot))
                 .ConfigureLogging((hostingContext, logging) => {
@@ -65,6 +66,7 @@ namespace Helium.CI.Server.UI
                             services.AddRouting();
                             services.AddServerSideBlazor();
                             services.AddSingleton<IAgentManager>(_ => agentManager);
+                            services.AddSingleton<IProjectManager>(_ => projectManager);
                         })
                         .Configure(app => {
                             var env = app.ApplicationServices.GetRequiredService<IWebHostEnvironment>();

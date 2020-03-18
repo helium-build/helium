@@ -5,46 +5,11 @@
 
 <h1>Add Agent</h1>
 
-<EditForm Model="@model" OnValidSubmit="OnSubmit">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
-
-    <div class="form-group">
-        <label for="agentName" class="col-sm-2 col-form-label">Name</label>
-        <InputText id="agentName" @bind-Value="model.Name" />
-    </div>
-    <div class="form-group">
-        <label for="workers" class="col-sm-2 col-form-label">Workers</label>
-        <InputNumber id="workers" @bind-Value="model.Workers" />
-    </div>
-    <div class="form-group">
-        <label for="connType" class="col-sm-2 col-form-label">Connection Type</label>
-        <InputSelect id="connType" @bind-Value="model.ConnectionType">
-            <option value="ssl">SSL</option>
-        </InputSelect>
-    </div>
-    @switch(model.ConnectionType) {
-        case "ssl":
-            <div class="form-group">
-                <label for="host" class="col-sm-2 col-form-label">Host</label>
-                <InputText id="host" @bind-Value="model.SslHost" />
-            </div>
-            <div class="form-group">
-                <label for="port" class="col-sm-2 col-form-label">Port</label>
-                <InputNumber id="port" @bind-Value="model.SslPort" />
-            </div>
-            <div class="form-group">
-                <label for="agentKey" class="col-sm-2 col-form-label">Agent Key</label>
-                <InputTextArea id="agentKey" @bind-Value="model.AgentSslKey" />
-            </div>
-            break;
-    }
-    <button class="btn btn-primary" type="submit">Add</button>
-</EditForm>
+<AgentEditor Model="@model" ButtonLabel="Add" OnSubmit="OnSubmit" />
 
 @code {
 
-    private AgentAddModel model = new AgentAddModel {
+    private AgentEditModel model = new AgentEditModel {
         ConnectionType = "ssl",
     };
 

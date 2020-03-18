@@ -1,0 +1,36 @@
+﻿
+<EditForm Model="@Model" OnValidSubmit="OnSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="projectName" class="col-sm-2 col-form-label">Name</label>
+        <InputText id="projectName" @bind-Value="Model.Name" />
+    </div>
+    <div class="form-group">
+        <label for="url" class="col-sm-2 col-form-label">Url</label>
+        <InputText id="url" @bind-Value="Model.Url" />
+    </div>
+    <div class="form-group">
+        <label for="branch" class="col-sm-2 col-form-label">Branch</label>
+        <InputText id="branch" @bind-Value="Model.Branch" />
+    </div>
+    <div class="form-group">
+        <label for="path" class="col-sm-2 col-form-label">Path</label>
+        <InputText id="path" @bind-Value="Model.Path" />
+    </div>
+    <button class="btn btn-primary" type="submit">@ButtonLabel</button>
+</EditForm>
+
+@code {
+
+    [Parameter]
+    public ProjectEditModel Model { get; set; } = new ProjectEditModel();
+
+    [Parameter]
+    public EventCallback OnSubmit { get; set; }
+
+    [Parameter]
+    public string ButtonLabel { get; set; } = "Edit";
+
+}

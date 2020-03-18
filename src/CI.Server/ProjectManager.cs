@@ -16,46 +16,57 @@ namespace Helium.CI.Server
 {
     public sealed class ProjectManager : IProjectManager
     {
-        private ProjectManager(string projectsDir, IJobQueue jobQueue, IDictionary<string, IProject> projects, CancellationToken cancellationToken) {
+        private ProjectManager(string projectsDir, IJobQueue jobQueue, IDictionary<Guid, IProject> projects, CancellationToken cancellationToken) {
             this.projectsDir = projectsDir;
             this.jobQueue = jobQueue;
-            this.projects = new ConcurrentDictionary<string, IProject>(projects);
+            this.projects = new ConcurrentDictionary<Guid, IProject>(projects);
             this.cancellationToken = cancellationToken;
         }
 
         private readonly string projectsDir;
         private readonly IJobQueue jobQueue;
-        private readonly ConcurrentDictionary<string, IProject> projects;
+        private readonly ConcurrentDictionary<Guid, IProject> projects;
         private readonly CancellationToken cancellationToken;
 
-        public Task<IProject?> GetProject(string id) {
-            throw new System.NotImplementedException();
-        }
+        public IProject? GetProject(Guid id) => projects.TryGetValue(id, out var project) ? project : null;
 
         public IReadOnlyCollection<IProject> Projects => new ReadOnlyCollectionNoList<IProject>(projects.Values);
 
-        public async Task<IProject> AddProject(string id, ProjectConfig config) {
-            var dir = Path.Combine(projectsDir, id);
-            var project = new Project(dir, id, jobQueue, config);
+        public async Task<IProject> AddProject(ProjectConfig config) {
+            Guid id;
+            Project project;
+            do {
+                cancellationToken.ThrowIfCancellationRequested();
+                id = Guid.NewGuid();
+                var dir = Path.Combine(projectsDir, id.ToString());
+                project = new Project(dir, id, jobQueue, config);
+            } while(!projects.TryAdd(id, project));
 
             await project.WriteConfig(null, cancellationToken);
 
             return project;
         }
 
-        public Task RemoveProject(IProject project) {
-            throw new System.NotImplementedException();
+        public async Task RemoveProject(IProject project) {
+            var project2 = (Project)project;
+            if(!projects.TryRemove(project2.Id, out _)) {
+                return;
+            }
+            
+            Directory.Delete(project2.ProjectDir);
         }
 
         public static async Task<IProjectManager> Load(string projectsDir, IJobQueue jobQueue, CancellationToken cancellationToken) {
-            var projects = new Dictionary<string, IProject>();
+            var projects = new Dictionary<Guid, IProject>();
 
             Directory.CreateDirectory(projectsDir);
 
             foreach(var projectDir in Directory.EnumerateDirectories(projectsDir)) {
                 cancellationToken.ThrowIfCancellationRequested();
-
-                var id = Path.GetFileName(projectDir);
+                
+                if(!Guid.TryParse(Path.GetFileName(projectDir), out var id)) {
+                    continue;
+                }
                 
                 var configStr = await File.ReadAllTextAsync(Path.Combine(projectDir, "project.json"), cancellationToken);
                 var config = JsonConvert.DeserializeObject<ProjectConfig>(configStr);
@@ -69,29 +80,29 @@ namespace Helium.CI.Server
 
         private sealed class Project : IProject
         {
-            public Project(string dir, string id, IJobQueue jobQueue, ProjectConfig config) {
-                this.dir = dir;
-                this.id = id;
+            public Project(string dir, Guid id, IJobQueue jobQueue, ProjectConfig config) {
+                ProjectDir = dir;
                 this.jobQueue = jobQueue;
+                Id = id;
                 Config = config;
             }
 
             private readonly AsyncLock projectLock = new AsyncLock();
-            private readonly string dir;
-            private readonly string id;
             private readonly IJobQueue jobQueue;
             
             public ProjectConfig Config { get; private set; }
+            public string ProjectDir { get; }
+            public Guid Id { get; }
 
             public async Task WriteConfig(ProjectConfig? config, CancellationToken cancellationToken) {
                 if(config == null) config = Config;
-                var tmpFile = Path.Combine(dir, "project.json.tmp");
+                var tmpFile = Path.Combine(ProjectDir, "project.json.tmp");
                 var configStr = JsonConvert.SerializeObject(config);
                 
-                Directory.CreateDirectory(dir);
+                Directory.CreateDirectory(ProjectDir);
                 
                 await FileUtil.WriteAllTextToDiskAsync(tmpFile, configStr, Encoding.UTF8, cancellationToken);
-                File.Move(tmpFile, Path.Combine(dir, "project.json"), true);
+                File.Move(tmpFile, Path.Combine(ProjectDir, "project.json"), true);
             }
             
             public async Task UpdateConfig(ProjectConfig config, CancellationToken cancellationToken) {
@@ -109,7 +120,7 @@ namespace Helium.CI.Server
 
             private string HandleGitRepo() {
                 var config = Config;
-                var repoDir = Path.Combine(dir, "repo");
+                var repoDir = Path.Combine(ProjectDir, "repo");
 
                 bool requiresPull = true;
                 

@@ -1,0 +1,50 @@
+﻿
+<EditForm Model="@Model" OnValidSubmit="OnSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="agentName" class="col-sm-2 col-form-label">Name</label>
+        <InputText id="agentName" @bind-Value="Model.Name" />
+    </div>
+    <div class="form-group">
+        <label for="workers" class="col-sm-2 col-form-label">Workers</label>
+        <InputNumber id="workers" @bind-Value="Model.Workers" />
+    </div>
+    <div class="form-group">
+        <label for="connType" class="col-sm-2 col-form-label">Connection Type</label>
+        <InputSelect id="connType" @bind-Value="Model.ConnectionType">
+            <option value="ssl">SSL</option>
+        </InputSelect>
+    </div>
+    @switch(Model.ConnectionType) {
+        case "ssl":
+            <div class="form-group">
+                <label for="host" class="col-sm-2 col-form-label">Host</label>
+                <InputText id="host" @bind-Value="Model.SslHost" />
+            </div>
+            <div class="form-group">
+                <label for="port" class="col-sm-2 col-form-label">Port</label>
+                <InputNumber id="port" @bind-Value="Model.SslPort" />
+            </div>
+            <div class="form-group">
+                <label for="agentKey" class="col-sm-2 col-form-label">Agent Key</label>
+                <InputTextArea id="agentKey" @bind-Value="Model.AgentSslKey" />
+            </div>
+            break;
+    }
+    <button class="btn btn-primary" type="submit">@ButtonLabel</button>
+</EditForm>
+
+@code {
+
+    [Parameter]
+    public AgentEditModel Model { get; set; } = new AgentEditModel();
+
+    [Parameter]
+    public EventCallback OnSubmit { get; set; }
+
+    [Parameter]
+    public string ButtonLabel { get; set; } = "Edit";
+
+}

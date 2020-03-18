@@ -1,0 +1,26 @@
+﻿@page "/projects/add"
+
+@inject IProjectManager ProjectManager
+@inject NavigationManager NavigationManager
+
+<h1>Add Project</h1>
+
+<ProjectEditor Model="@model" ButtonLabel="Add" OnSubmit="OnSubmit" />
+
+@code {
+
+    private ProjectEditModel model = new ProjectEditModel();
+
+    private async Task OnSubmit() {
+        var projectConfig = new ProjectConfig(
+            name: model.Name!,
+            url: model.Url!,
+            branch: model.Branch!,
+            path: model.Path!
+        );
+        
+        await ProjectManager.AddProject(projectConfig);
+        NavigationManager.NavigateTo("projects");
+    }
+    
+}

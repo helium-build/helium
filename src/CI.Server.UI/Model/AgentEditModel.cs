@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Helium.CI.Server.UI
 {
-    public sealed class AgentAddModel
+    public sealed class AgentEditModel
     {
         [Required]
         public string? Name { get; set; }
