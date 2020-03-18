@@ -1,0 +1,80 @@
+﻿@page "/project/{id}/build"
+@using System.Threading
+@using Microsoft.Extensions.Logging
+
+@inject IProjectManager ProjectManager
+@inject ILogger<ProjectBuild> Logger
+
+@if(!hasLoaded) {
+    <p>Loading project...</p>
+}
+else if(loader == null) {
+    <p>Could not load pipeline.</p>
+}
+else {
+    int i = 0;
+    
+    <EditForm Model="@argValues" OnValidSubmit="OnSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+            
+        @if(loader.Arguments.Count == 0) {
+            <p>This build has no arguments.</p>
+        }
+
+        @foreach(var arg in loader.Arguments) {
+            var argId = "arg" + i;
+            var helpId = argId + "_help";
+            
+            <div class="form-group">
+                <label for="@argId" class="col-sm-2 col-form-label">@(arg.Name)</label>
+                <InputText id="@argId" aria-describedBy="@helpId" @bind-Value="argValues[arg.Name]" />
+                @if(arg.Description != null) {
+                    <small id="@helpId" class="form-text text-muted">@(arg.Description)</small>
+                }
+            </div>
+            ++i;
+        }
+        <button class="btn btn-primary" type="submit">Start</button>
+    </EditForm>
+}
+
+@code {
+
+    [Parameter]
+    public string? Id { get; set; }
+
+    private bool hasLoaded = false;
+    private PipelineLoader? loader = null;
+    private readonly Dictionary<string, string?> argValues = new Dictionary<string, string?>();
+    
+
+    protected override async Task OnInitializedAsync() {
+        if(!Guid.TryParse(Id, out var id)) {
+            hasLoaded = true;
+            return;
+        }
+
+        var project = ProjectManager.GetProject(id);
+        if(project == null) {
+            hasLoaded = true;
+            return;
+        }
+
+        try {
+            loader = await project.GetPipelineLoader(CancellationToken.None);
+            foreach(var arg in loader.Arguments) {
+                argValues.Add(arg.Name, null);
+            }
+        }
+        catch(Exception ex) {
+            Logger.LogError(ex, "Could not load pipeline.");
+        }
+        hasLoaded = true;
+    }
+
+    private async Task OnSubmit() {
+        if(loader == null) return;
+    }
+
+}

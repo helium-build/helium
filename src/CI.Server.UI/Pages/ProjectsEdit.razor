@@ -1,0 +1,56 @@
+﻿@page "/project/{id}/edit"
+@using System.Threading
+
+@inject IProjectManager ProjectManager
+@inject NavigationManager NavigationManager
+
+<h1>Edit Project</h1>
+
+@if(project == null) {
+    <p>The requested project could not be found.</p>
+}
+else {
+    var config = project.Config;
+    
+    <ProjectEditor Model="model" ButtonLabel="Save" OnSubmit="OnSubmit" />
+}
+
+@code {
+    
+    [Parameter]
+    public string? Id { get; set; }
+
+    private IProject? project = null;
+
+    private ProjectEditModel model = new ProjectEditModel();
+
+    protected override void OnInitialized() {
+        if(!Guid.TryParse(Id, out var id)) {
+            return;
+        }
+        
+        project = ProjectManager.GetProject(id);
+        if(project == null) {
+            return;
+        }
+        
+        var config = project.Config;
+        model.Name = config.Name;
+        model.Url = config.Url;
+        model.Branch = config.Branch;
+        model.Path = config.Path;
+    }
+
+    private async Task OnSubmit() {
+        var config = new ProjectConfig(
+            name: model.Name!,
+            url: model.Url!,
+            branch: model.Branch!,
+            path: model.Path!
+        );
+
+        await project!.UpdateConfig(config, CancellationToken.None);
+        NavigationManager.NavigateTo("project/" + Id);
+    }
+    
+}

@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Helium.Engine.Docker;
 using Helium.Sdks;
+using Helium.Util;
 using Newtonsoft.Json;
 using static Helium.JobExecutor.JobExecutorProtocol;
 
@@ -35,7 +36,7 @@ namespace Engine.Docker
             }
 
             await buildContext(p.StandardInput.BaseStream);
-            await WaitForExitAsync(p);
+            await p.WaitForExitAsync();
 
             return p.ExitCode;
         }

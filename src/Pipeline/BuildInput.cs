@@ -6,10 +6,16 @@ namespace Helium.Pipeline
 {
     public sealed class BuildInput
     {
-        internal BuildInput(BuildInputSource source, string path) {
-            Source = source;
-            Path = path;
+        public BuildInput(BuildInputSource source, string path) {
+            Source = source ?? throw new ArgumentNullException(nameof(source));
+            Path = path ?? throw new ArgumentNullException(nameof(path));
         }
+        
+        public BuildInput(IDictionary<string, object> obj)
+            : this(
+                source: (BuildInputSource)obj["source"],
+                path: (string)obj["path"]
+            ) {}
 
         public BuildInputSource Source { get; }
         public string Path { get; }
@@ -22,28 +28,28 @@ namespace Helium.Pipeline
 
     public sealed class GitBuildInput : BuildInputSource
     {
-        public GitBuildInput(string url, string? @ref) {
-            Url = url;
-            Ref = @ref ?? throw new ArgumentNullException(nameof(@ref));
+        public GitBuildInput(string url, string? branch) {
+            Url = url ?? throw new ArgumentNullException(nameof(url));
+            Branch = branch;
         }
         
         public GitBuildInput(IDictionary<string, object> obj)
             : this(
                 url: (string)obj["url"],
-                @ref: (string)obj["ref"]
+                branch: obj.TryGetValue("branch", out var branch) ? (string?)branch : null
             ) {}
         
         public string Url { get; }
-        public string? Ref { get; }
+        public string? Branch { get; }
 
         public override bool Equals(object? obj) =>
             obj is GitBuildInput other &&
                 Url == other.Url &&
-                Ref == other.Ref;
+                Branch == other.Branch;
 
 
         public override int GetHashCode() =>
-            HashCode.Combine(Url, Ref);
+            HashCode.Combine(Url, Branch);
     }
 
     public sealed class HttpRequestBuildInput : BuildInputSource

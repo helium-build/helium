@@ -8,8 +8,6 @@ using Helium.CI.Common.Protocol;
 using Helium.Pipeline;
 using Helium.Util;
 using ICSharpCode.SharpZipLib.Tar;
-using Jint.Native.Object;
-using LibGit2Sharp;
 using Newtonsoft.Json;
 using Nito.AsyncEx;
 
@@ -165,10 +163,7 @@ namespace Helium.CI.Server
 
                 Directory.CreateDirectory(dir);
 
-                Repository.Clone(git.Url, dir, new CloneOptions {
-                    BranchName = git.Ref,
-                    RecurseSubmodules = true,
-                });
+                await GitUtil.CloneRepo(git.Url, dir, git.Branch);
 
                 return dir;
             };

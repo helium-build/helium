@@ -1,0 +1,32 @@
+﻿@page "/project/{id}"
+
+@inject IProjectManager ProjectManager
+
+@if(project == null) {
+    <p>The requested project could not be found.</p>
+}
+else {
+    var config = project.Config;
+    var editUrl = $"project/{Id}/edit";
+    var buildUrl = $"project/{Id}/build";
+    
+    <h1>Project @(config.Name)</h1>
+                              
+    <a href="@editUrl" class="btn btn-primary" role="button">Edit</a>
+    <a href="@buildUrl" class="btn btn-primary" role="button">Build</a>
+}
+
+@code {
+
+    [Parameter]
+    public string? Id { get; set; }
+
+    private IProject? project = null;
+
+    protected override void OnInitialized() {
+        if(Guid.TryParse(Id, out var id)) {
+            project = ProjectManager.GetProject(id);
+        }
+    }
+
+}

@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Helium.Engine.Docker;
 using Helium.Sdks;
+using Helium.Util;
 using static Helium.JobExecutor.JobExecutorProtocol;
 
 namespace Engine.Docker
@@ -40,21 +41,12 @@ namespace Engine.Docker
             AddRunArguments(psi, runCommand);
 
             var process = Process.Start(psi) ?? throw new Exception("Could not start docker process.");
-            await WaitForExitAsync(process);
+            await process.WaitForExitAsync();
 
             return process.ExitCode;
         }
 
         protected abstract void AddRunArguments(ProcessStartInfo psi, RunDockerCommand run);
         
-        
-        protected static Task WaitForExitAsync(Process process) {
-            var tcs = new TaskCompletionSource<object?>();
-
-            process.EnableRaisingEvents = true;
-            process.Exited += delegate { tcs.TrySetResult(null); };
-
-            return tcs.Task;
-        }
     }
 }

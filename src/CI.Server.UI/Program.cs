@@ -65,6 +65,7 @@ namespace Helium.CI.Server.UI
                             services.AddRazorPages();
                             services.AddRouting();
                             services.AddServerSideBlazor();
+                            services.AddLogging();
                             services.AddSingleton<IAgentManager>(_ => agentManager);
                             services.AddSingleton<IProjectManager>(_ => projectManager);
                         })

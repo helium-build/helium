@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Helium.Util;
-using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Nito.AsyncEx;
@@ -112,59 +111,31 @@ namespace Helium.CI.Server
                 }
             }
 
-            public async Task<string> GetPipelineScript(CancellationToken cancellationToken) {
+            public async Task<PipelineLoader> GetPipelineLoader(CancellationToken cancellationToken) {
+                var script = await GetPipelineScript(cancellationToken);
+                return PipelineLoader.Create(script);
+            }
+
+            private async Task<string> GetPipelineScript(CancellationToken cancellationToken) {
                 using(await projectLock.LockAsync(cancellationToken)) {
-                    return HandleGitRepo();
+                    return await HandleGitRepo(cancellationToken);
                 }
             }
 
-            private string HandleGitRepo() {
+            private async Task<string> HandleGitRepo(CancellationToken cancellationToken) {
                 var config = Config;
                 var repoDir = Path.Combine(ProjectDir, "repo");
 
-                bool requiresPull = true;
-                
-                void DeleteRepo() {
+                if(!PathUtil.IsValidSubPath(config.Path)) {
+                    throw new Exception("Invalid project path.");
+                }
+
+                if(Directory.Exists(repoDir)) {
                     Directory.Delete(repoDir, recursive: true);
                 }
+                await GitUtil.CloneRepo(config.Url, repoDir, config.Branch, depth: 1);
 
-                void CloneRepo() {
-                    requiresPull = false;
-                    Repository.Clone(config.Url, repoDir, new CloneOptions {
-                        BranchName = config.Branch,
-                        IsBare = true,
-                    });
-                }
-
-                if(!Directory.Exists(repoDir)) {
-                    CloneRepo();
-                }
-
-                
-
-                using var repo = new Repository(repoDir);
-                Remote? remote = null;
-                try {
-                    remote = repo.Network.Remotes.First(r => r.Url == config.Url);
-                }
-                catch {
-                }
-
-                if(remote == null) {
-                    DeleteRepo();
-                    CloneRepo();
-                }
-
-                if(requiresPull) {
-                    Commands.Pull(repo, null, new PullOptions {
-                        MergeOptions = new MergeOptions {
-                            FastForwardStrategy = FastForwardStrategy.FastForwardOnly,
-                        }
-                    });
-                }
-
-                var blob = (Blob)repo.Branches[config.Branch].Tip[config.Path].Target;
-                return blob.GetContentText(Encoding.UTF8);
+                return await File.ReadAllTextAsync(Path.Combine(repoDir, config.Path), Encoding.UTF8, cancellationToken);
             }
         }
         

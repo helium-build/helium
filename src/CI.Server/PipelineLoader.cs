@@ -17,21 +17,25 @@ namespace Helium.CI.Server
             this.builderState = builderState;
         }
         
+        
+
+        private readonly Engine engine = new Engine(options => options
+            .Culture(CultureInfo.InvariantCulture)
+            .TimeoutInterval(TimeSpan.FromSeconds(2))
+        );
+        
         private readonly PipelineBuilderState builderState;
 
         public IReadOnlyList<BuildArgInfo> Arguments => builderState.BuildArgs.ToList();
-        
-        public PipelineInfo BuildPipeline(IReadOnlyDictionary<string, string> arguments) =>
-            builderState.PipelineBuilder?.Invoke(arguments) ?? throw new Exception("Pipeline was not set.");
+
+        public PipelineInfo BuildPipeline(IReadOnlyDictionary<string, string> arguments) {
+            engine.ResetTimeoutTicks();
+            return builderState.PipelineBuilder?.Invoke(arguments) ?? throw new Exception("Pipeline was not set.");
+        }
 
         private void Load(string pipelineScript) {
-
-            var engine = new Engine(options => options
-                .Culture(CultureInfo.InvariantCulture)
-                .TimeoutInterval(TimeSpan.FromSeconds(2))
-            );
             
-            
+            engine.ResetTimeoutTicks();
 
             dynamic console = new ExpandoObject();
             console.log = new Action<object>(ConsoleLog);

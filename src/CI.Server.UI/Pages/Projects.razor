@@ -10,16 +10,16 @@
     <p>No projects have been configured.</p>
 }
 else {
-    <table>
+    <table class="table">
         <thead>
         <tr>
-            <td>Name</td>
+            <th scope="col">Name</th>
         </tr>
         </thead>
         <tbody>
         @foreach(var project in ProjectManager.Projects.OrderBy(p => p.Config.Name)) {
             <tr>
-                <td>@(project.Config.Name)</td>
+                <td><a href="project/@(project.Id)">@(project.Config.Name)</a></td>
             </tr>
         }
         </tbody>
