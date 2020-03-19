@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Helium.Pipeline;
 using Helium.Util;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
@@ -114,6 +115,27 @@ namespace Helium.CI.Server
             public async Task<PipelineLoader> GetPipelineLoader(CancellationToken cancellationToken) {
                 var script = await GetPipelineScript(cancellationToken);
                 return PipelineLoader.Create(script);
+            }
+
+            public async Task<IReadOnlyDictionary<BuildJob, IJobStatus>> StartBuild(PipelineInfo pipeline) {
+                string buildDir;
+                using(await projectLock.LockAsync()) {
+                    var buildsDir = Path.Combine(ProjectDir, "builds");
+                    Directory.CreateDirectory(buildsDir);
+                    int lastBuildNumber = Directory.GetDirectories(buildsDir, "build*")
+                        .Select(dir =>
+                            int.TryParse(Path.GetFileName(dir).Substring(5), out var num) ? (int?) num : null)
+                        .DefaultIfEmpty(null)
+                        .Max()
+                        ?? 0;
+
+                    buildDir = Path.Combine(buildsDir, "build" + (lastBuildNumber + 1));
+                    Directory.CreateDirectory(buildDir);
+                }
+                
+                var runManager = new PipelineRunManager(buildDir);
+                
+                return await jobQueue.Add(runManager, pipeline.BuildJobs, CancellationToken.None);
             }
 
             private async Task<string> GetPipelineScript(CancellationToken cancellationToken) {

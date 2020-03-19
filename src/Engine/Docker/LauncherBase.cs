@@ -25,6 +25,10 @@ namespace Engine.Docker
                     ["HELIUM_SDK_PATH"] = string.Join(Path.PathSeparator, props.PathDirs)
                 },
             };
+
+            if(props.CurrentDirectory != null) {
+                run.CurrentDirectory = props.CurrentDirectory;
+            }
             
             run.BindMounts.Add(new DockerBindMount {
                 HostDirectory = Path.GetFullPath(props.SocketDir),

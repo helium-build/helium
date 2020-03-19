@@ -17,7 +17,6 @@ namespace Helium.CI.Server
         private readonly ConcurrentDictionary<BuildInputSource, Task<string>> inputCache = new ConcurrentDictionary<BuildInputSource, Task<string>>();
         
         private int nextInputPathId = 0;
-        private int nextArtifactDirId = 0;
 
         public Task<string> GetInput(BuildInputSource inputSource, Func<BuildInputSource, Task<string>> f, CancellationToken cancellationToken) =>
             inputCache.GetOrAdd(inputSource, f);
@@ -27,9 +26,7 @@ namespace Helium.CI.Server
             return Path.Combine(pipelineRunDir, "inputs", "input" + id);
         }
 
-        public string NextArtifactDir() {
-            int id = Interlocked.Increment(ref nextArtifactDirId);
-            return Path.Combine(pipelineRunDir, "job-artifacts", "job" + id);
-        }
+        public string BuildPath(BuildJob job) => Path.Combine(pipelineRunDir, job.Id);
+
     }
 }

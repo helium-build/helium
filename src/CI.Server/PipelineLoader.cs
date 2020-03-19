@@ -29,8 +29,13 @@ namespace Helium.CI.Server
         public IReadOnlyList<BuildArgInfo> Arguments => builderState.BuildArgs.ToList();
 
         public PipelineInfo BuildPipeline(IReadOnlyDictionary<string, string> arguments) {
+            IDictionary<string, object> argObj = new ExpandoObject();
+            foreach(var (k, v) in arguments) {
+                argObj.Add(k, v);
+            }
+            
             engine.ResetTimeoutTicks();
-            return builderState.PipelineBuilder?.Invoke(arguments) ?? throw new Exception("Pipeline was not set.");
+            return builderState.PipelineBuilder?.Invoke(argObj) ?? throw new Exception("Pipeline was not set.");
         }
 
         private void Load(string pipelineScript) {
@@ -53,6 +58,7 @@ namespace Helium.CI.Server
             engine.SetValue(nameof(GitBuildInput), TypeReference.CreateTypeReference(engine, typeof(GitBuildInput)));
             engine.SetValue(nameof(HttpRequestBuildInput), TypeReference.CreateTypeReference(engine, typeof(HttpRequestBuildInput)));
             engine.SetValue(nameof(ArtifactBuildInput), TypeReference.CreateTypeReference(engine, typeof(ArtifactBuildInput)));
+            engine.SetValue(nameof(BuildInput), TypeReference.CreateTypeReference(engine, typeof(BuildInput)));
             engine.SetValue(nameof(PipelineInfo), TypeReference.CreateTypeReference(engine, typeof(PipelineInfo)));
             
             engine.SetValue("helium", builderState);

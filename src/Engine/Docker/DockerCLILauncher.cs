@@ -23,6 +23,11 @@ namespace Engine.Docker
             psi.ArgumentList.Add("--hostname");
             psi.ArgumentList.Add("helium-build-env");
 
+            if(run.CurrentDirectory != null) {
+                psi.ArgumentList.Add("--workdir");
+                psi.ArgumentList.Add(run.CurrentDirectory);
+            }
+
             if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
                 psi.ArgumentList.Add("--isolation");
                 psi.ArgumentList.Add("process");

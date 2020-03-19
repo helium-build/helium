@@ -83,6 +83,7 @@ namespace Helium.Engine.Record
         public async Task RecordMetadata() { }
 
         public string SourcesDir { get; }
+        public string? CurrentDir => null;
 
         private sealed class ReplaySdkManager : ISdkInstallManager
         {

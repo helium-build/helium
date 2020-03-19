@@ -7,7 +7,7 @@ namespace Helium.Util
 {
     public static class GitUtil
     {
-        public static async Task CloneRepo(string url, string dir, string branch, int? depth = null) {
+        public static async Task CloneRepo(string url, string dir, string? branch, int? depth = null) {
             await RunGitCommand(
                 "clone",
                 (depth is int d ? "--depth=" + d : null),

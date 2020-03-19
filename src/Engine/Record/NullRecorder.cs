@@ -13,10 +13,11 @@ namespace Helium.Engine.Record
 {
     internal class NullRecorder : LiveRecorder
     {
-        public NullRecorder(string cacheDir, string sdkDir, string schemaFile, string sourcesDir, string confDir) {
+        public NullRecorder(string cacheDir, string sdkDir, string schemaFile, string? currentDir, string sourcesDir, string confDir) {
             this.cacheDir = cacheDir;
             SdkDir = sdkDir;
             SchemaFile = schemaFile;
+            CurrentDir = currentDir;
             SourcesDir = sourcesDir;
             ConfDir = confDir;
         }
@@ -25,6 +26,7 @@ namespace Helium.Engine.Record
         private readonly ConcurrentDictionary<string, Task<JObject>> metadataCache = new ConcurrentDictionary<string, Task<JObject>>();
 
         public override string SourcesDir { get; }
+        public override string? CurrentDir { get; }
         
         protected override string SchemaFile { get; }
         protected override string SdkDir { get; }

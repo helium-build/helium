@@ -56,8 +56,8 @@ type PlatformInfo =
     
     static member From (dict: IDictionary<string, obj>): PlatformInfo =
         {
-            os = dict.["os"] :?> SdkOperatingSystem;
-            arch = dict.["arch"] :?> SdkArch;
+            os = dict.["os"] |> Convert.ToInt32 |> LanguagePrimitives.EnumOfValue;
+            arch = dict.["arch"] |> Convert.ToInt32 |> LanguagePrimitives.EnumOfValue;
         }
 
 [<RequireQualifiedAccess>]

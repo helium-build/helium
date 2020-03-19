@@ -1,3 +1,4 @@
+using System.IO;
 using System.Linq;
 
 namespace Helium.Util
@@ -5,6 +6,6 @@ namespace Helium.Util
     public static class PathUtil
     {
         public static bool IsValidSubPath(string path) =>
-            !path.StartsWith("/") && path.Split('/', '\\').All(seg => seg != "..");
+            !Path.IsPathRooted(path) && path.Split('/', '\\').All(seg => seg != "..");
     }
 }

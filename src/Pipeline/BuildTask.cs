@@ -4,11 +4,13 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Helium.Sdks;
+using Newtonsoft.Json;
 
 namespace Helium.Pipeline
 {
     public sealed class BuildTask
     {
+        [JsonConstructor]
         public BuildTask(string buildFile, PlatformInfo platform, IReadOnlyDictionary<string, string>? arguments = null,
             IEnumerable<SdkInfo>? extraSdks = null) {
 

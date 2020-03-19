@@ -1,5 +1,6 @@
 ﻿@page "/project/{id}/build"
 @using System.Threading
+@using Helium.Pipeline
 @using Microsoft.Extensions.Logging
 
 @inject IProjectManager ProjectManager
@@ -45,6 +46,7 @@ else {
     public string? Id { get; set; }
 
     private bool hasLoaded = false;
+    private IProject? project;
     private PipelineLoader? loader = null;
     private readonly Dictionary<string, string?> argValues = new Dictionary<string, string?>();
     
@@ -55,7 +57,7 @@ else {
             return;
         }
 
-        var project = ProjectManager.GetProject(id);
+        project = ProjectManager.GetProject(id);
         if(project == null) {
             hasLoaded = true;
             return;
@@ -74,7 +76,25 @@ else {
     }
 
     private async Task OnSubmit() {
-        if(loader == null) return;
+        if(project == null || loader == null) return;
+        var args = new Dictionary<string, string>(argValues.Count);
+        foreach(var (k, v) in argValues) {
+            if(v != null) {
+                args[k] = v;
+            }
+        }
+
+        PipelineInfo pipeline;
+        try {
+            pipeline = loader.BuildPipeline(args);
+        }
+        catch(Exception ex) {
+            Logger.LogError(ex, "Could not build pipeline.");
+            return;
+        }
+
+        await project.StartBuild(pipeline);
+
     }
 
 }

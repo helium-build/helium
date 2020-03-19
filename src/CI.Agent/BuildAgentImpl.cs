@@ -55,6 +55,8 @@ namespace Helium.CI.Agent
                 }
                 
                 state = AgentState.RunningBuild;
+
+                await buildDir.WorkspacePipe.CompleteAsync();
                 
                 try {
                     var buildTask = JsonConvert.DeserializeObject<BuildTask>(task);
@@ -72,17 +74,18 @@ namespace Helium.CI.Agent
                     throw new InvalidState();
                 }
 
-                var stream = await buildDir.BuildOutputStream;
+                var stream = buildDir.BuildOutputStream;
 
                 var buffer = new byte[4096];
                 int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
 
                 if(bytesRead == 0) {
+                    stream.Close();
                     state = AgentState.BuildStopping;
                 }
-                
+
                 return new BuildStatus {
-                    Output = buffer.Take(bytesRead).ToArray(), 
+                    Output = buffer.Take(bytesRead).ToArray(),
                 };
             }
         }
@@ -107,7 +110,11 @@ namespace Helium.CI.Agent
                     throw new InvalidState();
                 }
 
-                return Directory.EnumerateFiles(buildDir.ArtifactDir, "*", SearchOption.AllDirectories).ToList();
+                var artifactDir = buildDir.ArtifactDir;
+
+                return Directory.EnumerateFiles(artifactDir, "*", SearchOption.AllDirectories)
+                    .Select(subDir => subDir.Substring(artifactDir.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))
+                    .ToList();
             }
         }
 
@@ -121,7 +128,7 @@ namespace Helium.CI.Agent
 
                 buildDir.CurrentFileAccess = null;
 
-                if(PathUtil.IsValidSubPath(name)) {
+                if(type != OutputType.REPLAY && !PathUtil.IsValidSubPath(name)) {
                     throw new UnknownOutput();
                 }
 

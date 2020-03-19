@@ -4,6 +4,7 @@
 target/
 cache/
 workspace/
+workspaces/
 *.user
 launchSettings.json
 

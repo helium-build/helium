@@ -63,26 +63,8 @@ namespace Helium.CI.Agent
                     cancel.Cancel();
                 }
             };
-
-            TServerEventHandler eventHandler = new ServerEventHandler();
-            server.SetEventHandler(eventHandler);
             
             await server.ServeAsync(cancel.Token);
-        }
-
-        private class ServerEventHandler : TServerEventHandler
-        {
-            public async Task PreServeAsync(CancellationToken cancellationToken) { }
-
-            public Task<object> CreateContextAsync(TProtocol input, TProtocol output, CancellationToken cancellationToken) {
-                throw new NotImplementedException();
-            }
-
-            public Task DeleteContextAsync(object serverContext, TProtocol input, TProtocol output, CancellationToken cancellationToken) {
-                throw new NotImplementedException();
-            }
-
-            public async Task ProcessContextAsync(object serverContext, TTransport transport, CancellationToken cancellationToken) { }
         }
 
         private static async Task<AgentConfig> LoadConfig() {

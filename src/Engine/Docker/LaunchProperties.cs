@@ -4,12 +4,13 @@ namespace Helium.Engine.Docker
 {
     internal sealed class LaunchProperties
     {
-        public LaunchProperties(string dockerImage, List<string> command, string sources, string socketDir, string installDir) {
+        public LaunchProperties(string dockerImage, List<string> command, string sources, string socketDir, string installDir, string? currentDirectory) {
             DockerImage = dockerImage;
             Command = command;
             Sources = sources;
             SocketDir = socketDir;
             InstallDir = installDir;
+            CurrentDirectory = currentDirectory;
         }
 
         public string DockerImage { get; }
@@ -18,6 +19,8 @@ namespace Helium.Engine.Docker
         
         public string SocketDir { get; }
         public string InstallDir { get; }
+        
+        public string? CurrentDirectory { get; }
 
         public Dictionary<string, string> Environment { get; } = new Dictionary<string, string>();
         public List<string> PathDirs { get; } = new List<string>();

@@ -27,5 +27,7 @@ namespace Helium.Engine.Record
 
         string SourcesDir { get; }
         
+        string? CurrentDir { get; }
+        
     }
 }

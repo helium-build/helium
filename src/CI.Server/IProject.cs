@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Helium.Pipeline;
 
 namespace Helium.CI.Server
 {
@@ -12,6 +14,8 @@ namespace Helium.CI.Server
         Task UpdateConfig(ProjectConfig config, CancellationToken cancellationToken);
         
         Task<PipelineLoader> GetPipelineLoader(CancellationToken cancellationToken);
+
+        Task<IReadOnlyDictionary<BuildJob, IJobStatus>> StartBuild(PipelineInfo pipeline);
 
     }
 }

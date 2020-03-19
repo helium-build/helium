@@ -38,6 +38,7 @@ namespace Helium.Engine
                 platform: currentPlatform,
                 sdks: sdks,
                 workDir: workDir,
+                currentDir: recorder.CurrentDir,
                 sourcesDir: recorder.SourcesDir,
                 conf,
                 sdkInstallManager,
@@ -60,7 +61,7 @@ namespace Helium.Engine
             return exitCode;
         }
 
-        private static ICleanup<Func<Task<LaunchProperties>>> GetDockerLaunchProps(PlatformInfo platform, List<SdkInfo> sdks, string workDir, string sourcesDir, Config conf, ISdkInstallManager sdkInstallManager, BuildSchema schema) =>
+        private static ICleanup<Func<Task<LaunchProperties>>> GetDockerLaunchProps(PlatformInfo platform, List<SdkInfo> sdks, string workDir, string? currentDir, string sourcesDir, Config conf, ISdkInstallManager sdkInstallManager, BuildSchema schema) =>
             DirectoryCleanup.CreateTempDir(workDir, async tempDir => {
 
                 var dockerImage = platform.os switch {
@@ -77,13 +78,23 @@ namespace Helium.Engine
 
                 var installDir = Path.Combine(tempDir, "install");
                 Directory.CreateDirectory(installDir);
+
+                string? currentDirectory = null;
+                if(currentDir != null) {
+                    currentDirectory = platform.os switch {
+                        SdkOperatingSystem.Linux => Path.Combine("/sources/", currentDir),
+                        SdkOperatingSystem.Windows => Path.Combine("C:\\sources\\", currentDir),
+                        _ => throw new Exception("Unexpected OS"),
+                    };
+                }
                 
                 var props = new LaunchProperties(
                     dockerImage: dockerImage,
                     command: schema?.build?.command ?? throw new Exception("Build command not specified."),
                     sources: sourcesDir,
                     socketDir: socketDir,
-                    installDir: installDir
+                    installDir: installDir,
+                    currentDirectory: currentDirectory
                 );
 
                 foreach(var requiredSdk in schema.sdk) {

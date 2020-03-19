@@ -15,12 +15,13 @@ namespace Helium.Engine.Record
 {
     internal class ArchiveRecorder : LiveRecorder
     {
-        private ArchiveRecorder(string cacheDir, string sdkDir, string schemaFile, string sourcesDir, string confDir, Stream tarDataStream, TarOutputStream tarStream) {
+        private ArchiveRecorder(string cacheDir, string sdkDir, string schemaFile, string? currentDir, string sourcesDir, string confDir, Stream tarDataStream, TarOutputStream tarStream) {
             this.cacheDir = cacheDir;
             this.tarDataStream = tarDataStream;
             this.tarStream = tarStream;
             SdkDir = sdkDir;
             SchemaFile = schemaFile;
+            CurrentDir = currentDir;
             SourcesDir = sourcesDir;
             ConfDir = confDir;
         }
@@ -37,6 +38,7 @@ namespace Helium.Engine.Record
         private bool hasRecordedRepoConfig;
 
         public override string SourcesDir { get; }
+        public override string? CurrentDir { get; }
         protected override string SchemaFile { get; }
         protected override string SdkDir { get; }
         protected override string ConfDir { get; }
@@ -127,7 +129,7 @@ namespace Helium.Engine.Record
             }
         }
 
-        public static async Task<IRecorder> Create(string cacheDir, string sdkDir, string schemaFile, string sourcesDir, string confDir, string archiveFile) {
+        public static async Task<IRecorder> Create(string cacheDir, string sdkDir, string schemaFile, string? currentDir, string sourcesDir, string confDir, string archiveFile) {
             var stream = File.Create(archiveFile);
             TarOutputStream tarStream;
             try {
@@ -155,6 +157,7 @@ namespace Helium.Engine.Record
                 cacheDir: cacheDir,
                 sdkDir: sdkDir,
                 schemaFile: schemaFile,
+                currentDir: currentDir,
                 sourcesDir: sourcesDir,
                 confDir: confDir,
                 tarDataStream: stream,

@@ -28,6 +28,8 @@ namespace Helium.JobExecutor
             public string? ImageName { get; set; }
 
             public List<string> Command { get; set; } = new List<string>();
+            
+            public string? CurrentDirectory { get; set; }
         }
 
         public sealed class DockerBindMount {

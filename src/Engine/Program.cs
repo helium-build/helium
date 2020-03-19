@@ -58,6 +58,7 @@ namespace Helium.Engine
                     sdkDir: SdkDir,
                     schemaFile: schemaFile,
                     archiveFile: archive,
+                    currentDir: options.CurrentDir,
                     sourcesDir: sourcesDir,
                     confDir: ConfDir
                 );
@@ -67,12 +68,18 @@ namespace Helium.Engine
                     cacheDir: CacheDir,
                     sdkDir: SdkDir,
                     schemaFile: schemaFile,
+                    currentDir: options.CurrentDir,
                     sourcesDir: sourcesDir,
                     confDir: ConfDir
                 ));
             }
 
-            return await BuildManager.RunBuild(launcher, createRecorder: recorder, outputDir: outputDir, workDir: workDir);
+            return await BuildManager.RunBuild(
+                launcher,
+                createRecorder: recorder,
+                outputDir: outputDir,
+                workDir: workDir
+            );
         }
         
         private static async Task<int> ReplayMain(ReplayOptions options) {
@@ -142,6 +149,9 @@ namespace Helium.Engine
         
             [Option("archive", HelpText = "The archive file (tar) that will contain the dependencies required to reproduce the build.")]
             public string? Archive { get; set; }
+            
+            [Option("current-dir", HelpText = "The current directory for the build (within the build directory).")]
+            public string? CurrentDir { get; set; }
         
             [Value(0, MetaName = "workDir", Required = true, HelpText = "The directory that contains the build.")]
             public string? WorkDir { get; set; }

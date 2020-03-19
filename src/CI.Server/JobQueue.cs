@@ -20,7 +20,7 @@ namespace Helium.CI.Server
         private readonly AsyncMonitor monitor = new AsyncMonitor();
         private readonly LinkedList<RunnableJob> jobQueue = new LinkedList<RunnableJob>();
         
-        public async Task<Dictionary<BuildJob, IJobStatus>> Add(IPipelineRunManager pipelineRunManager, IEnumerable<BuildJob> jobs, CancellationToken cancellationToken) {
+        public async Task<IReadOnlyDictionary<BuildJob, IJobStatus>> Add(IPipelineRunManager pipelineRunManager, IEnumerable<BuildJob> jobs, CancellationToken cancellationToken) {
             var dependentJobs = new HashSet<BuildJob>();
             var jobMap = new Dictionary<BuildJob, IJobStatus>();
 
@@ -28,6 +28,13 @@ namespace Helium.CI.Server
             
             foreach(var job in jobs) {
                 AddBuildJob(pipelineRunManager, job, runnableJobs, dependentJobs, jobMap);
+            }
+            
+            var jobIds = new HashSet<string>(jobMap.Count);
+            foreach(var buildJob in jobMap.Keys) {
+                if(!jobIds.Add(buildJob.Id)) {
+                    throw new Exception("Duplicate job id.");
+                }
             }
             
             runnableJobs.Reverse();
@@ -69,7 +76,7 @@ namespace Helium.CI.Server
         {
             public RunnableJob(IPipelineRunManager pipelineRunManager, BuildJob job, IDictionary<BuildJob, IJobStatus> jobMap) {
                 BuildTask = job.Task;
-                Status = new JobStatus(pipelineRunManager.NextArtifactDir());
+                Status = new JobStatus(pipelineRunManager.BuildPath(job));
                 
                 var inputHandlers = new List<(BuildInputHandler handler, string path)>();
                 foreach(var input in job.Input) {
@@ -94,30 +101,38 @@ namespace Helium.CI.Server
 
             public async Task Run(BuildAgent.IAsync agent, CancellationToken cancellationToken) {
                 try {
-                    var combinedToken = CancellationTokenSource
-                        .CreateLinkedTokenSource(cancellationToken, cancellationTokenSource.Token).Token;
+                    var combinedToken = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cancellationTokenSource.Token).Token;
 
                     await WriteWorkspace(agent, combinedToken);
-                    await agent.startBuildAsync(JsonConvert.ToString(BuildTask), combinedToken);
+                    await agent.startBuildAsync(JsonConvert.SerializeObject(BuildTask), combinedToken);
 
                     await ReadConsole(agent, combinedToken);
 
                     int exitCode = (await agent.getExitCodeAsync(combinedToken)).ExitCode;
                     if(exitCode != 0) {
-                        Status.FailedWith(exitCode);
+                        await Status.FailedWith(exitCode);
                         return;
                     }
+
+                    await ReadReplay(agent, combinedToken);
 
                     foreach(var artifact in await agent.artifactsAsync(combinedToken)) {
                         await ReadArtifact(agent, artifact, combinedToken);
                     }
 
-                    Status.Completed();
+                    await Status.Completed();
                 }
                 catch(Exception ex) {
-                    Status.Error(ex);
+                    await Status.Error(ex);
                     throw;
                 }
+            }
+
+            private async Task ReadReplay(BuildAgent.IAsync agent, CancellationToken combinedToken) {
+                await agent.openOutputAsync(OutputType.REPLAY, "", combinedToken);
+
+                await using var fileStream = Status.OpenReplay();
+                await ReadOutput(agent, fileStream, combinedToken);
             }
 
             private async Task ReadArtifact(BuildAgent.IAsync agent, string artifact, CancellationToken cancellationToken) {
@@ -126,10 +141,15 @@ namespace Helium.CI.Server
                 }
 
                 await agent.openOutputAsync(OutputType.ARTIFACT, artifact, cancellationToken);
-
+                
                 var path = Path.Combine(Status.ArtifactDir, artifact);
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
-                await using var fileStream = File.Create(artifact);
+                await using var fileStream = File.Create(path);
+
+                await ReadOutput(agent, fileStream, cancellationToken);
+            }
+
+            private async Task ReadOutput(BuildAgent.IAsync agent, Stream fileStream, CancellationToken cancellationToken) {
                 while(true) {
                     var data = await agent.readOutputAsync(cancellationToken);
                     if(data.Length == 0) break;

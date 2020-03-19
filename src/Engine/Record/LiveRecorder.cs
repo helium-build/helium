@@ -20,6 +20,7 @@ namespace Helium.Engine.Record
         protected abstract string ConfDir { get; }
 
         public abstract string SourcesDir { get; }
+        public abstract string? CurrentDir { get; }
 
         public abstract ISdkInstallManager CreateSdkInstaller();
 

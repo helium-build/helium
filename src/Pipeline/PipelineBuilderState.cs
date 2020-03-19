@@ -20,7 +20,7 @@ namespace Helium.Pipeline
             BuildArgs.Add(arg);
         }
         
-        public Func<IReadOnlyDictionary<string, string>, PipelineInfo?>? PipelineBuilder { get; set; }
+        public Func<object, PipelineInfo?>? PipelineBuilder { get; set; }
     }
 
     public class BuildArgInfo

@@ -4,6 +4,7 @@
 examples/
 **/cache/
 **/workspace/
+**/workspaces/
 **/bin
 **/obj
 !docker/helium-*/*/helium/bin/

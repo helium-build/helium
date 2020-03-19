@@ -10,6 +10,6 @@ namespace Helium.CI.Server
     {
         Task<string> GetInput(BuildInputSource inputSource, Func<BuildInputSource, Task<string>> f, CancellationToken cancellationToken);
         string NextInputPath();
-        string NextArtifactDir();
+        string BuildPath(BuildJob job);
     }
 }

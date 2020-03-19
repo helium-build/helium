@@ -145,6 +145,7 @@ namespace Helium.JobExecutor
                     AttachStdout = true,
                     ArgsEscaped = false,
                     Cmd = command.Command,
+                    WorkingDir = command.CurrentDirectory,
 
                     HostConfig = new Docker.DotNet.Models.HostConfig {
                         AutoRemove = true,
