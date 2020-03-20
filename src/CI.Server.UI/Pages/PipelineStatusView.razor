@@ -10,6 +10,8 @@ else if(pipelineStatus == null) {
     <p>Could not load pipeline status.</p>
 }
 else {
+    <h1><StateIndicator State="@pipelineStatus.State" /> Build #@BuildNum</h1>  
+    
     <div class="console-output">
         @foreach(var line in lines) {
             <span>@line</span><br/>
@@ -44,15 +46,26 @@ else {
         }
 
         pipelineStatus.OutputLinesChanged += OutputUpdated;
+        pipelineStatus.PipelineCompleted += PipelineCompleted;
+
+        var lines = await pipelineStatus.OutputLines();
+        if(this.lines.Count == 0) {
+            this.lines = lines;
+        }
         
         hasLoaded = true;
     }
+    
+    
 
-    private void OutputUpdated(object? sender, EventArgs e) =>
+    private void OutputUpdated(object? sender, OutputLinesChangedEventArgs e) =>
         InvokeAsync(() => {
             if(pipelineStatus == null) return;
-            lines = pipelineStatus.OutputLines;
+            lines = e.Lines;
             StateHasChanged();
         });
+
+    private void PipelineCompleted(object? sender, EventArgs e) =>
+        InvokeAsync(StateHasChanged);
 
 }

@@ -11,7 +11,7 @@ namespace Helium.CI.Server
     {
         BuildJob Job { get; }
         
-        JobState State { get; }
+        BuildState State { get; }
 
         event EventHandler<JobStartedEventArgs> JobStarted;
         event EventHandler<JobCompletedEventArgs> JobCompleted;
@@ -43,14 +43,5 @@ namespace Helium.CI.Server
         }
 
         public AgentConfig Agent { get; }
-    }
-
-    public enum JobState
-    {
-        Waiting,
-        Running,
-        Successful,
-        Failed,
-        Error,
     }
 }

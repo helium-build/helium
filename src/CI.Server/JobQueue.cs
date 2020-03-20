@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -48,8 +49,9 @@ namespace Helium.CI.Server
             }
 
             return new PipelineStatus(
-                jobMap.ToDictionary(kvp => kvp.Key.Id, kvp => kvp.Value),
-                buildNum
+                new ReadOnlyDictionary<string, IJobStatus>(jobMap.ToDictionary(kvp => kvp.Key.Id, kvp => kvp.Value)),
+                buildNum,
+                pipelineRunManager.PipelineDir
             ); 
         }
 

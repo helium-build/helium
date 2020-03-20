@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 namespace Helium.Util
@@ -11,6 +13,11 @@ namespace Helium.Util
         private GrowList(int count, T[] values) {
             this.count = count;
             this.values = values;
+        }
+
+        public GrowList(IEnumerable<T> lines) {
+            values = lines.ToArray();
+            count = values.Length;
         }
         
         

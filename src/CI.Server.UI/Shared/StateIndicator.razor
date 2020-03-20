@@ -1,0 +1,30 @@
+﻿
+@switch(State) {
+    case BuildState.Waiting:
+        <div class="spinner-grow state-indicator" role="status">
+            <span class="sr-only">[Waiting]</span>
+        </div>
+        break;
+        
+    case BuildState.Running:
+        <div class="spinner-border state-indicator" role="status">
+            <span class="sr-only">[Running]</span>
+        </div>
+        break;
+        
+    case BuildState.Successful:
+        <span class="oi oi-circle-check text-success state-indicator"></span>
+        break;
+
+    case BuildState.Failed:
+    case BuildState.Error:
+        <span class="oi oi-circle-x text-danger state-indicator"></span>
+        break;
+}
+
+@code {
+
+    [Parameter]
+    public BuildState State { get; set; }
+    
+}

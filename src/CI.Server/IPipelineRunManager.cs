@@ -8,6 +8,8 @@ namespace Helium.CI.Server
 {
     public interface IPipelineRunManager
     {
+        string PipelineDir { get; }
+        
         Task<string> GetInput(BuildInputSource inputSource, Func<BuildInputSource, Task<string>> f, CancellationToken cancellationToken);
         string NextInputPath();
         string BuildPath(BuildJob job);

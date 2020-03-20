@@ -19,7 +19,7 @@ namespace Helium.CI.Server
         
         private readonly string buildDir;
         private Stream? buildOutputStream;
-        private volatile JobState state = JobState.Waiting;
+        private volatile BuildState state = BuildState.Waiting;
         
         private GrowList<string> outputLines = GrowList<string>.Empty();
         private readonly Decoder outputDecoder = Encoding.UTF8.GetDecoder();
@@ -28,7 +28,7 @@ namespace Helium.CI.Server
         
         public BuildJob Job { get; }
         
-        public JobState State => state;
+        public BuildState State => state;
 
         public event EventHandler<JobStartedEventArgs>? JobStarted;
         public event EventHandler<JobCompletedEventArgs>? JobCompleted;
@@ -105,7 +105,7 @@ namespace Helium.CI.Server
         }
 
         public void Started(AgentConfig agent) {
-            state = JobState.Successful;
+            state = BuildState.Running;
             JobStarted?.Invoke(this, new JobStartedEventArgs(agent));
         }
 
@@ -117,19 +117,19 @@ namespace Helium.CI.Server
 
         public async Task FailedWith(int exitCode) {
             await FinishOutput();
-            state = JobState.Failed;
+            state = BuildState.Failed;
             JobCompleted?.Invoke(this, new JobCompletedEventArgs(exitCode, null));
         }
 
         public async Task Completed() {
             await FinishOutput();
-            state = JobState.Successful;
+            state = BuildState.Successful;
             JobCompleted?.Invoke(this, new JobCompletedEventArgs(0, null));
         }
 
         public async Task Error(Exception ex) {
             await FinishOutput();
-            state = JobState.Error;
+            state = BuildState.Error;
             JobCompleted?.Invoke(this, new JobCompletedEventArgs(1, null));
         }
     }

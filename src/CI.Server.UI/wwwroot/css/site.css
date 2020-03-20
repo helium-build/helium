@@ -117,6 +117,10 @@ app {
     white-space: pre;
 }
 
+.state-indicator {
+    vertical-align: middle;
+}
+
 @media (max-width: 767.98px) {
     .main .top-row {
         display: none;
