@@ -1,4 +1,4 @@
-﻿@page "/project/{id}/edit"
+﻿@page "/projects/{id:guid}/edit"
 @using System.Threading
 
 @inject IProjectManager ProjectManager
@@ -18,18 +18,14 @@ else {
 @code {
     
     [Parameter]
-    public string? Id { get; set; }
+    public Guid Id { get; set; }
 
     private IProject? project = null;
 
     private ProjectEditModel model = new ProjectEditModel();
 
     protected override void OnInitialized() {
-        if(!Guid.TryParse(Id, out var id)) {
-            return;
-        }
-        
-        project = ProjectManager.GetProject(id);
+        project = ProjectManager.GetProject(Id);
         if(project == null) {
             return;
         }

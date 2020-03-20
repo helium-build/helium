@@ -20,7 +20,7 @@ namespace Helium.CI.Server
         private readonly AsyncMonitor monitor = new AsyncMonitor();
         private readonly LinkedList<RunnableJob> jobQueue = new LinkedList<RunnableJob>();
         
-        public async Task<IReadOnlyDictionary<BuildJob, IJobStatus>> Add(IPipelineRunManager pipelineRunManager, IEnumerable<BuildJob> jobs, CancellationToken cancellationToken) {
+        public async Task<IPipelineStatus> Add(IPipelineRunManager pipelineRunManager, IEnumerable<BuildJob> jobs, int buildNum, CancellationToken cancellationToken) {
             var dependentJobs = new HashSet<BuildJob>();
             var jobMap = new Dictionary<BuildJob, IJobStatus>();
 
@@ -47,7 +47,10 @@ namespace Helium.CI.Server
                 monitor.PulseAll();
             }
 
-            return jobMap;
+            return new PipelineStatus(
+                jobMap.ToDictionary(kvp => kvp.Key.Id, kvp => kvp.Value),
+                buildNum
+            ); 
         }
 
         private void AddBuildJob(IPipelineRunManager pipelineRunManager, BuildJob job, List<RunnableJob> runnableJobs, HashSet<BuildJob> dependentJobs, IDictionary<BuildJob, IJobStatus> jobMap) {
@@ -76,7 +79,7 @@ namespace Helium.CI.Server
         {
             public RunnableJob(IPipelineRunManager pipelineRunManager, BuildJob job, IDictionary<BuildJob, IJobStatus> jobMap) {
                 BuildTask = job.Task;
-                Status = new JobStatus(pipelineRunManager.BuildPath(job));
+                Status = new JobStatus(pipelineRunManager.BuildPath(job), job);
                 
                 var inputHandlers = new List<(BuildInputHandler handler, string path)>();
                 foreach(var input in job.Input) {
@@ -99,12 +102,13 @@ namespace Helium.CI.Server
             public BuildTask BuildTask { get; }
             public JobStatus Status { get; }
 
-            public async Task Run(BuildAgent.IAsync agent, CancellationToken cancellationToken) {
+            public async Task Run(BuildAgent.IAsync agent, AgentConfig agentConfig, CancellationToken cancellationToken) {
                 try {
                     var combinedToken = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cancellationTokenSource.Token).Token;
 
                     await WriteWorkspace(agent, combinedToken);
                     await agent.startBuildAsync(JsonConvert.SerializeObject(BuildTask), combinedToken);
+                    Status.Started(agentConfig);
 
                     await ReadConsole(agent, combinedToken);
 

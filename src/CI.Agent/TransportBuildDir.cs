@@ -20,10 +20,12 @@ namespace Helium.CI.Agent
             this.buildDir = buildDir;
             this.transport = transport;
             buildOutputStream = buildOutputPipe.Reader.AsStream();
-            buildRunTask = Task.Run(() => RunBuild(cancellationToken));
+            var combined = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, buildCancel.Token);
+            buildRunTask = Task.Run(() => RunBuild(combined.Token));
         }
 
         private readonly AsyncLock workspaceLock = new AsyncLock();
+        private readonly CancellationTokenSource buildCancel = new CancellationTokenSource(); 
         private readonly DirectoryCleanup<string> buildDir;
         private readonly TTransport transport;
         
@@ -153,14 +155,15 @@ namespace Helium.CI.Agent
 
         protected override void Dispose(bool disposing) {
             if(!disposing) {
-                using(workspaceLock.Lock()) {
-                    buildDir.DisposeAsync().AsTask().Wait();
-                }
-                
-                CurrentFileAccess?.Dispose();
-                
-                transport.Dispose();
+                return;
             }
+
+            using(workspaceLock.Lock()) {
+                CurrentFileAccess?.Dispose();
+                buildDir.DisposeAsync().AsTask().Wait();
+            }
+            
+            transport.Dispose();
         }
     }
 }

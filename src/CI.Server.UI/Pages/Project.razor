@@ -1,4 +1,4 @@
-﻿@page "/project/{id}"
+﻿@page "/projects/{id:guid}"
 
 @inject IProjectManager ProjectManager
 
@@ -7,8 +7,8 @@
 }
 else {
     var config = project.Config;
-    var editUrl = $"project/{Id}/edit";
-    var buildUrl = $"project/{Id}/build";
+    var editUrl = $"projects/{Id}/edit";
+    var buildUrl = $"projects/{Id}/build";
     
     <h1>Project @(config.Name)</h1>
                               
@@ -19,14 +19,12 @@ else {
 @code {
 
     [Parameter]
-    public string? Id { get; set; }
+    public Guid Id { get; set; }
 
     private IProject? project = null;
 
     protected override void OnInitialized() {
-        if(Guid.TryParse(Id, out var id)) {
-            project = ProjectManager.GetProject(id);
-        }
+        project = ProjectManager.GetProject(Id);
     }
 
 }

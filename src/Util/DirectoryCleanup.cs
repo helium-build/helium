@@ -14,7 +14,8 @@ namespace Helium.Util
         }
         
         public async ValueTask DisposeAsync() {
-            Directory.Delete(dir, recursive: true);
+            try { Directory.Delete(dir, recursive: true); }
+            catch {}
         }
 
         public T Value { get; }

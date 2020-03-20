@@ -6,7 +6,7 @@ namespace Helium.CI.Server
 {
     public interface IRunnableJob
     {
-        Task Run(BuildAgent.IAsync agent, CancellationToken cancellationToken);
+        Task Run(BuildAgent.IAsync agent, AgentConfig agentConfig, CancellationToken cancellationToken);
 
         void CancelBuild();
     }

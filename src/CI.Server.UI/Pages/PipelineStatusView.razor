@@ -1,0 +1,58 @@
+﻿@page "/projects/{id:guid}/build/{buildNum:int}"
+@using Helium.Util
+
+@inject IProjectManager ProjectManager
+
+@if(!hasLoaded) {
+    <p>Loading status...</p>
+}
+else if(pipelineStatus == null) {
+    <p>Could not load pipeline status.</p>
+}
+else {
+    <div class="console-output">
+        @foreach(var line in lines) {
+            <span>@line</span><br/>
+        }
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public Guid Id { get; set; }
+    
+    [Parameter]
+    public int BuildNum { get; set; }
+
+    private bool hasLoaded = false;
+    private IPipelineStatus? pipelineStatus;
+    private GrowList<string> lines;
+    
+
+    protected override async Task OnInitializedAsync() {
+        var project = ProjectManager.GetProject(Id);
+        if(project == null) {
+            hasLoaded = true;
+            return;
+        }
+
+        pipelineStatus = await project.GetPipelineStatus(BuildNum);
+        if(pipelineStatus == null) {
+            hasLoaded = true;
+            return;
+        }
+
+        pipelineStatus.OutputLinesChanged += OutputUpdated;
+        
+        hasLoaded = true;
+    }
+
+    private void OutputUpdated(object? sender, EventArgs e) =>
+        InvokeAsync(() => {
+            if(pipelineStatus == null) return;
+            lines = pipelineStatus.OutputLines;
+            StateHasChanged();
+        });
+
+}

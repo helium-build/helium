@@ -19,7 +19,7 @@ else {
         <tbody>
         @foreach(var project in ProjectManager.Projects.OrderBy(p => p.Config.Name)) {
             <tr>
-                <td><a href="project/@(project.Id)">@(project.Config.Name)</a></td>
+                <td><a href="projects/@(project.Id)">@(project.Config.Name)</a></td>
             </tr>
         }
         </tbody>

@@ -111,7 +111,7 @@ namespace Helium.CI.Server
                     var job = await jobQueue.AcceptJob(task => JobFilter(client, task, cancellationToken), cancellationToken);
                     launchedTCS.SetResult(null);
                 
-                    await CompleteJob(client, job, jobToken, cancellationToken);
+                    await CompleteJob(client, config, job, jobToken, cancellationToken);
                 }
                 catch(Exception ex) {
                     launchedTCS.TrySetException(ex);
@@ -121,8 +121,8 @@ namespace Helium.CI.Server
             return launchedTCS.Task;
         }
         
-        private Task CompleteJob(BuildAgent.Client agent, IRunnableJob job, RunningJobToken jobToken, CancellationToken cancellationToken) {
-            var task = Task.Run(() => job.Run(agent, cancellationToken), cancellationToken);
+        private Task CompleteJob(BuildAgent.Client agent, AgentConfig agentConfig, IRunnableJob job, RunningJobToken jobToken, CancellationToken cancellationToken) {
+            var task = Task.Run(() => job.Run(agent, agentConfig, cancellationToken), cancellationToken);
             workerTasks.TryAdd(job, task);
             return Task.Run(async () => {
                 try {

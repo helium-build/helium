@@ -28,7 +28,10 @@ namespace Helium.CI.Agent
                 builder.SetMinimumLevel(LogLevel.Trace);
                 builder.AddConsole();
             }).CreateLogger("helium-agent");
-            
+
+            foreach(var dir in Directory.GetDirectories(AgentWorkspacesDir)) {
+                Directory.Delete(dir, recursive: true);
+            }
             
             using var cert = await CertUtil.LoadOrGenerateCertificate(Path.Combine(ConfDir, "cert.pfx"));
 

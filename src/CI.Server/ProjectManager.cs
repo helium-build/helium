@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -89,6 +90,7 @@ namespace Helium.CI.Server
 
             private readonly AsyncLock projectLock = new AsyncLock();
             private readonly IJobQueue jobQueue;
+            private readonly Dictionary<int, IPipelineStatus> statuses = new Dictionary<int, IPipelineStatus>();
             
             public ProjectConfig Config { get; private set; }
             public string ProjectDir { get; }
@@ -117,8 +119,13 @@ namespace Helium.CI.Server
                 return PipelineLoader.Create(script);
             }
 
-            public async Task<IReadOnlyDictionary<BuildJob, IJobStatus>> StartBuild(PipelineInfo pipeline) {
-                string buildDir;
+            public async Task<IPipelineStatus?> GetPipelineStatus(int buildNum) {
+                using(await projectLock.LockAsync()) {
+                    return statuses.TryGetValue(buildNum, out var status) ? status : null;
+                }
+            }
+
+            public async Task<IPipelineStatus> StartBuild(PipelineInfo pipeline) {
                 using(await projectLock.LockAsync()) {
                     var buildsDir = Path.Combine(ProjectDir, "builds");
                     Directory.CreateDirectory(buildsDir);
@@ -129,13 +136,18 @@ namespace Helium.CI.Server
                         .Max()
                         ?? 0;
 
-                    buildDir = Path.Combine(buildsDir, "build" + (lastBuildNumber + 1));
+                    int buildNum = lastBuildNumber + 1;
+
+                    var buildDir = Path.Combine(buildsDir, "build" + buildNum);
                     Directory.CreateDirectory(buildDir);
+                    
+                    var runManager = new PipelineRunManager(buildDir);
+                
+                    var status = await jobQueue.Add(runManager, pipeline.BuildJobs, buildNum, CancellationToken.None);
+                    statuses[buildNum] = status;
+                    return status;
                 }
                 
-                var runManager = new PipelineRunManager(buildDir);
-                
-                return await jobQueue.Add(runManager, pipeline.BuildJobs, CancellationToken.None);
             }
 
             private async Task<string> GetPipelineScript(CancellationToken cancellationToken) {

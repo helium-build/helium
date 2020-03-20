@@ -15,7 +15,9 @@ namespace Helium.CI.Server
         
         Task<PipelineLoader> GetPipelineLoader(CancellationToken cancellationToken);
 
-        Task<IReadOnlyDictionary<BuildJob, IJobStatus>> StartBuild(PipelineInfo pipeline);
+        Task<IPipelineStatus?> GetPipelineStatus(int buildNum);
+
+        Task<IPipelineStatus> StartBuild(PipelineInfo pipeline);
 
     }
 }

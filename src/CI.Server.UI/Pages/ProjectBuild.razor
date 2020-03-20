@@ -1,10 +1,11 @@
-﻿@page "/project/{id}/build"
+﻿@page "/projects/{id}/build"
 @using System.Threading
 @using Helium.Pipeline
 @using Microsoft.Extensions.Logging
 
 @inject IProjectManager ProjectManager
 @inject ILogger<ProjectBuild> Logger
+@inject NavigationManager NavigationManager
 
 @if(!hasLoaded) {
     <p>Loading project...</p>
@@ -93,8 +94,9 @@ else {
             return;
         }
 
-        await project.StartBuild(pipeline);
-
+        var status = await project.StartBuild(pipeline);
+        
+        NavigationManager.NavigateTo($"projects/{project.Id}/build/{status.BuildNumber}");
     }
 
 }
