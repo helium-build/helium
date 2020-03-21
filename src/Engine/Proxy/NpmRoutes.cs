@@ -179,7 +179,7 @@ namespace Helium.Engine.Proxy
             var file = await recorder.RecordArtifact(path, async cacheDir => {
                 var finalFileName = Path.Combine(cacheDir, "dependencies", "npm");
                 if(scope != null) finalFileName = Path.Combine(finalFileName, scope);
-                finalFileName = Path.Combine(packageName, packageVersion + ".tgz");
+                finalFileName = Path.Combine(finalFileName, packageName, packageVersion + ".tgz");
 
                 await Cache.CacheDownload(cacheDir, finalFileName, async tempFile => {
                     await FetchMetadataVersion(scope, packageName, packageVersion);
