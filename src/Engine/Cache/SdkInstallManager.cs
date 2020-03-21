@@ -18,7 +18,6 @@ namespace Helium.Engine.Cache
 {
     public class SdkInstallManager : ISdkInstallManager
     {
-        private const string mutexId = "Global\\{f6157371-da3d-47e5-b825-83bc6a6fd60e}";
         
         public SdkInstallManager(string cacheDir) {
             this.cacheDir = cacheDir;
@@ -36,36 +35,36 @@ namespace Helium.Engine.Cache
             return sdkStore.GetOrAdd(sdkHash, _ => Task.Run(() => InstalledSdkUncached(sdk, sdkHash)));
         }
 
-        private (string hash, string installDir) InstalledSdkUncached(SdkInfo sdk, string sdkHash) {
-            using var mutex = new Mutex(true, mutexId);
+        private (string hash, string installDir) InstalledSdkUncached(SdkInfo sdk, string sdkHash) =>
+            MutexHelper.Lock(Path.Combine(baseDir, "sdk.lock"), () => {
 
-            Directory.CreateDirectory(baseDir);
-            
-            var sdkDir = Path.Combine(baseDir, sdkHash);
-            var installDir = Path.Combine(sdkDir, "install");
-            if(Directory.Exists(sdkDir)) {
+                Directory.CreateDirectory(baseDir);
+
+                var sdkDir = Path.Combine(baseDir, sdkHash);
+                var installDir = Path.Combine(sdkDir, "install");
+                if(Directory.Exists(sdkDir)) {
+                    return (sdkHash, installDir);
+                }
+
+                Console.Error.WriteLine($"Installing SDK for {sdk.implements.First()} version {sdk.version}");
+
+                var tempDir = Path.Combine(baseDir, Path.GetRandomFileName());
+                var tempInstallDir = Path.Combine(tempDir, "install");
+                Directory.CreateDirectory(tempInstallDir);
+
+                try {
+                    InstallSdk(sdk, sdkHash, tempInstallDir).Wait();
+                }
+                catch(AggregateException ex) when(ex.InnerException != null && ex.InnerExceptions.Count == 1) {
+                    ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                    throw;
+                }
+
+
+                Directory.Move(tempDir, sdkDir);
+
                 return (sdkHash, installDir);
-            }
-            
-            Console.Error.WriteLine($"Installing SDK for {sdk.implements.First()} version {sdk.version}");
-
-            var tempDir = Path.Combine(baseDir, Path.GetRandomFileName());
-            var tempInstallDir = Path.Combine(tempDir, "install");
-            Directory.CreateDirectory(tempInstallDir);
-
-            try {
-                InstallSdk(sdk, sdkHash, tempInstallDir).Wait();
-            }
-            catch(AggregateException ex) when (ex.InnerException != null && ex.InnerExceptions.Count == 1) {
-                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
-                throw;
-            }
-
-
-            Directory.Move(tempDir, sdkDir);
-
-            return (sdkHash, installDir);
-        }
+            }, CancellationToken.None);
 
         private async Task InstallSdk(SdkInfo sdk, string sdkHash, string installDir) {
             await SdkLoader.saveSdk(sdk, Path.Combine(installDir, "../sdk.json"));
