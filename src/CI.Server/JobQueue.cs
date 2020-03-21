@@ -42,6 +42,7 @@ namespace Helium.CI.Server
             
             using(await monitor.EnterAsync(cancellationToken)) {
                 foreach(var jobRun in runnableJobs) {
+                    await jobRun.Status.WriteBuildJobFile();
                     jobQueue.AddLast(jobRun);
                 }
                 
@@ -82,7 +83,7 @@ namespace Helium.CI.Server
             public RunnableJob(IPipelineRunManager pipelineRunManager, BuildJob job, IDictionary<BuildJob, IJobStatus> jobMap) {
                 BuildTask = job.Task;
                 Status = new JobStatus(pipelineRunManager.BuildPath(job), job);
-                
+
                 var inputHandlers = new List<(BuildInputHandler handler, string path)>();
                 foreach(var input in job.Input) {
                     var handler = input.Source switch {

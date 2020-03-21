@@ -25,7 +25,7 @@ namespace Helium.CI.Server.UI
 
             using var cert = await CertUtil.LoadOrGenerateCertificate(Path.Combine(ConfDir, "cert.pfx"));
             
-            Console.WriteLine("Helium CI Agent");
+            Console.WriteLine("Helium CI UI");
             Console.WriteLine("TLS Key");
             Console.WriteLine(Convert.ToBase64String(cert.Export(X509ContentType.Cert)));
 

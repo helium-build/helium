@@ -11,6 +11,8 @@ launchSettings.json
 *.pfx
 agent.toml
 src/**/conf
+conf/projects/
+conf/agents/
 
 bin/
 obj/

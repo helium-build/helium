@@ -58,7 +58,7 @@ namespace Helium.CI.Server
         
         private void JobStarted(object? sender, JobStartedEventArgs e) {
             if(!(sender is IJobStatus status)) return;
-            string message = $"Started job {status.Job.Id} on agent {e.Agent.Name}.";
+            string message = $"Started job {status.Id} on agent {e.Agent.Name}.";
             
             Task.Run(() => WriteOutput(message));
         }
@@ -72,19 +72,21 @@ namespace Helium.CI.Server
                     ++completedJobs;
                     if(e.Exception != null) {
                         ++failedJobs;
-                        await WriteOutput($"Error occurred while running job {status.Job.Id}.");
+                        await WriteOutput($"Error occurred while running job {status.Id}.");
                     }
                     else if(e.ExitCode != 0) {
                         ++failedJobs;
-                        await WriteOutput($"Job {status.Job.Id} exited with error code {e.ExitCode}.");
+                        await WriteOutput($"Job {status.Id} exited with error code {e.ExitCode}.");
                     }
                     else {
-                        await WriteOutput($"Job {status.Job.Id} completed successfully.");
+                        await WriteOutput($"Job {status.Id} completed successfully.");
                     }
 
                     completed = (completedJobs == JobsStatus.Count);
                     lock(stateLock) {
-                        state = failedJobs == 0 ? BuildState.Successful : BuildState.Failed;
+                        if(completed) {
+                            state = failedJobs == 0 ? BuildState.Successful : BuildState.Failed;
+                        }
                     }
                     if(completed) {
                         if(failedJobs == 0) {

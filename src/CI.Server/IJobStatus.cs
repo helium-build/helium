@@ -9,7 +9,9 @@ namespace Helium.CI.Server
 {
     public interface IJobStatus
     {
-        BuildJob Job { get; }
+        string Id { get; }
+        
+        BuildTask BuildTask { get; }
         
         BuildState State { get; }
 
@@ -17,10 +19,10 @@ namespace Helium.CI.Server
         event EventHandler<JobCompletedEventArgs> JobCompleted;
         
         string ArtifactDir { get; }
-        
-        GrowList<string> OutputLines { get; }
 
-        event EventHandler OutputLinesChanged;
+        Task<GrowList<string>> OutputLines();
+
+        event EventHandler<OutputLinesChangedEventArgs> OutputLinesChanged;
 
         Task WaitForComplete(CancellationToken cancellationToken);
     }
