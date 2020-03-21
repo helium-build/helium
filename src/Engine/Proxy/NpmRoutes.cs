@@ -150,8 +150,6 @@ namespace Helium.Engine.Proxy
         }
 
         private async Task HandleRequestArtifact(HttpContext context, bool isGet) {
-            Console.Error.WriteLine("Fetching artifact");
-            
             var scope = (string?) context.GetRouteValue("scope");
             var packageName = (string) context.GetRouteValue("packageName");
             var packageVersion = (string) context.GetRouteValue("packageVersion");
