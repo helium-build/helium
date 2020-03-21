@@ -1,6 +1,8 @@
 ﻿@page "/projects/{id:guid}/build/{buildNum:int}/job/{jobId}"
 @using Helium.Util
 
+@implements IDisposable
+
 @inject IProjectManager ProjectManager
 
 @if(!hasLoaded) {
@@ -94,5 +96,15 @@ else {
 
     private void JobStateChanged(object? sender, object e) =>
         InvokeAsync(StateHasChanged);
+
+    public void Dispose() {
+        if(jobStatus == null) {
+            return;
+        }
+        
+        jobStatus.JobStarted -= JobStateChanged;
+        jobStatus.JobCompleted -= JobStateChanged;
+        jobStatus.OutputLinesChanged -= OutputUpdated;
+    }
 
 }

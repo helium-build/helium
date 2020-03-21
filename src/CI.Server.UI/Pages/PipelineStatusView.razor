@@ -1,6 +1,8 @@
 ﻿@page "/projects/{id:guid}/build/{buildNum:int}"
 @using Helium.Util
 
+@implements IDisposable
+
 @inject IProjectManager ProjectManager
 
 @if(!hasLoaded) {
@@ -91,5 +93,18 @@ else {
 
     private void JobCompleted(object? sender, JobCompletedEventArgs e) =>
         InvokeAsync(StateHasChanged);
+
+    public void Dispose() {
+        if(pipelineStatus == null) {
+            return;
+        }
+
+        pipelineStatus.OutputLinesChanged -= OutputUpdated;
+        pipelineStatus.PipelineCompleted -= PipelineCompleted;
+        
+        foreach(var jobStatus in pipelineStatus.JobsStatus.Values) {
+            jobStatus.JobCompleted -= JobCompleted;
+        }
+    }
 
 }
