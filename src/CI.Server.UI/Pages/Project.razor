@@ -22,6 +22,25 @@ else {
                               
     <a href="@editUrl" class="btn btn-primary" role="button">Edit</a>
     <a href="@buildUrl" class="btn btn-primary" role="button">Build</a>
+
+    @if(builds != null) {
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col" class="build-status-col">Status</th>
+                <th scope="col">Build</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach(var build in builds) {
+                <tr>
+                    <td><StateIndicator State="@build.State" /></td>
+                    <td><a href="projects/@Id/build/@build.BuildNumber">#@build.BuildNumber</a></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
 }
 
 @code {
@@ -30,9 +49,15 @@ else {
     public Guid Id { get; set; }
 
     private IProject? project = null;
+    private List<IPipelineStatus>? builds;
 
-    protected override void OnInitialized() {
+    protected override async Task OnInitializedAsync() {
         project = ProjectManager.GetProject(Id);
+        if(project == null) {
+            return;
+        }
+
+        builds = await project.AllPipelineStatus().ToListAsync();
     }
 
 }

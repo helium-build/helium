@@ -135,16 +135,26 @@ namespace Helium.CI.Server
                 }
             }
 
+            private IEnumerable<int> BuildNumbers() {
+                var buildsDir = Path.Combine(ProjectDir, "builds");
+                Directory.CreateDirectory(buildsDir);
+                foreach(var dir in Directory.GetDirectories(buildsDir, "build*")) {
+                    if(int.TryParse(Path.GetFileName(dir).Substring(5), out var num)) {
+                        yield return num;
+                    }
+                }
+            }
+
+            public IAsyncEnumerable<IPipelineStatus> AllPipelineStatus() =>
+                BuildNumbers()
+                    .OrderBy(n => n)
+                    .ToAsyncEnumerable()
+                    .SelectAwait(async buildNum => await GetPipelineStatus(buildNum));
+
             public async Task<IPipelineStatus> StartBuild(PipelineInfo pipeline) {
                 using(await projectLock.LockAsync()) {
                     var buildsDir = Path.Combine(ProjectDir, "builds");
-                    Directory.CreateDirectory(buildsDir);
-                    int lastBuildNumber = Directory.GetDirectories(buildsDir, "build*")
-                        .Select(dir =>
-                            int.TryParse(Path.GetFileName(dir).Substring(5), out var num) ? (int?) num : null)
-                        .DefaultIfEmpty(null)
-                        .Max()
-                        ?? 0;
+                    int lastBuildNumber = BuildNumbers().DefaultIfEmpty(0).Max();
 
                     int buildNum = lastBuildNumber + 1;
 

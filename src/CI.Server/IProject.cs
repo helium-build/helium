@@ -17,6 +17,8 @@ namespace Helium.CI.Server
 
         Task<IPipelineStatus?> GetPipelineStatus(int buildNum);
 
+        IAsyncEnumerable<IPipelineStatus> AllPipelineStatus();
+
         Task<IPipelineStatus> StartBuild(PipelineInfo pipeline);
 
     }
