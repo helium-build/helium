@@ -3,6 +3,7 @@
 **/target/
 examples/
 **/cache/
+**/conf/
 **/workspace/
 **/workspaces/
 **/bin
