@@ -92,18 +92,21 @@ namespace Helium.CI.Agent
                     "--output",
                     ArtifactDir,
 
-                    "--archive",
-                    ReplayFile,
-                    
                     "--sources",
                     WorkspaceDir,
                     
                     "--current-dir",
                     Path.GetDirectoryName(buildTask.BuildFile),
-
-                    buildDir.Value,
                 },
             };
+
+            if(buildTask.SaveReplay) {
+                psi.ArgumentList.Add("--archive");
+                psi.ArgumentList.Add(ReplayFile);
+            }
+            
+            psi.ArgumentList.Add(buildDir.Value);
+
 
             var writeLock = new AsyncLock();
 

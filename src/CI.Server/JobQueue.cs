@@ -121,7 +121,9 @@ namespace Helium.CI.Server
                         return;
                     }
 
-                    await ReadReplay(agent, combinedToken);
+                    if(BuildTask.SaveReplay) {
+                        await ReadReplay(agent, combinedToken);
+                    }
 
                     foreach(var artifact in await agent.artifactsAsync(combinedToken)) {
                         await ReadArtifact(agent, artifact, combinedToken);

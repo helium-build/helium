@@ -11,8 +11,13 @@ namespace Helium.Pipeline
     public sealed class BuildTask
     {
         [JsonConstructor]
-        public BuildTask(string buildFile, PlatformInfo platform, IReadOnlyDictionary<string, string>? arguments = null,
-            IEnumerable<SdkInfo>? extraSdks = null) {
+        public BuildTask(
+            string buildFile,
+            PlatformInfo platform,
+            IReadOnlyDictionary<string, string>? arguments = null,
+            IEnumerable<SdkInfo>? extraSdks = null,
+            bool? saveReplay = null
+        ) {
 
             BuildFile = buildFile ?? throw new ArgumentNullException(nameof(buildFile));
             Platform = platform ?? throw new ArgumentNullException(nameof(platform));
@@ -20,7 +25,7 @@ namespace Helium.Pipeline
                 arguments?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value) ?? new Dictionary<string, string>()
             );
             ExtraSdks = new ReadOnlyCollection<SdkInfo>((extraSdks ?? Enumerable.Empty<SdkInfo>()).ToList());
-
+            SaveReplay = saveReplay ?? true;
         }
         
         public BuildTask(IDictionary<string, object> obj)
@@ -32,7 +37,8 @@ namespace Helium.Pipeline
                     : null,
                 extraSdks: obj.TryGetValue("extraSdks", out var extraSdks)
                     ? ((IEnumerable)extraSdks).Cast<SdkInfo>()
-                    : null
+                    : null,
+                saveReplay: obj.TryGetValue("saveReplay", out var saveReplay) ? (bool?)saveReplay : null
             ) {}
         
         public string BuildFile { get; }
@@ -41,5 +47,7 @@ namespace Helium.Pipeline
         
         public IReadOnlyDictionary<string, string> Arguments { get; }
         public IReadOnlyList<SdkInfo> ExtraSdks { get; }
+        
+        public bool SaveReplay { get; }
     }
 }

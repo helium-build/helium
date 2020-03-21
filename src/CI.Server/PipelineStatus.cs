@@ -60,7 +60,11 @@ namespace Helium.CI.Server
             if(!(sender is IJobStatus status)) return;
             string message = $"Started job {status.Id} on agent {e.Agent.Name}.";
             
-            Task.Run(() => WriteOutput(message));
+            Task.Run(async () => {
+                using(await outputLock.LockAsync()) {
+                    return WriteOutput(message);
+                }
+            });
         }
 
         private void JobCompleted(object? sender, JobCompletedEventArgs e) {

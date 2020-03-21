@@ -149,7 +149,8 @@ namespace Helium.CI.Server
                 BuildNumbers()
                     .OrderBy(n => n)
                     .ToAsyncEnumerable()
-                    .SelectAwait(async buildNum => await GetPipelineStatus(buildNum));
+                    .SelectAwait(async buildNum => await GetPipelineStatus(buildNum))
+                    .Where(status => status != null)!;
 
             public async Task<IPipelineStatus> StartBuild(PipelineInfo pipeline) {
                 using(await projectLock.LockAsync()) {
