@@ -23,15 +23,11 @@
 
 
     private async Task OnSubmit() {
-        var conn = model.ConnectionType switch {
-            "ssl" => new SslAgentConnection(model.SslHost!, model.SslPort, Convert.FromBase64String(model.AgentSslKey!)),
-            _ => null
-        };
+        var agentConfig = model.ToConfig();
 
-        if(conn != null) {
-            var agentConfig = new AgentConfig(model.Name!, model.Workers, conn);
-            await AgentManager.AddAgent(agentConfig);
-            NavigationManager.NavigateTo("agents");
+        if(agentConfig != null) {
+            var agent = await AgentManager.AddAgent(agentConfig);
+            NavigationManager.NavigateTo("agent/" + agent.Id);
         }
     }
     

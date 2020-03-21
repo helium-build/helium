@@ -1,0 +1,69 @@
+﻿@page "/agents/{id:guid}/edit"
+@using System.Threading
+
+@inject IAgentManager AgentManager
+@inject NavigationManager NavigationManager
+
+@if(agent == null) {
+    <p>The requested agent could not be found.</p>
+}
+else {
+    var config = agent.Config;
+    var agentUrl = $"agents/{Id}";
+    
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="">Home</a></li>
+            <li class="breadcrumb-item"><a href="agents">Agents</a></li>
+            <li class="breadcrumb-item"><a href="@agentUrl">@(config.Name)</a></li>
+            <li class="breadcrumb-item active">Edit</li>
+        </ol>
+    </nav>
+
+    <h1>Edit Agent - @(config.Name)</h1>
+
+    <AgentEditor Model="@model" ButtonLabel="Save" OnSubmit="OnSubmit" />
+}
+
+@code {
+
+    [Parameter]
+    public Guid Id { get; set; }
+    
+    private AgentEditModel model = new AgentEditModel {
+        ConnectionType = "ssl",
+    };
+
+    private IAgent? agent;
+    
+    protected override void OnInitialized() {
+        agent = AgentManager.GetAgent(Id);
+        if(agent == null) return;
+
+        var config = agent.Config;
+
+        model.Name = config.Name;
+        model.Workers = config.Workers;
+
+        switch(config.Connection) {
+            case SslAgentConnection sslConn:
+                model.ConnectionType = "ssl";
+                model.SslHost = sslConn.Host;
+                model.SslPort = sslConn.Port;
+                model.AgentSslKey = Convert.ToBase64String(sslConn.AgentCertBytes);
+                break;
+        }
+    }
+    
+    private async Task OnSubmit() {
+        if(agent == null) return;
+        
+        var agentConfig = model.ToConfig();
+
+        if(agentConfig != null) {
+            await agent.UpdateConfig(agentConfig, CancellationToken.None);
+            NavigationManager.NavigateTo("agents/" + agent.Id);
+        }
+    }
+
+}

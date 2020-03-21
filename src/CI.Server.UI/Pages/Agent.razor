@@ -1,0 +1,36 @@
+﻿@page "/agents/{id:guid}"
+
+@inject IAgentManager AgentManager
+
+@if(agent == null) {
+    <p>The requested agent could not be found.</p>
+}
+else {
+    var config = agent.Config;
+    var editUrl = $"agents/{Id}/edit";
+    
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="">Home</a></li>
+            <li class="breadcrumb-item"><a href="agents">Agents</a></li>
+            <li class="breadcrumb-item active">@(config.Name)</li>
+        </ol>
+    </nav>
+
+    <h1>Agent - @(config.Name)</h1>
+
+    <a href="@editUrl" class="btn btn-primary" role="button">Edit</a>
+}
+
+@code {
+
+    [Parameter]
+    public Guid Id { get; set; }
+
+    private IAgent? agent;
+    
+    protected override void OnInitialized() {
+        agent = AgentManager.GetAgent(Id);
+    }
+
+}

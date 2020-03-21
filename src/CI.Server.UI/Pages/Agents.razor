@@ -25,8 +25,9 @@ else {
         </thead>
         <tbody>
             @foreach(var agent in AgentManager.Agents.OrderBy(a => a.Config.Name)) {
+                var agentUrl = $"agents/{agent.Id}";
                 <tr>
-                    <td>@(agent.Config.Name)</td>
+                    <td><a href="@agentUrl">@(agent.Config.Name)</a></td>
                 </tr>
             }
         </tbody>
