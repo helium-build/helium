@@ -86,6 +86,7 @@ namespace Helium.CI.Server.UI
                             {
                                 endpoints.MapBlazorHub();
                                 endpoints.MapFallbackToPage("/_Host");
+                                endpoints.MapFallbackToPage("projects/{*path}", "/_Host");
                             });
                         });
                 });

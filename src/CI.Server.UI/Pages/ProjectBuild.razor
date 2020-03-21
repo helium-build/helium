@@ -7,6 +7,19 @@
 @inject ILogger<ProjectBuild> Logger
 @inject NavigationManager NavigationManager
 
+@if(project != null) {
+    var projectUrl = "projects/" + Id;
+    
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="">Home</a></li>
+            <li class="breadcrumb-item"><a href="projects">Projects</a></li>
+            <li class="breadcrumb-item"><a href="@projectUrl">@(project.Config.Name)</a></li>
+            <li class="breadcrumb-item active">Build</li>
+        </ol>
+    </nav>
+}
+
 @if(!hasLoaded) {
     <p>Loading project...</p>
 }

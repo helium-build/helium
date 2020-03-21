@@ -10,6 +10,14 @@ else {
     var editUrl = $"projects/{Id}/edit";
     var buildUrl = $"projects/{Id}/build";
     
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="">Home</a></li>
+            <li class="breadcrumb-item"><a href="projects">Projects</a></li>
+            <li class="breadcrumb-item active">@(config.Name)</li>
+        </ol>
+    </nav>
+    
     <h1>Project @(config.Name)</h1>
                               
     <a href="@editUrl" class="btn btn-primary" role="button">Edit</a>

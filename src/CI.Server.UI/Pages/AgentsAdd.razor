@@ -3,6 +3,14 @@
 @inject IAgentManager AgentManager
 @inject NavigationManager NavigationManager
 
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="">Home</a></li>
+        <li class="breadcrumb-item"><a href="agents">Agents</a></li>
+        <li class="breadcrumb-item active">Add</li>
+    </ol>
+</nav>
+
 <h1>Add Agent</h1>
 
 <AgentEditor Model="@model" ButtonLabel="Add" OnSubmit="OnSubmit" />

@@ -4,14 +4,24 @@
 @inject IProjectManager ProjectManager
 @inject NavigationManager NavigationManager
 
-<h1>Edit Project</h1>
-
 @if(project == null) {
     <p>The requested project could not be found.</p>
 }
 else {
     var config = project.Config;
+    var projectUrl = "projects/" + Id;
     
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="">Home</a></li>
+            <li class="breadcrumb-item"><a href="projects">Projects</a></li>
+            <li class="breadcrumb-item"><a href="@projectUrl">@(project.Config.Name)</a></li>
+            <li class="breadcrumb-item active">Edit</li>
+        </ol>
+    </nav>
+
+    <h1>Edit Project</h1>
+             
     <ProjectEditor Model="model" ButtonLabel="Save" OnSubmit="OnSubmit" />
 }
 

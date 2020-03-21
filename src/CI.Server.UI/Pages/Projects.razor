@@ -2,6 +2,14 @@
 
 @inject IProjectManager ProjectManager
 
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="">Home</a></li>
+        <li class="breadcrumb-item active">Projects</li>
+    </ol>
+</nav>
+
 <h1>Projects</h1>
 
 <a href="projects/add" class="btn btn-primary" role="button">Add</a>
@@ -10,6 +18,7 @@
     <p>No projects have been configured.</p>
 }
 else {
+    
     <table class="table">
         <thead>
         <tr>

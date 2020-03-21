@@ -10,6 +10,17 @@ else if(pipelineStatus == null) {
     <p>Could not load pipeline status.</p>
 }
 else {
+    var projectUrl = "projects/" + Id;
+    
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="">Home</a></li>
+            <li class="breadcrumb-item"><a href="projects">Projects</a></li>
+            <li class="breadcrumb-item"><a href="@projectUrl">@(project!.Config.Name)</a></li>
+            <li class="breadcrumb-item active">Build #@BuildNum</li>
+        </ol>
+    </nav>
+    
     <h1><StateIndicator State="@pipelineStatus.State" /> Build #@BuildNum</h1>
                                                                          
     @foreach(var (jobId, job) in pipelineStatus.JobsStatus) {
@@ -35,12 +46,13 @@ else {
     public int BuildNum { get; set; }
 
     private bool hasLoaded = false;
+    private IProject? project;
     private IPipelineStatus? pipelineStatus;
     private GrowList<string> lines;
     
 
     protected override async Task OnInitializedAsync() {
-        var project = ProjectManager.GetProject(Id);
+        project = ProjectManager.GetProject(Id);
         if(project == null) {
             hasLoaded = true;
             return;
