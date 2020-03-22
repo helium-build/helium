@@ -16,6 +16,13 @@ namespace Helium.Util
             await writer.FlushAsync();
             stream.Flush(flushToDisk: true);
         }
+        
+        public static async Task WriteAllBytesToDiskAsync(string path, byte[] content, CancellationToken cancellationToken) {
+            await using var stream = File.Create(path, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
+            await stream.WriteAsync(content, cancellationToken);
+            await stream.FlushAsync(cancellationToken);
+            stream.Flush(flushToDisk: true);
+        }
 
         public static FileStream? CreateNewFile(string path) {
             try {

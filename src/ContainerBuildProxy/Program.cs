@@ -1,26 +1,31 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Helium.Env;
+
 
 namespace ContainerBuildProxy
 {
-    public class Program
+    public static class Program
     {
-        public static void Main(string[] args)
-        {
-            CreateHostBuilder(args).Build().Run();
+        public static async Task Main(string[] args) {
+            var proxy = new BuildProxy("/http-cache");
+            proxy.Start();
+            
+            var exitTcs = new TaskCompletionSource<object?>();
+
+            Console.CancelKeyPress += (sender, e) => {
+                if(exitTcs.TrySetResult(null)) {
+                    e.Cancel = true;
+                }
+            };
+
+            await exitTcs.Task;
+
+            proxy.Stop();
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
     }
 }
