@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Helium.Engine.JobExecutor
+namespace Helium.Engine.BuildExecutor
 {
     internal interface IOutputObserver
     {

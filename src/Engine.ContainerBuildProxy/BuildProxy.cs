@@ -96,7 +96,7 @@ namespace Helium.Engine.ContainerBuildProxy
         }
 
         private async Task ProxyOnBeforeResponse(object sender, SessionEventArgs e) {
-            var fileInfo = (SavedFileInfo)e.UserData;
+            var fileInfo = (SavedFileInfo)e.UserData!;
 
             if(e.HttpClient.Response.StatusCode != 200) {
                 e.Respond(new Response {

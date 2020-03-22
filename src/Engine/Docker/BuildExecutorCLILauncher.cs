@@ -6,13 +6,13 @@ using Helium.Engine.Docker;
 using Helium.Sdks;
 using Helium.Util;
 using Newtonsoft.Json;
-using Helium.Engine.JobExecutor.Protocol;
+using Helium.Engine.BuildExecutor.Protocol;
 
 namespace Helium.Engine.Docker
 {
-    internal class JobExecutorCLILauncher : ProcessLauncher
+    internal class BuildExecutorCLILauncher : ProcessLauncher
     {
-        public JobExecutorCLILauncher(string? sudoCommand, string dockerCommand) : base(sudoCommand, dockerCommand) {
+        public BuildExecutorCLILauncher(string? sudoCommand, string dockerCommand) : base(sudoCommand, dockerCommand) {
         }
 
         protected override void AddRunArguments(ProcessStartInfo psi, RunDockerCommand run) {

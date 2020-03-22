@@ -4,7 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Helium.Sdks;
-using Helium.Engine.JobExecutor.Protocol;
+using Helium.Engine.BuildExecutor.Protocol;
 
 namespace Helium.Engine.Docker
 {

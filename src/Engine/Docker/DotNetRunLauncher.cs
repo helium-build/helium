@@ -1,9 +1,9 @@
 using System.Diagnostics;
-using Helium.Engine.JobExecutor.Protocol;
+using Helium.Engine.BuildExecutor.Protocol;
 
 namespace Helium.Engine.Docker
 {
-    internal class DotNetRunLauncher : JobExecutorCLILauncher
+    internal class DotNetRunLauncher : BuildExecutorCLILauncher
     {
         private readonly string projectDir;
 

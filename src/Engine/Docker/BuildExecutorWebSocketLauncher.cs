@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 using Helium.Engine.Docker;
 using Helium.Sdks;
 using Newtonsoft.Json;
-using Helium.Engine.JobExecutor.Protocol;
+using Helium.Engine.BuildExecutor.Protocol;
 
 namespace Helium.Engine.Docker
 {
-    internal class JobExecutorWebSocketLauncher : LauncherBase
+    internal class BuildExecutorWebSocketLauncher : LauncherBase
     {
         public override Task<int> Run(PlatformInfo platform, LaunchProperties props) {
             var runCommand = BuildRunCommand(platform, props);

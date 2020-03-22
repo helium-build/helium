@@ -2,7 +2,7 @@
 COPY --chown=root:root docker/helium-engine/linux/helium/ /helium/
 COPY --chown=root:root sdks /helium/sdks/
 COPY --from=build --chown=root:root /src/Engine/bin/Release/netcoreapp3.0/linux-x64/publish/ /helium/engine/
-COPY --from=build --chown=root:root /src/Engine.JobExecutor/bin/Release/netcoreapp3.0/linux-x64/publish/ /helium/JobExecutor/
+COPY --from=build --chown=root:root /src/Engine.BuildExecutor/bin/Release/netcoreapp3.0/linux-x64/publish/ /helium/BuildExecutor/
 
 #ifdef INCLUDE_AGENT
 COPY --from=build --chown=root:root /src/CI.Agent/bin/Release/netcoreapp3.0/linux-x64/publish/ /helium/agent/
@@ -17,8 +17,8 @@ COPY --from=build --chown=root:root /src/CI.Agent/bin/Release/netcoreapp3.0/linu
 
 RUN chmod a+x /helium/engine/Helium.Engine && \
     CHMOD_AGENT \
-    chmod a+x /helium/JobExecutor/Helium.Engine.JobExecutor && \
-    chmod u+s /helium/JobExecutor/Helium.Engine.JobExecutor
+    chmod a+x /helium/BuildExecutor/Helium.Engine.BuildExecutor && \
+    chmod u+s /helium/BuildExecutor/Helium.Engine.BuildExecutor
 
 ENV PATH "/helium/bin:${PATH}"
 ENV HELIUM_BASE_DIR /helium/
@@ -27,5 +27,5 @@ ENV HELIUM_ENGINE_CONTENT_ROOT /helium/engine/
 ENV HELIUM_AGENT_CONTENT_ROOT /helium/agent/
 ENV HELIUM_AGENT_WORKSPACES_DIR /workspaces/
 #endif
-ENV HELIUM_LAUNCH_MODE job-executor-cli
-ENV HELIUM_DOCKER_COMMAND /helium/JobExecutor/Helium.Engine.JobExecutor
+ENV HELIUM_LAUNCH_MODE build-executor-cli
+ENV HELIUM_DOCKER_COMMAND /helium/BuildExecutor/Helium.Engine.BuildExecutor

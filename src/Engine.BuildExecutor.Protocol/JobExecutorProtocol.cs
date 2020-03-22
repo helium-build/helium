@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 
-namespace Helium.Engine.JobExecutor.Protocol
+namespace Helium.Engine.BuildExecutor.Protocol
 {
     public enum SocketState {
         Waiting,

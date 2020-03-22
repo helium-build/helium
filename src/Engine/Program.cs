@@ -123,11 +123,11 @@ namespace Helium.Engine
                 case null:
                     return new DockerCLILauncher(sudoCommand, dockerCommand);
                 
-                case "job-executor-cli":
-                    return new JobExecutorCLILauncher(sudoCommand, dockerCommand);
+                case "build-executor-cli":
+                    return new BuildExecutorCLILauncher(sudoCommand, dockerCommand);
                 
-                case "job-executor-websocket":
-                    return new JobExecutorWebSocketLauncher();
+                case "build-executor-websocket":
+                    return new BuildExecutorWebSocketLauncher();
                 
                 default:
                     throw new Exception("Unknown value for HELIUM_LAUNCH_MODE");

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 
-namespace Helium.Engine.JobExecutor
+namespace Helium.Engine.BuildExecutor
 {
     public static class ContainerBuildJob
     {
