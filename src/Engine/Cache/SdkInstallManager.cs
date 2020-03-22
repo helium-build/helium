@@ -46,9 +46,11 @@ namespace Helium.Engine.Cache
                     return (sdkHash, installDir);
                 }
 
+                CleanupTempSdkDirs(baseDir);
+
                 Console.Error.WriteLine($"Installing SDK for {sdk.implements.First()} version {sdk.version}");
 
-                using var tempDirCleanup = DirectoryCleanup.CreateTempDir(baseDir);
+                using var tempDirCleanup = DirectoryCleanup.CreateTempDir(baseDir, prefix: "temp-");
 
                 var tempDir = tempDirCleanup.Value;
                 var tempInstallDir = Path.Combine(tempDir, "install");
@@ -67,6 +69,15 @@ namespace Helium.Engine.Cache
 
                 return (sdkHash, installDir);
             }, CancellationToken.None);
+
+        private void CleanupTempSdkDirs(string baseDir) {
+            foreach(var tempDir in Directory.EnumerateDirectories(baseDir, "temp-*")) {
+                try {
+                    Directory.Delete(tempDir, recursive: true);
+                }
+                catch {}
+            }
+        }
 
         private async Task InstallSdk(SdkInfo sdk, string sdkHash, string installDir) {
             await SdkLoader.saveSdk(sdk, Path.Combine(installDir, "../sdk.json"));

@@ -35,10 +35,10 @@ namespace Helium.Util
             }
         }
 
-        public static string CreateTempDirectory(string parent) {
+        public static string CreateTempDirectory(string parent, string prefix = "") {
             string path;
             do {
-                path = Path.Combine(parent, Path.GetRandomFileName());
+                path = Path.Combine(parent, prefix + Path.GetRandomFileName());
             } while(!CreateNewDirectory(path));
 
             return path;

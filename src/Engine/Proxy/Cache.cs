@@ -14,7 +14,9 @@ namespace Helium.Engine.Proxy
                 if(!File.Exists(outFile)) {
                     string? tempFile = null;
                     try {
-                        using(FileUtil.CreateTempFile(cacheDir, out tempFile)) {}
+                        CleanupTempFiles(cacheDir);
+                        
+                        using(FileUtil.CreateTempFile(cacheDir, out tempFile, prefix: "temp-")) {}
                         
                         try {
                             download(tempFile).Wait();
@@ -36,6 +38,14 @@ namespace Helium.Engine.Proxy
             
             return Task.FromResult<object?>(null);
         }
-        
+
+        private static void CleanupTempFiles(string cacheDir) {
+            foreach(var tempFile in Directory.EnumerateFiles(cacheDir, "temp-*")) {
+                try {
+                    File.Delete(tempFile);
+                }
+                catch { }
+            }
+        }
     }
 }

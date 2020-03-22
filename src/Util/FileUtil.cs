@@ -26,10 +26,10 @@ namespace Helium.Util
             }
         }
 
-        public static FileStream CreateTempFile(string parent, out string path) {
+        public static FileStream CreateTempFile(string parent, out string path, string prefix = "") {
             FileStream? stream;
             do {
-                path = Path.Combine(parent, Path.GetRandomFileName());
+                path = Path.Combine(parent, prefix + Path.GetRandomFileName());
                 stream = CreateNewFile(path);
             } while(stream == null);
 
