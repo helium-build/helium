@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Helium.Env;
 
 
-namespace ContainerBuildProxy
+namespace Helium.Engine.ContainerBuildProxy
 {
     public static class Program
     {

@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Fleck;
 
-namespace Helium.JobExecutor
+namespace Helium.Engine.JobExecutor
 {
     internal class WebSocketOutputObserver : IOutputObserver
     {

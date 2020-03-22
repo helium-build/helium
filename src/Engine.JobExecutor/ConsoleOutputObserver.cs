@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Helium.JobExecutor
+namespace Helium.Engine.JobExecutor
 {
     internal class ConsoleOutputObserver : IOutputObserver
     {

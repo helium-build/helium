@@ -12,9 +12,9 @@ using Docker.DotNet;
 using Docker.DotNet.Models;
 using Fleck;
 using Newtonsoft.Json;
-using static Helium.JobExecutor.JobExecutorProtocol;
+using Helium.Engine.JobExecutor.Protocol;
 
-namespace Helium.JobExecutor
+namespace Helium.Engine.JobExecutor
 {
     internal static class Program
     {

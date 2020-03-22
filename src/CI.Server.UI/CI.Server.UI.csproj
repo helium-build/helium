@@ -17,12 +17,4 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.1.2" />
   </ItemGroup>
 
-  <ItemGroup>
-    <_ContentIncludedByDefault Remove="conf\agents\9e50b61c-27ba-4222-a4dd-150c6215b380\agent.json" />
-    <_ContentIncludedByDefault Remove="conf\projects\7149e1f0-3441-42ba-a3de-d2be621688ea\project.json" />
-    <_ContentIncludedByDefault Remove="conf\projects\7149e1f0-3441-42ba-a3de-d2be621688ea\repo\hello-world\package-lock.json" />
-    <_ContentIncludedByDefault Remove="conf\projects\7149e1f0-3441-42ba-a3de-d2be621688ea\repo\hello-world\package.json" />
-    <_ContentIncludedByDefault Remove="conf\projects\7149e1f0-3441-42ba-a3de-d2be621688ea\repo\hello-world\tsconfig.json" />
-  </ItemGroup>
-
 </Project>

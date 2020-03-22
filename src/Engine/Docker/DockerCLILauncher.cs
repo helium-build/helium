@@ -4,9 +4,9 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Helium.Sdks;
-using static Helium.JobExecutor.JobExecutorProtocol;
+using Helium.Engine.JobExecutor.Protocol;
 
-namespace Engine.Docker
+namespace Helium.Engine.Docker
 {
     internal sealed class DockerCLILauncher : ProcessLauncher
     {

@@ -5,9 +5,9 @@ using System.IO;
 using System.Threading.Tasks;
 using Helium.Engine.Docker;
 using Helium.Sdks;
-using static Helium.JobExecutor.JobExecutorProtocol;
+using Helium.Engine.JobExecutor.Protocol;
 
-namespace Engine.Docker
+namespace Helium.Engine.Docker
 {
     internal abstract class LauncherBase : ILauncher
     {

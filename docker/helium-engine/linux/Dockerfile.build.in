@@ -8,7 +8,7 @@ COPY --chown=helium:helium src /src/
 WORKDIR /src/Engine/
 RUN dotnet publish -c Release -r linux-x64 --self-contained true
 
-WORKDIR /src/JobExecutor/
+WORKDIR /src/Engine.JobExecutor/
 RUN dotnet publish -c Release -r linux-x64 --self-contained true
 
 #ifdef INCLUDE_AGENT

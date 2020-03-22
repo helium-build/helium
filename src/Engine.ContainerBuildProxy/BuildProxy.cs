@@ -10,7 +10,7 @@ using Titanium.Web.Proxy.Http;
 using Titanium.Web.Proxy.Models;
 using Nito.AsyncEx;
 
-namespace ContainerBuildProxy
+namespace Helium.Engine.ContainerBuildProxy
 {
     public class BuildProxy
     {

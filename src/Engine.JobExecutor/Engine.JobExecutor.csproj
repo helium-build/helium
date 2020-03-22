@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>Helium.JobExecutor</AssemblyName>
+    <AssemblyName>Helium.Engine.JobExecutor</AssemblyName>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <OutputType>Exe</OutputType>
     <LangVersion>8.0</LangVersion>
@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\JobExecutorProtocol\JobExecutorProtocol.csproj" />
+    <ProjectReference Include="..\Engine.JobExecutor.Protocol\Engine.JobExecutor.Protocol.csproj" />
   </ItemGroup>
 
 </Project>

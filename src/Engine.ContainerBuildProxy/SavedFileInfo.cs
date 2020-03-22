@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace ContainerBuildProxy
+namespace Helium.Engine.ContainerBuildProxy
 {
     public class SavedFileInfo
     {

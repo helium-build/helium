@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 
-namespace Helium.JobExecutor
+namespace Helium.Engine.JobExecutor
 {
     public static class ContainerBuildJob
     {
 
         private const string networkTag = "helium-container-build-proxy";
 
-        public static async Task<int> RunBuild(DockerClient client, JobExecutorProtocol.RunDockerBuild build, Stream workspaceStream, CancellationToken cancellationToken) {
+        public static async Task<int> RunBuild(DockerClient client, Protocol.RunDockerBuild build, Stream workspaceStream, CancellationToken cancellationToken) {
             await CleanupNetworks(client, cancellationToken);
 
             CreateContainerResponse? proxyContainer = null;

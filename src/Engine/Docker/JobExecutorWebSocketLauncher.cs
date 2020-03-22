@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using Helium.Engine.Docker;
 using Helium.Sdks;
 using Newtonsoft.Json;
-using static Helium.JobExecutor.JobExecutorProtocol;
+using Helium.Engine.JobExecutor.Protocol;
 
-namespace Engine.Docker
+namespace Helium.Engine.Docker
 {
     internal class JobExecutorWebSocketLauncher : LauncherBase
     {

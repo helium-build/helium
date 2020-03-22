@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Helium.Engine.Docker;
 using Helium.Sdks;
 
-namespace Engine.Docker
+namespace Helium.Engine.Docker
 {
     internal interface ILauncher
     {

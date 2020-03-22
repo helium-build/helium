@@ -27,7 +27,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Sdks\Sdks.fsproj" />
     <ProjectReference Include="..\Util\Util.csproj" />
-    <ProjectReference Include="..\JobExecutorProtocol\JobExecutorProtocol.csproj" />
+    <ProjectReference Include="..\Engine.JobExecutor.Protocol\Engine.JobExecutor.Protocol.csproj" />
     <ProjectReference Include="..\Env\Env.csproj" />
   </ItemGroup>
 

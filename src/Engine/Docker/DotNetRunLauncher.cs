@@ -1,7 +1,7 @@
 using System.Diagnostics;
-using Helium.JobExecutor;
+using Helium.Engine.JobExecutor.Protocol;
 
-namespace Engine.Docker
+namespace Helium.Engine.Docker
 {
     internal class DotNetRunLauncher : JobExecutorCLILauncher
     {
@@ -11,7 +11,7 @@ namespace Engine.Docker
             this.projectDir = projectDir;
         }
 
-        protected override void AddRunArguments(ProcessStartInfo psi, JobExecutorProtocol.RunDockerCommand run) {
+        protected override void AddRunArguments(ProcessStartInfo psi, RunDockerCommand run) {
             psi.ArgumentList.Add("run");
             psi.ArgumentList.Add("--no-build");
             psi.ArgumentList.Add("--");
