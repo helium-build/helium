@@ -48,7 +48,9 @@ namespace Helium.Engine.Cache
 
                 Console.Error.WriteLine($"Installing SDK for {sdk.implements.First()} version {sdk.version}");
 
-                var tempDir = Path.Combine(baseDir, Path.GetRandomFileName());
+                using var tempDirCleanup = DirectoryCleanup.CreateTempDir(baseDir);
+
+                var tempDir = tempDirCleanup.Value;
                 var tempInstallDir = Path.Combine(tempDir, "install");
                 Directory.CreateDirectory(tempInstallDir);
 

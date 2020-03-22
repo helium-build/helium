@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,5 +16,25 @@ namespace Helium.Util
             await writer.FlushAsync();
             stream.Flush(flushToDisk: true);
         }
+
+        public static FileStream? CreateNewFile(string path) {
+            try {
+                return new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous);
+            }
+            catch(IOException ex) when ((uint)Marshal.GetHRForException(ex) == 0x80070050) {
+                return null;
+            }
+        }
+
+        public static FileStream CreateTempFile(string parent, out string path) {
+            FileStream? stream;
+            do {
+                path = Path.Combine(parent, Path.GetRandomFileName());
+                stream = CreateNewFile(path);
+            } while(stream == null);
+
+            return stream;
+        }
+        
     }
 }

@@ -25,10 +25,7 @@ namespace Helium.Engine.Record
         private readonly JObject dependencyMetadata;
 
         public static async Task<IRecorder> Create(string archiveFile, string workDir) {
-            var extractedDir = Path.Combine(workDir, Path.GetRandomFileName());
-            try {
-                Directory.CreateDirectory(extractedDir);
-                
+            var extractedDirCleanup = DirectoryCleanup.CreateTempDir(workDir, async extractedDir => {
                 await using(var stream = File.OpenRead(archiveFile)) {
                     await using var tarStream = new TarInputStream(stream);
                     await ArchiveUtil.ExtractTar(tarStream, extractedDir);
@@ -39,14 +36,9 @@ namespace Helium.Engine.Record
                 );
                 
                 return new ReplayRecorder(extractedDir, dependencyMetadata);
-            }
-            catch {
-                try {
-                    Directory.Delete(extractedDir, recursive: true);
-                }
-                catch {}
-                throw;
-            }
+            });
+
+            return await extractedDirCleanup.Value();
         }
 
         public async ValueTask DisposeAsync() {

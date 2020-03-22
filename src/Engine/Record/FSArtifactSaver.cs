@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Helium.Util;
 
 namespace Helium.Engine.Record
 {
@@ -22,9 +23,9 @@ namespace Helium.Engine.Record
         }
 
         public async Task SaveArtifact(Stream stream, Func<string, Task<string>> nameSelector) {
-            var tempFile = Path.Combine(outputDir, Path.GetRandomFileName());
-            await using(var fileStream = File.Create(tempFile)) {
-                await stream.CopyToAsync(fileStream);                
+            string tempFile;
+            await using(var fileStream = FileUtil.CreateTempFile(outputDir, out tempFile)) {
+                await stream.CopyToAsync(fileStream);
             }
 
             var name = await nameSelector(tempFile);

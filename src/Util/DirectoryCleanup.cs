@@ -14,6 +14,10 @@ namespace Helium.Util
         }
         
         public async ValueTask DisposeAsync() {
+            Dispose();
+        }
+
+        public void Dispose() {
             try { Directory.Delete(dir, recursive: true); }
             catch {}
         }
@@ -24,13 +28,13 @@ namespace Helium.Util
     public static class DirectoryCleanup
     {
         public static DirectoryCleanup<Func<T>> CreateTempDir<T>(string parent, Func<string, T> value) {
-            var name = Path.Combine(parent, Path.GetRandomFileName());
+            var name = DirectoryUtil.CreateTempDirectory(parent);
             Directory.CreateDirectory(name);
             return new DirectoryCleanup<Func<T>>(name, () => value(name));
         }
         
         public static DirectoryCleanup<string> CreateTempDir(string parent) {
-            var name = Path.Combine(parent, Path.GetRandomFileName());
+            var name = DirectoryUtil.CreateTempDirectory(parent);
             Directory.CreateDirectory(name);
             return new DirectoryCleanup<string>(name, name);
         }

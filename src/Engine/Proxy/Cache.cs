@@ -12,8 +12,10 @@ namespace Helium.Engine.Proxy
         public static Task CacheDownload(string cacheDir, string outFile, Func<string, Task> download) {
             MutexHelper.Lock(Path.Combine(cacheDir, "cache.lock"), () => {
                 if(!File.Exists(outFile)) {
-                    var tempFile = Path.Combine(cacheDir, Path.GetRandomFileName());
+                    string? tempFile = null;
                     try {
+                        using(FileUtil.CreateTempFile(cacheDir, out tempFile)) {}
+                        
                         try {
                             download(tempFile).Wait();
                         }
@@ -26,7 +28,7 @@ namespace Helium.Engine.Proxy
                         File.Move(tempFile, outFile);
                     }
                     finally {
-                        try { File.Delete(tempFile); }
+                        try { if(tempFile != null) File.Delete(tempFile); }
                         catch {}
                     }
                 }
