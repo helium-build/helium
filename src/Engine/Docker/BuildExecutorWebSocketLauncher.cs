@@ -93,7 +93,7 @@ namespace Helium.Engine.Docker
             throw new OperationCanceledException();
         }
 
-        public override Task<int> BuildContainer(PlatformInfo platform, Func<Stream, Task> buildContext) {
+        public override Task<int> BuildContainer(PlatformInfo platform, ContainerBuildProperties props) {
             throw new NotImplementedException();
         }
     }

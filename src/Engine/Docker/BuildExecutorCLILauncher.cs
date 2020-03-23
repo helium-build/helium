@@ -20,25 +20,9 @@ namespace Helium.Engine.Docker
             psi.ArgumentList.Add(JsonConvert.SerializeObject(run));
         }
 
-        public override async Task<int> BuildContainer(PlatformInfo platform,  Func<Stream, Task> buildContext) {
-            var psi = CreatePSI();
-            psi.ArgumentList.Add("build-container");
-            psi.ArgumentList.Add(JsonConvert.SerializeObject(new RunDockerBuild {
-                ProxyImage = "helium/container-build-proxy",
-            }));
-
-            psi.RedirectStandardInput = true;
-
-            var p = Process.Start(psi);
-
-            if(p == null) {
-                throw new Exception("Could not start process.");
-            }
-
-            await buildContext(p.StandardInput.BaseStream);
-            await p.WaitForExitAsync();
-
-            return p.ExitCode;
+        protected override void AddContainerBuildArguments(ProcessStartInfo psi, RunDockerBuild build) {
+            psi.ArgumentList.Add("container-build");
+            psi.ArgumentList.Add(JsonConvert.SerializeObject(build));
         }
     }
 }

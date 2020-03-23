@@ -10,6 +10,6 @@ namespace Helium.Engine.Docker
     {
         Task<int> Run(PlatformInfo platform, LaunchProperties props);
 
-        Task<int> BuildContainer(PlatformInfo platform, Func<Stream, Task> buildContext);
+        Task<int> BuildContainer(PlatformInfo platform, ContainerBuildProperties props);
     }
 }

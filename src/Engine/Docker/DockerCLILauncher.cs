@@ -51,7 +51,8 @@ namespace Helium.Engine.Docker
             run.Command.ForEach(psi.ArgumentList.Add);
         }
 
-        public override Task<int> BuildContainer(PlatformInfo platform, Func<Stream, Task> buildContext) =>
+        protected override void AddContainerBuildArguments(ProcessStartInfo psi, RunDockerBuild build) =>
             throw new NotSupportedException();
+
     }
 }
