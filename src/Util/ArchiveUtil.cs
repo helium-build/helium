@@ -31,7 +31,7 @@ namespace Helium.Util
                     
                     EnsurePathDoesNotEscape(directory, target);
 
-                    CreateSymlink(entryFileName, entry.TarHeader.LinkName, entry.IsDirectory);
+                    FileUtil.CreateSymlink(entryFileName, entry.TarHeader.LinkName, entry.IsDirectory);
                 }
                 else {
                     if(entry.IsDirectory) {
@@ -46,7 +46,7 @@ namespace Helium.Util
                         tarStream.CopyEntryContents(outStream);
                     }
 
-                    SetUnixMode(entryFileName, entry.TarHeader.Mode);
+                    FileUtil.SetUnixMode(entryFileName, entry.TarHeader.Mode);
                 }
             }
         }
@@ -81,7 +81,7 @@ namespace Helium.Util
         public static async Task AddFileToTar(TarOutputStream tarStream, string path, string file) {
             var entry = TarEntry.CreateTarEntry(path);
             entry.Size = new FileInfo(file).Length;
-            if(GetUnixMode(file) is int mode) entry.TarHeader.Mode = mode;
+            if(FileUtil.GetUnixMode(file) is int mode) entry.TarHeader.Mode = mode;
             tarStream.PutNextEntry(entry);
 
             await using var fileStream = File.OpenRead(file);
@@ -113,49 +113,6 @@ namespace Helium.Util
             if(!combined.StartsWith(directory)) {
                 throw new Exception("Invalid path in archive");
             }
-        }
-
-        public static void SetUnixMode(string entryFileName, int mode) {
-            if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                return;
-            }
-
-            new UnixFileInfo(entryFileName).Protection = (FilePermissions)mode;
-        }
-
-        public static int? GetUnixMode(string entryFileName) {
-            if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                return null;
-            }
-
-            return (int)new UnixFileInfo(entryFileName).Protection;
-        }
-
-        public static void MakeExecutable(string entryFileName) {
-            if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                return;
-            }
-
-            new UnixFileInfo(entryFileName).Protection |= FilePermissions.S_IXUSR;
-        }
-        
-        private static void CreateSymlink(string path, string target, bool isDirectory) {
-            if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                CreateSymbolicLink(path, target, isDirectory ? SymbolicLinkFlags.Directory : SymbolicLinkFlags.File);
-            }
-            else {
-                new UnixSymbolicLinkInfo(path).CreateSymbolicLinkTo(target);                
-            }
-        }
-        
-        
-        [DllImport("kernel32.dll")]
-        private static extern bool CreateSymbolicLink(string lpSymlinkFileName, string lpTargetFileName, SymbolicLinkFlags dwFlags);
-
-        private enum SymbolicLinkFlags
-        {
-            File = 0,
-            Directory = 1,
         }
     }
 }

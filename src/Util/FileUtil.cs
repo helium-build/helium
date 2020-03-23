@@ -4,6 +4,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Mono.Unix;
+using Mono.Unix.Native;
 
 namespace Helium.Util
 {
@@ -41,6 +43,49 @@ namespace Helium.Util
             } while(stream == null);
 
             return stream;
+        }
+        
+        public static void SetUnixMode(string entryFileName, int mode) {
+            if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                return;
+            }
+
+            new UnixFileInfo(entryFileName).Protection = (FilePermissions)mode;
+        }
+
+        public static int? GetUnixMode(string entryFileName) {
+            if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                return null;
+            }
+
+            return (int)new UnixFileInfo(entryFileName).Protection;
+        }
+
+        public static void MakeExecutable(string entryFileName) {
+            if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                return;
+            }
+
+            new UnixFileInfo(entryFileName).Protection |= FilePermissions.S_IXUSR;
+        }
+        
+        public static void CreateSymlink(string path, string target, bool isDirectory) {
+            if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                CreateSymbolicLink(path, target, isDirectory ? SymbolicLinkFlags.Directory : SymbolicLinkFlags.File);
+            }
+            else {
+                new UnixSymbolicLinkInfo(path).CreateSymbolicLinkTo(target);                
+            }
+        }
+        
+        
+        [DllImport("kernel32.dll")]
+        private static extern bool CreateSymbolicLink(string lpSymlinkFileName, string lpTargetFileName, SymbolicLinkFlags dwFlags);
+
+        private enum SymbolicLinkFlags
+        {
+            File = 0,
+            Directory = 1,
         }
         
     }

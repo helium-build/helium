@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -34,6 +35,7 @@ namespace Helium.Engine.ContainerBuildProxy
         public void Stop() => proxy.Stop();
 
         private async Task ProxyOnBeforeRequest(object sender, SessionEventArgs e) {
+            
             var method = e.HttpClient.Request.Method.ToUpperInvariant();
             var uri = e.HttpClient.Request.RequestUri;
 
@@ -51,13 +53,15 @@ namespace Helium.Engine.ContainerBuildProxy
 
             string relFileName;
             try {
-                relFileName = Path.Combine(uri.Host, uri.Port.ToString(), uri.AbsolutePath);
+                relFileName = Path.Combine(uri.Host, uri.Port.ToString(), uri.AbsolutePath.TrimStart('/'));
             }
             catch {
                 Forbidden();
                 return;
             }
+            
             if(!PathUtil.IsValidSubPath(relFileName)) {
+                
                 Forbidden();
                 return;
             }

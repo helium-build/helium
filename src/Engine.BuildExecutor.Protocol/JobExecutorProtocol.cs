@@ -44,6 +44,9 @@ namespace Helium.Engine.BuildExecutor.Protocol
     [DisplayName("run-build")]
     public sealed class RunDockerBuild {
         public string? ProxyImage { get; set; }
-        public List<string> ProxyHosts { get; } = new List<string>();
+        public string? WorkspaceTar { get; set; }
+        public Dictionary<string, string> BuildArgs { get; set; } = new Dictionary<string, string>();
+        public string? OutputFile { get; set; }
+        public string? CacheDirectory { get; set; }
     }
 }

@@ -46,9 +46,7 @@ namespace Helium.Engine.BuildExecutor
                         return 1;
                     }
 
-                    await using var workspaceStream = Console.OpenStandardInput();
-
-                    return await ContainerBuildJob.RunBuild(client, JsonConvert.DeserializeObject<RunDockerBuild>(args[1]), workspaceStream, cancel.Token);
+                    return await ContainerBuildJob.RunBuild(client, JsonConvert.DeserializeObject<RunDockerBuild>(args[1]), new ConsoleOutputObserver(), cancel.Token);
                 }
 
                 case "serve":

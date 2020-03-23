@@ -6,15 +6,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using Docker.DotNet;
 using Docker.DotNet.Models;
+using Helium.Engine.BuildExecutor.Protocol;
+using Helium.Util;
 
 namespace Helium.Engine.BuildExecutor
 {
-    public static class ContainerBuildJob
+    internal static class ContainerBuildJob
     {
 
         private const string networkTag = "helium-container-build-proxy";
+        private const string buildProxyHostname = "helium-container-build-proxy";
+        private const string proxySpec = "http://" + buildProxyHostname + ":8000";
 
-        public static async Task<int> RunBuild(DockerClient client, Protocol.RunDockerBuild build, Stream workspaceStream, CancellationToken cancellationToken) {
+        public static async Task<int> RunBuild(DockerClient client, Protocol.RunDockerBuild build, IOutputObserver outputObserver, CancellationToken cancellationToken) {
             await CleanupNetworks(client, cancellationToken);
 
             CreateContainerResponse? proxyContainer = null;
@@ -27,15 +31,6 @@ namespace Helium.Engine.BuildExecutor
                     },
                 }, cancellationToken);
 
-                using var stream = await client.Containers.AttachContainerAsync(
-                    proxyContainer.ID,
-                    false,
-                    new ContainerAttachParameters {
-                        Stream = false,
-                    },
-                    cancellationToken
-                );
-
                 NetworksCreateResponse? network = null;
                 try {
                     var networkName = networkTag + "-" + proxyContainer.ID;
@@ -46,28 +41,66 @@ namespace Helium.Engine.BuildExecutor
                         },
                         cancellationToken
                     );
-
+                    
                     await client.Networks.ConnectNetworkAsync(
                         network.ID,
                         new NetworkConnectParameters {
                             Container = proxyContainer.ID,
+                            EndpointConfig = new EndpointSettings {
+                                Aliases = {
+                                    buildProxyHostname,
+                                },
+                            }
                         },
                         cancellationToken
                     );
 
-                    var inspectResponse = await client.Containers.InspectContainerAsync(proxyContainer.ID, cancellationToken);
-                    var ip = inspectResponse.NetworkSettings.Networks[networkName].IPAddress;
+                    var imageTag = OutputImageTag(proxyContainer.ID);
 
-                    var buildStream = await client.Images.BuildImageFromDockerfileAsync(
-                        workspaceStream,
-                        new ImageBuildParameters {
-                            NoCache = true,
-                            ForceRemove = true,
+                    var buildParams = new ImageBuildParameters {
+                        NoCache = true,
+                        ForceRemove = true,
+                        NetworkMode = network.ID,
+                        Tags = {
+                            imageTag,
                         },
-                        cancellationToken
-                    );
-                    
-                    
+                    };
+
+                    foreach(var (arg, value) in build.BuildArgs) {
+                        buildParams.BuildArgs[arg] = value;
+                    }
+
+                    buildParams.BuildArgs["HTTP_PROXY"] = proxySpec;
+                    buildParams.BuildArgs["http_proxy"] = proxySpec;
+                    buildParams.BuildArgs["HTTPS_PROXY"] = proxySpec;
+                    buildParams.BuildArgs["https_proxy"] = proxySpec;
+
+
+                    try {
+                        await using(var workspaceStream = File.OpenRead(build.WorkspaceTar)) {
+                            await using var buildStream = await client.Images.BuildImageFromDockerfileAsync(
+                                workspaceStream,
+                                buildParams,
+                                cancellationToken
+                            );
+
+                            var buffer = new byte[4096];
+                            int bytesRead;
+                            while((bytesRead = await buildStream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0) {
+                                await outputObserver.StandardOutput(buffer, bytesRead);
+                            }
+                        }
+
+                        await using(var image = await client.Images.SaveImageAsync(imageTag, cancellationToken)) {
+                            await using var savedImageFile = File.Create(build.OutputFile);
+                            await image.CopyToAsync(savedImageFile, cancellationToken);
+                        }
+
+                        FileUtil.SetUnixMode(build.OutputFile, (6 << 6) | (4 << 3) | 4);
+                    }
+                    finally {
+                        await client.Images.DeleteImageAsync(imageTag, new ImageDeleteParameters(), cancellationToken);
+                    }
                 }
                 finally {
                     if(network != null) {
@@ -90,6 +123,8 @@ namespace Helium.Engine.BuildExecutor
 
             return 0;
         }
+
+        private static string OutputImageTag(string proxyContainerId) => "helium-build/output-image-for-" + proxyContainerId;
 
 
         private static async Task CleanupNetworks(IDockerClient client, CancellationToken cancellationToken) {
@@ -115,10 +150,6 @@ namespace Helium.Engine.BuildExecutor
                     if(!network.Labels.TryGetValue(networkTag, out var proxyContainerId)) {
                         continue;
                     }
-
-                    if(network.Containers.Count > 0) {
-                        continue;
-                    }
                     
                     try {
                         await client.Containers.InspectContainerAsync(proxyContainerId, cancellationToken);
@@ -126,6 +157,17 @@ namespace Helium.Engine.BuildExecutor
                     }
                     catch(DockerContainerNotFoundException) {}
 
+                    try {
+                        await client.Images.DeleteImageAsync(OutputImageTag(proxyContainerId), new ImageDeleteParameters(), cancellationToken);
+                    }
+                    catch(DockerContainerNotFoundException) {}
+
+                    var networkInspect = await client.Networks.InspectNetworkAsync(network.ID, cancellationToken);
+                    foreach(var containerId in networkInspect.Containers.Keys) {
+                        await client.Containers.StopContainerAsync(containerId, new ContainerStopParameters(), cancellationToken);
+                        await client.Containers.RemoveContainerAsync(containerId, new ContainerRemoveParameters(), cancellationToken);
+                    }
+                    
                     await client.Networks.DeleteNetworkAsync(network.ID, cancellationToken);
                 }
             }

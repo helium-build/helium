@@ -155,7 +155,7 @@ namespace Helium.Engine.Cache
                         
                         var fileName = Path.Combine(installDir, createFile.fileName);
                         await File.WriteAllTextAsync(fileName, createFile.content, Globals.HeliumEncoding);
-                        ArchiveUtil.MakeExecutable(fileName);
+                        FileUtil.MakeExecutable(fileName);
                     }
                         break;
                     
