@@ -101,6 +101,9 @@ namespace Helium.Engine
         }
 
         private static async Task<int> ContainerBuildMain(ContainerBuild options) {
+
+            var launcher = DetectLauncher();
+            
             var platform = new PlatformInfo(
                 os: options.OperatingSystem ?? throw new Exception("Invalid OS."),
                 arch: options.Architecture ?? throw new Exception("Invalid Architecture")
@@ -109,9 +112,16 @@ namespace Helium.Engine
             if(options.Workspace == null) {
                 throw new Exception("Workspace is missing.");
             }
+
+            if(options.OutputFile == null) {
+                throw new Exception("Output file is missing.");
+            }
+
+            string buildContext = options.BuildContext ?? Path.Combine(options.Workspace, "build-context");
             
-            var dockerfilePath = options.DockerfilePath ?? Path.Combine(options.Workspace, "Dockerfile");
-            return await ContainerBuildManager.Dummy(dockerfilePath, platform);
+            var dockerfilePath = options.DockerfilePath ?? Path.Combine(buildContext, "Dockerfile");
+            
+            return await ContainerBuildManager.Run(launcher, options.Workspace, buildContext, dockerfilePath, options.OutputFile, platform);
         }
         
         private static ILauncher DetectLauncher() {
@@ -182,8 +192,14 @@ namespace Helium.Engine
             [Option('f', "file", HelpText = "The path to the dockerfile.")]
             public string? DockerfilePath { get; set; }
             
+            [Option("build-context", HelpText = "The build context.")]
+            public string? BuildContext { get; set; }
+            
             [Value(0, Required = true, MetaName = "workspace", HelpText = "The workspace for the docker build.")]
             public string? Workspace { get; set; }
+
+            [Value(1, Required = true, MetaName = "outputFile", HelpText = "The docker image exported as a tar file.")]
+            public string? OutputFile { get; set; }
         }
 
     }

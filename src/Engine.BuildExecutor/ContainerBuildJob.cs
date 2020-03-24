@@ -77,9 +77,9 @@ namespace Helium.Engine.BuildExecutor
 
 
                     try {
-                        await using(var workspaceStream = File.OpenRead(build.WorkspaceTar)) {
+                        await using(var buildContextStream = File.OpenRead(build.BuildContextArchive)) {
                             await using var buildStream = await client.Images.BuildImageFromDockerfileAsync(
-                                workspaceStream,
+                                buildContextStream,
                                 buildParams,
                                 cancellationToken
                             );

@@ -62,7 +62,7 @@ namespace Helium.Engine.Docker
                 BuildArgs = new Dictionary<string, string>(props.BuildArgs), 
                 OutputFile = props.OutputFile + ".tmp",
                 CacheDirectory = props.CacheDir,
-                WorkspaceTar = props.WorkspaceTar,
+                BuildContextArchive = props.BuildContextArchive,
             };
     }
 }
