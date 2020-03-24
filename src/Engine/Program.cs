@@ -63,6 +63,9 @@ namespace Helium.Engine
             [Option("arch", Required = true, HelpText = "The architecture of the OS inside the container.")]
             public SdkArch? Architecture { get; set; }
             
+            [Option("archive", HelpText = "The archive file (tar) that will contain the dependencies required to reproduce the build.")]
+            public string? Archive { get; set; }
+            
             [Option('f', "file", HelpText = "The path to the dockerfile.")]
             public string? DockerfilePath { get; set; }
             

@@ -28,8 +28,16 @@ namespace Helium.Engine.ContainerBuild
             string buildContext = options.BuildContext ?? Path.Combine(options.Workspace, "build-context");
             
             var dockerfilePath = options.DockerfilePath ?? Path.Combine(buildContext, "Dockerfile");
+
+            IRecorder recorder;
+            if(options.Archive == null) {
+                recorder = new NullRecorder(platform, options.Workspace, buildContext,dockerfilePath, options.OutputFile);
+            }
+            else {
+                throw new NotImplementedException();
+            }
             
-            return await ContainerBuildManager.Run(launcher, options.Workspace, buildContext, dockerfilePath, options.OutputFile, platform);
+            return await ContainerBuildManager.Run(launcher, recorder);
         }
     }
 }
