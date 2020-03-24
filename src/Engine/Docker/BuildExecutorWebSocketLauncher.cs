@@ -19,7 +19,7 @@ namespace Helium.Engine.Docker
         }
             
 
-        private async Task<int> RunWebSocketExecutor(RunDockerCommand runCommand, CancellationToken cancellationToken) {
+        private async Task<int> RunWebSocketExecutor(CommandBase command, CancellationToken cancellationToken) {
             var uri = Environment.GetEnvironmentVariable("HELIUM_JOB_EXECUTOR_URL");
             if(uri == null) {
                 throw new Exception("Variable HELIUM_JOB_EXECUTOR_URL not specified.");
@@ -28,7 +28,7 @@ namespace Helium.Engine.Docker
             var ws = new ClientWebSocket();
             await ws.ConnectAsync(new Uri(uri), cancellationToken);
 
-            var startMessage = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(runCommand));
+            var startMessage = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(command));
             await ws.SendAsync(new ArraySegment<byte>(startMessage), WebSocketMessageType.Text, endOfMessage: true, cancellationToken);
 
             await using var stdout = Console.OpenStandardOutput();
@@ -94,7 +94,8 @@ namespace Helium.Engine.Docker
         }
 
         public override Task<int> BuildContainer(PlatformInfo platform, ContainerBuildProperties props) {
-            throw new NotImplementedException();
+            var containerBuildCommand = BuildContainerBuildCommand(platform, props);
+            return RunWebSocketExecutor(containerBuildCommand, CancellationToken.None);
         }
     }
 }
