@@ -63,6 +63,11 @@ namespace Helium.Engine.BuildExecutor
         private static async Task<int> RunConsole(IDockerClient client, string commandJson, CancellationToken cancellationToken) {
             var command = JsonConvert.DeserializeObject<RunDockerCommand>(commandJson);
             var containerId = await LookupCurrentContainerId(client, cancellationToken);
+            if(containerId == null) {
+                Console.WriteLine("Could not obtain current container id.");
+                return 1;
+            }
+            
             return await RunDocker(client, command, containerId, new ConsoleOutputObserver(), cancellationToken);
         }
 
@@ -73,7 +78,7 @@ namespace Helium.Engine.BuildExecutor
                 var state = SocketState.Waiting;
 
                 socket.OnMessage = message => {
-                    var commandObj = JsonConvert.DeserializeObject<Command>(message);
+                    var commandObj = JsonConvert.DeserializeObject<CommandBase>(message);
                     lock(lockObj) {
                         switch((state, commandObj)) {
                             case (SocketState.Waiting, RunDockerCommand command):
@@ -125,15 +130,15 @@ namespace Helium.Engine.BuildExecutor
             }).ToList();
         }
 
-        private static async Task<int> RunDocker(IDockerClient client, RunDockerCommand command, string? callingContainerId, IOutputObserver outputObserver, CancellationToken cancellationToken) {
-            var allowedMounts = callingContainerId == null
-                ? null
-                : await GetMounts(client, callingContainerId, cancellationToken);
+        private static async Task<int> RunDocker(IDockerClient client, RunDockerCommand command, string callingContainerId, IOutputObserver outputObserver, CancellationToken cancellationToken) {
+            var allowedMounts = await GetMounts(client, callingContainerId, cancellationToken);
             
-            if(!ValidateDockerCommand(command, allowedMounts)) {
+            if(!(ValidateDockerCommand(command) && ValidateMounts(command.BindMounts, allowedMounts) is {} mounts)) {
                 await Console.Error.WriteLineAsync("Could not validate docker command.");
                 return 1;
             }
+            
+            
 
             var response = await client.Containers.CreateContainerAsync(
                 new Docker.DotNet.Models.CreateContainerParameters {
@@ -142,7 +147,7 @@ namespace Helium.Engine.BuildExecutor
                     AttachStderr = true,
                     AttachStdout = true,
                     ArgsEscaped = false,
-                    Cmd = command.Command,
+                    Cmd = command.Command.ToList(),
                     WorkingDir = command.CurrentDirectory,
 
                     HostConfig = new Docker.DotNet.Models.HostConfig {
@@ -150,14 +155,7 @@ namespace Helium.Engine.BuildExecutor
                         NetworkMode = "none",
                         Isolation = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "process" : null,
                         
-                        Mounts = command.BindMounts
-                            .Select(bindMount => new Docker.DotNet.Models.Mount {
-                                Type = "bind",
-                                Source = bindMount.HostDirectory,
-                                Target = bindMount.MountPath,
-                                ReadOnly = bindMount.IsReadOnly
-                            })
-                            .ToList(),
+                        Mounts = mounts,
                     },
                 },
                 cancellationToken
@@ -203,19 +201,20 @@ namespace Helium.Engine.BuildExecutor
             return (int)waitResponse.StatusCode;
         }
 
-        private static bool ValidateDockerCommand(RunDockerCommand command, IReadOnlyList<AllowedMount>? allowedMounts)
-        {
+        private static bool ValidateDockerCommand(RunDockerCommand command) {
             if(command.ImageName == null || !Regex.IsMatch(command.ImageName, @"^helium-build/build-env\:[a-z0-9\-]+$")) {
                 return false;
             }
 
-            foreach(var mount in command.BindMounts) {
-                if(mount.HostDirectory == null || mount.MountPath == null) {
-                    return false;
-                }
+            return true;
+        }
+        
+        private static List<Docker.DotNet.Models.Mount>? ValidateMounts(IEnumerable<DockerBindMount> bindMounts, IReadOnlyList<AllowedMount> allowedMounts) {
+            var mounts = new List<Docker.DotNet.Models.Mount>();
 
-                if(allowedMounts == null) {
-                    continue;
+            foreach(var mount in bindMounts) {
+                if(mount.HostDirectory == null || mount.MountPath == null) {
+                    return null;
                 }
                 
                 foreach(var allowedMount in allowedMounts) {
@@ -244,18 +243,22 @@ namespace Helium.Engine.BuildExecutor
                     var subPath = mount.HostDirectory.Substring(allowedMount.BasePath.Length + (suffixHasSlash ? 1 : 0));
                     
                     var sep = HasTrailingSlash(allowedMount.RealPath) ? "" : Path.DirectorySeparatorChar.ToString();
-                    mount.HostDirectory = allowedMount.RealPath + sep + subPath;
-                    mount.IsReadOnly &= !allowedMount.ReadWrite;
+                    mounts.Add(new Docker.DotNet.Models.Mount {
+                        Type = "bind",
+                        Source = allowedMount.RealPath + sep + subPath,
+                        Target = mount.MountPath,
+                        ReadOnly = mount.IsReadOnly || !allowedMount.ReadWrite,
+                    });
                     goto validMount;
                 }
 
-                return false;
+                return null;
 
             validMount:
                 continue;
             }
 
-            return true;
+            return mounts;
         }
 
         sealed class AllowedMount {

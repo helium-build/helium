@@ -10,20 +10,21 @@ namespace Helium.Engine.ContainerBuild
     {
         public LiveRecorder(PlatformInfo platform, string workspace, string buildContext, string dockerfilePath, string imageFile) {
             Platform = platform;
-            this.workspace = workspace;
+            WorkspaceDir = workspace;
             this.buildContext = buildContext;
             this.dockerfilePath = dockerfilePath;
             ImageFile = imageFile;
         }
 
-        private readonly string workspace;
         private readonly string buildContext;
         private readonly string dockerfilePath;
         
         public PlatformInfo Platform { get; }
 
+        public string WorkspaceDir { get; }
+
         public async Task<string> GetCacheDir() =>
-            DirectoryUtil.CreateTempDirectory(workspace);
+            DirectoryUtil.CreateTempDirectory(WorkspaceDir);
 
         public bool EnableNetwork => true;
         
@@ -33,7 +34,7 @@ namespace Helium.Engine.ContainerBuild
                 (newDockerfile, _) = await DockerfileResolver.ProcessDockerfile(reader, Platform);
             }
 
-            await using var buildContextStream = FileUtil.CreateTempFile(workspace, out var buildContextFile);
+            await using var buildContextStream = FileUtil.CreateTempFile(WorkspaceDir, out var buildContextFile);
             await BuildContextHandler.WriteBuildContext(buildContext, newDockerfile, buildContextStream);
             return buildContextFile;
         }

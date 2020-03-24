@@ -15,11 +15,15 @@ namespace Helium.Engine.ContainerBuild
             var cacheDir = await recorder.GetCacheDir();
             var buildContextFile = await recorder.GetBuildContext();
 
+            string tempImageFile;
+            await using(FileUtil.CreateTempFile(recorder.WorkspaceDir, out tempImageFile)) {}
+            
             var props = new ContainerBuildProperties(
-                new Dictionary<string, string>(),
-                recorder.ImageFile,
-                cacheDir,
-                buildContextFile
+                buildArgs: new Dictionary<string, string>(),
+                outputFile: tempImageFile,
+                cacheDir: cacheDir,
+                buildContextArchive: buildContextFile,
+                enableProxyNetwork: recorder.EnableNetwork
             );
 
             return await launcher.BuildContainer(recorder.Platform, props);

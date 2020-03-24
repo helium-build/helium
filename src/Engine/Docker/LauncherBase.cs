@@ -18,51 +18,52 @@ namespace Helium.Engine.Docker
         protected RunDockerCommand BuildRunCommand(PlatformInfo platform, LaunchProperties props) {
             var rootFSPath = platform.RootDirectory;
 
-            var run = new RunDockerCommand {
-                ImageName = props.DockerImage,
-                Command = props.Command,
-                Environment = new Dictionary<string, string>(props.Environment) {
-                    ["HELIUM_SDK_PATH"] = string.Join(Path.PathSeparator, props.PathDirs)
-                },
-            };
+            var mounts = new List<DockerBindMount>();
 
-            if(props.CurrentDirectory != null) {
-                run.CurrentDirectory = props.CurrentDirectory;
-            }
-            
-            run.BindMounts.Add(new DockerBindMount {
-                HostDirectory = Path.GetFullPath(props.SocketDir),
-                MountPath = rootFSPath + "helium/socket",
-            });
+            mounts.Add(new DockerBindMount(
+                hostDirectory: Path.GetFullPath(props.SocketDir),
+                mountPath: rootFSPath + "helium/socket"
+            ));
 
             foreach(var (containerDir, hostDir) in props.SdkDirs) {
-                run.BindMounts.Add(new DockerBindMount {
-                    HostDirectory = Path.GetFullPath(hostDir),
-                    MountPath = containerDir,
-                    IsReadOnly = true,
-                });
+                mounts.Add(new DockerBindMount(
+                    hostDirectory: Path.GetFullPath(hostDir),
+                    mountPath: containerDir,
+                    isReadOnly: true
+                ));
             }
 
-            run.BindMounts.Add(new DockerBindMount {
-                HostDirectory = Path.GetFullPath(props.Sources),
-                MountPath = rootFSPath + "sources",
-            });
+            mounts.Add(new DockerBindMount(
+                hostDirectory: Path.GetFullPath(props.Sources),
+                mountPath: rootFSPath + "sources"
+            ));
 
-            run.BindMounts.Add(new DockerBindMount {
-                HostDirectory = Path.GetFullPath(props.InstallDir),
-                MountPath = rootFSPath + "helium/install",
-            });
-
+            mounts.Add(new DockerBindMount(
+                hostDirectory: Path.GetFullPath(props.InstallDir),
+                mountPath: rootFSPath + "helium/install"
+            ));
+            
+            var run = new RunDockerCommand(
+                imageName: props.DockerImage,
+                command: props.Command,
+                currentDirectory: props.CurrentDirectory,
+                environment: new Dictionary<string, string>(props.Environment) {
+                    ["HELIUM_SDK_PATH"] = string.Join(Path.PathSeparator, props.PathDirs)
+                },
+                bindMounts: mounts
+            );
+            
             return run;
         }
 
         protected RunDockerBuild BuildContainerBuildCommand(PlatformInfo platform, ContainerBuildProperties props) =>
-            new RunDockerBuild {
-                ProxyImage = "helium/container-build-proxy",
-                BuildArgs = new Dictionary<string, string>(props.BuildArgs), 
-                OutputFile = props.OutputFile + ".tmp",
-                CacheDirectory = props.CacheDir,
-                BuildContextArchive = props.BuildContextArchive,
-            };
+            new RunDockerBuild(
+                proxyImage: "helium/container-build-proxy",
+                cacheDirectory: props.CacheDir,
+                enableProxyNetwork: props.EnableProxyNetwork,
+                buildContextArchive: props.BuildContextArchive,
+                outputFile: props.OutputFile + ".tmp",
+                buildArgs: new Dictionary<string, string>(props.BuildArgs)
+            );
     }
 }

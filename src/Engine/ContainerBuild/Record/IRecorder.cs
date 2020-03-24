@@ -7,6 +7,8 @@ namespace Helium.Engine.ContainerBuild
     {
         PlatformInfo Platform { get; }
         
+        string WorkspaceDir { get; }
+        
         Task<string> GetCacheDir();
         bool EnableNetwork { get; }
 

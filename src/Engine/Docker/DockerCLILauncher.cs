@@ -48,7 +48,9 @@ namespace Helium.Engine.Docker
 
             psi.ArgumentList.Add(run.ImageName);
 
-            run.Command.ForEach(psi.ArgumentList.Add);
+            foreach(var arg in run.Command) {
+                psi.ArgumentList.Add(arg);
+            }
         }
 
         protected override void AddContainerBuildArguments(ProcessStartInfo psi, RunDockerBuild build) =>
