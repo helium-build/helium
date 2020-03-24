@@ -27,6 +27,7 @@ namespace Helium.Engine.BuildExecutor
                     Image = build.ProxyImage,
                     HostConfig = new HostConfig {
                         AutoRemove = true,
+                        NetworkMode = build.EnableProxyNetwork ? null : "none",
                         Isolation = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "process" : null,
                     },
                 }, cancellationToken);
