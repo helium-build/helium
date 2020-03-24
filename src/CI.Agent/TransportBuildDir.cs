@@ -58,15 +58,9 @@ namespace Helium.CI.Agent
             try {
                 using(await workspaceLock.LockAsync(cancellationToken)) {
                     await ExtractWorkspace(WorkspaceDir, workspacePipe.Reader.AsStream());
-                    var buildTaskBase = await buildStartTask.Task.WaitAsync(cancellationToken);
-                    return buildTaskBase switch {
-                        BuildTask buildTask => await ExecBuild(buildTask, cancellationToken),
-                        
-                        ContainerBuildTask containerBuildTask =>
-                            await ExecContainerBuild(containerBuildTask, cancellationToken),
-                        
-                        _ => throw new InvalidBuildTask()
-                    };
+                    var buildTask = await buildStartTask.Task.WaitAsync(cancellationToken);
+
+                    return await ExecBuildProcess(buildTask, cancellationToken);
                 }
             }
             catch(Exception ex) {
@@ -81,7 +75,47 @@ namespace Helium.CI.Agent
             await ArchiveUtil.ExtractTar(tarStream, workspaceDir);
         }
 
-        private async Task<int> ExecBuild(BuildTask buildTask, CancellationToken cancellationToken) {
+        private async Task<int> ExecBuildProcess(BuildTaskBase buildTaskBase, CancellationToken cancellationToken) {
+            var psi = buildTaskBase switch {
+                BuildTask buildTask => CreateBuildProcess(buildTask),
+                ContainerBuildTask containerBuildTask => CreateContainerBuildProcess(containerBuildTask),
+                _ => throw new InvalidBuildTask()
+            }; 
+            
+            var writeLock = new AsyncLock();
+
+            async Task PipeData(Stream stream) {
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+                while((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0) {
+                    using(await writeLock.LockAsync(cancellationToken)) {
+                        await buildOutputPipe.Writer.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
+                    }
+                }
+            }
+
+
+            var process = Process.Start(psi);
+            try {
+                var exitTask = process.WaitForExitAsync();
+
+                var stdoutTask = Task.Run(() => PipeData(process.StandardOutput.BaseStream), cancellationToken);
+                await Task.Run(() => PipeData(process.StandardError.BaseStream), cancellationToken);
+                await stdoutTask;
+
+                await exitTask;
+
+                await buildOutputPipe.Writer.CompleteAsync();
+
+                return process.ExitCode;
+            }
+            catch {
+                process.Kill();
+                throw;
+            }
+        }
+
+        private ProcessStartInfo CreateBuildProcess(BuildTask buildTask) {
             if(!PathUtil.IsValidSubPath(buildTask.BuildFile)) {
                 throw new Exception("Invalid build file path.");
             }
@@ -123,42 +157,59 @@ namespace Helium.CI.Agent
             
             psi.ArgumentList.Add(buildDir.Value);
 
-
-            var writeLock = new AsyncLock();
-
-            async Task PipeData(Stream stream) {
-                byte[] buffer = new byte[4096];
-                int bytesRead;
-                while((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0) {
-                    using(await writeLock.LockAsync(cancellationToken)) {
-                        await buildOutputPipe.Writer.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
-                    }
-                }
-            }
-
-
-            var process = Process.Start(psi);
-            try {
-                var exitTask = process.WaitForExitAsync();
-
-                var stdoutTask = Task.Run(() => PipeData(process.StandardOutput.BaseStream), cancellationToken);
-                await Task.Run(() => PipeData(process.StandardError.BaseStream), cancellationToken);
-                await stdoutTask;
-
-                await exitTask;
-
-                await buildOutputPipe.Writer.CompleteAsync();
-
-                return process.ExitCode;
-            }
-            catch {
-                process.Kill();
-                throw;
-            }
+            return psi;
         }
 
-        private async Task<int> ExecContainerBuild(ContainerBuildTask containerBuildTask, CancellationToken cancellationToken) {
-            throw new NotImplementedException();
+        private ProcessStartInfo CreateContainerBuildProcess(ContainerBuildTask containerBuildTask) {
+            if(!PathUtil.IsValidSubPath(containerBuildTask.Dockerfile)) {
+                throw new Exception("Invalid Dockerfile path.");
+            }
+
+            if(!PathUtil.IsValidSubPath(containerBuildTask.ImageFileName) ||
+               containerBuildTask.ImageFileName.Contains(Path.DirectorySeparatorChar) ||
+               containerBuildTask.ImageFileName.Contains(Path.AltDirectorySeparatorChar)) {
+                throw new Exception("Invalid image file name.");
+            }
+            
+            var psi = new ProcessStartInfo {
+                FileName = "helium",
+                UseShellExecute = false,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
+                ArgumentList = {
+                    "container-build",
+                    
+                    "--os",
+                    containerBuildTask.Platform.os.ToString(),
+                    
+                    "--arch",
+                    containerBuildTask.Platform.arch.ToString(),
+
+                    "--file",
+                    Path.Combine(WorkspaceDir, containerBuildTask.Dockerfile),
+
+                    "--build-context",
+                    WorkspaceDir,
+                },
+            };
+
+            switch(containerBuildTask.ReplayMode) {
+                case ReplayMode.Discard:
+                    break;
+                    
+                case ReplayMode.RecordCache:
+                    psi.ArgumentList.Add("--archive");
+                    psi.ArgumentList.Add(ReplayFile);
+                    break;
+                
+                default:
+                    throw new InvalidBuildTask();
+            }
+            
+            psi.ArgumentList.Add(buildDir.Value);
+            psi.ArgumentList.Add(containerBuildTask.ImageFileName);
+
+            return psi;
         }
         
         public override Task OpenAsync(CancellationToken cancellationToken) =>

@@ -77,21 +77,47 @@ namespace Helium.Pipeline
 
     public sealed class ContainerBuildTask : BuildTaskBase
     {
+        [JsonConstructor]
         public ContainerBuildTask(
             string dockerfile,
             PlatformInfo platform,
-            IReadOnlyDictionary<string, string> arguments,
-            ReplayMode replayMode
+            string imageFileName,
+            IEnumerable<string>? imageTags = null,
+            IReadOnlyDictionary<string, string>? arguments = null,
+            ReplayMode? replayMode = null
         ) {
-            Dockerfile = dockerfile;
-            Platform = platform;
-            Arguments = arguments;
-            ReplayMode = replayMode;
+            Dockerfile = dockerfile ?? throw new ArgumentNullException(nameof(dockerfile));
+            Platform = platform ?? throw new ArgumentNullException(nameof(platform));
+            ImageFileName = imageFileName ?? throw new ArgumentNullException(nameof(imageFileName));
+            ImageTags = new ReadOnlyCollection<string>((imageTags ?? Enumerable.Empty<string>()).ToList());
+            Arguments = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>(arguments ?? new Dictionary<string, string>()));
+            ReplayMode = replayMode ?? ReplayMode.RecordCache;
         }
+        
+        public ContainerBuildTask(IDictionary<string, object> obj)
+            : this(
+                dockerfile: (string)obj["dockerfile"],
+                platform: (PlatformInfo)obj["platform"],
+                imageFileName: (string)obj["imageFileName"],
+                imageTags: obj.TryGetValue("imageTags", out var imageTags)
+                    ? ((IEnumerable)imageTags).Cast<string>()
+                    : null,
+                arguments: obj.TryGetValue("arguments", out var arguments)
+                    ? ((IDictionary<string, object>)arguments).ToDictionary(kvp => kvp.Key, kvp => (string)kvp.Value)
+                    : null,
+                replayMode: obj.TryGetValue("replayMode", out var replayMode)
+                    ? Enum.Parse<ReplayMode>((string)replayMode)
+                    : default(ReplayMode?)
+            ) {}
+        
 
         public string Dockerfile { get; }
         
         public override PlatformInfo Platform { get; }
+        
+        public string ImageFileName { get; }
+        
+        public IReadOnlyList<string> ImageTags { get; }
         
         public IReadOnlyDictionary<string, string> Arguments { get; }
         
