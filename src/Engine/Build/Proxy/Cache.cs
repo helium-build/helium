@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Helium.Util;
 
-namespace Helium.Engine.Proxy
+namespace Helium.Engine.Build.Proxy
 {
     public static class Cache
     {

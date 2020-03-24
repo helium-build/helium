@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Newtonsoft.Json;
 
-namespace Helium.Engine.Proxy
+namespace Helium.Engine.Build.Proxy
 {
     public static class ASPExtensions
     {

@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using Helium.Engine.Cache;
+using Helium.Engine.Build.Cache;
 using Helium.Sdks;
 using Helium.Util;
 using ICSharpCode.SharpZipLib.Tar;
@@ -11,7 +11,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
 
-namespace Helium.Engine.Record
+namespace Helium.Engine.Build.Record
 {
     internal class ArchiveRecorder : LiveRecorder
     {

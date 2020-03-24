@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DotLiquid.Util;
 using Helium.Engine.Conf;
-using Helium.Engine.Record;
+using Helium.Engine.Build.Record;
 using Helium.Util;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.Routing;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Helium.Engine.Proxy
+namespace Helium.Engine.Build.Proxy
 {
     internal class NpmRoutes
     {

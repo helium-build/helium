@@ -14,7 +14,7 @@ using ICSharpCode.SharpZipLib.Tar;
 using Microsoft.AspNetCore.Routing;
 using Nito.AsyncEx;
 
-namespace Helium.Engine.Cache
+namespace Helium.Engine.Build.Cache
 {
     public class SdkInstallManager : ISdkInstallManager
     {

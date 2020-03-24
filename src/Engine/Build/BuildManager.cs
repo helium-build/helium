@@ -7,14 +7,14 @@ using System.Text;
 using DotLiquid;
 using Helium.Engine.Docker;
 using Helium.Engine.Build;
-using Helium.Engine.Cache;
+using Helium.Engine.Build.Cache;
 using Helium.Engine.Conf;
-using Helium.Engine.Proxy;
-using Helium.Engine.Record;
+using Helium.Engine.Build.Proxy;
+using Helium.Engine.Build.Record;
 using Helium.Sdks;
 using Helium.Util;
 
-namespace Helium.Engine
+namespace Helium.Engine.Build
 {
     internal static class BuildManager
     {

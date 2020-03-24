@@ -3,13 +3,13 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Helium.Engine.Build;
-using Helium.Engine.Cache;
+using Helium.Engine.Build.Cache;
 using Helium.Engine.Conf;
 using Helium.Sdks;
 using Newtonsoft.Json.Linq;
 using Nito.AsyncEx;
 
-namespace Helium.Engine.Record
+namespace Helium.Engine.Build.Record
 {
     internal class NullRecorder : LiveRecorder
     {

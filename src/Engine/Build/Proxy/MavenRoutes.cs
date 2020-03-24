@@ -4,12 +4,12 @@ using System.Net;
 using System.Text.RegularExpressions;
 using DotLiquid.Util;
 using Helium.Engine.Conf;
-using Helium.Engine.Record;
+using Helium.Engine.Build.Record;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
-namespace Helium.Engine.Proxy
+namespace Helium.Engine.Build.Proxy
 {
     internal class MavenRoutes
     {

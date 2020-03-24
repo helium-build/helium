@@ -4,12 +4,12 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Helium.Engine.Record;
+using Helium.Engine.Build.Record;
 using Helium.Util;
 using Microsoft.AspNetCore.Routing;
 using Newtonsoft.Json.Linq;
 
-namespace Helium.Engine.Proxy
+namespace Helium.Engine.Build.Proxy
 {
     internal sealed class NuGetProxy
     {

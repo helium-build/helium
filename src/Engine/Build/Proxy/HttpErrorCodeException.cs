@@ -1,7 +1,7 @@
 using System;
 using System.Net;
 
-namespace Helium.Engine.Proxy
+namespace Helium.Engine.Build.Proxy
 {
     public class HttpErrorCodeException : Exception
     {

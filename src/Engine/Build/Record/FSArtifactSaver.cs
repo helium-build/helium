@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Helium.Util;
 
-namespace Helium.Engine.Record
+namespace Helium.Engine.Build.Record
 {
     internal class FSArtifactSaver : IArtifactSaver
     {

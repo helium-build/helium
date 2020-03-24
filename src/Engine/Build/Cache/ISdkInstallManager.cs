@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Helium.Sdks;
 
-namespace Helium.Engine.Cache
+namespace Helium.Engine.Build.Cache
 {
     public interface ISdkInstallManager
     {

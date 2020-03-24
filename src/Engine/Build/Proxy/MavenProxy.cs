@@ -2,11 +2,11 @@ using System;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
-using Helium.Engine.Record;
+using Helium.Engine.Build.Record;
 using Helium.Util;
 using Microsoft.AspNetCore.Routing;
 
-namespace Helium.Engine.Proxy
+namespace Helium.Engine.Build.Proxy
 {
     internal sealed class MavenProxy
     {

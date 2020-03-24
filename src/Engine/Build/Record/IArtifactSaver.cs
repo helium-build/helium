@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Helium.Engine.Record
+namespace Helium.Engine.Build.Record
 {
     public interface IArtifactSaver
     {

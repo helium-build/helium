@@ -4,13 +4,13 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Helium.Engine.Build;
-using Helium.Engine.Cache;
+using Helium.Engine.Build.Cache;
 using Helium.Engine.Conf;
 using Helium.Sdks;
 using Helium.Util;
 using Newtonsoft.Json.Linq;
 
-namespace Helium.Engine.Record
+namespace Helium.Engine.Build.Record
 {
     public abstract class LiveRecorder : IRecorder
     {
