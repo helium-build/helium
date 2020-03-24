@@ -10,7 +10,7 @@ namespace Helium.CI.Server
 {
     internal class CompletedJobStatus : IJobStatus
     {
-        public CompletedJobStatus(string dir, string id, BuildTask task, BuildState state) {
+        public CompletedJobStatus(string dir, string id, BuildTaskBase task, BuildState state) {
             this.dir = dir;
             Id = id;
             BuildTask = task;
@@ -21,7 +21,7 @@ namespace Helium.CI.Server
 
 
         public string Id { get; }
-        public BuildTask BuildTask { get; }
+        public BuildTaskBase BuildTask { get; }
         public BuildState State { get; }
         
         public event EventHandler<JobStartedEventArgs> JobStarted {
@@ -53,7 +53,7 @@ namespace Helium.CI.Server
         public Task WaitForComplete(CancellationToken cancellationToken) => Task.CompletedTask;
 
         public static async Task<IJobStatus> Load(string dir, string id) {
-            var task = JsonConvert.DeserializeObject<BuildTask>(
+            var task = JsonConvert.DeserializeObject<BuildTaskBase>(
                 await File.ReadAllTextAsync(Path.Combine(dir, "task.json"))
             );
             

@@ -102,7 +102,7 @@ namespace Helium.CI.Server
             private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
 
-            public BuildTask BuildTask { get; }
+            public BuildTaskBase BuildTask { get; }
             public JobStatus Status { get; }
 
             public async Task Run(BuildAgent.IAsync agent, AgentConfig agentConfig, CancellationToken cancellationToken) {
@@ -121,7 +121,7 @@ namespace Helium.CI.Server
                         return;
                     }
 
-                    if(BuildTask.SaveReplay) {
+                    if(BuildTask.ReplayMode != ReplayMode.Discard) {
                         await ReadReplay(agent, combinedToken);
                     }
 
@@ -219,7 +219,7 @@ namespace Helium.CI.Server
             }
         }
 
-        public async Task<IRunnableJob> AcceptJob(Func<BuildTask, Task<bool>> jobFilter, CancellationToken cancellationToken) {
+        public async Task<IRunnableJob> AcceptJob(Func<BuildTaskBase, Task<bool>> jobFilter, CancellationToken cancellationToken) {
             using(await monitor.EnterAsync(cancellationToken)) {
                 while(true) {
                     cancellationToken.ThrowIfCancellationRequested();

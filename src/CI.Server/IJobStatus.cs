@@ -11,7 +11,7 @@ namespace Helium.CI.Server
     {
         string Id { get; }
         
-        BuildTask BuildTask { get; }
+        BuildTaskBase BuildTask { get; }
         
         BuildState State { get; }
 

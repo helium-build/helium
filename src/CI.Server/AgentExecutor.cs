@@ -135,7 +135,7 @@ namespace Helium.CI.Server
             }, cancellationToken);
         }
 
-        private async Task<bool> JobFilter(BuildAgent.Client agent, BuildTask arg, CancellationToken cancellationToken) =>
+        private async Task<bool> JobFilter(BuildAgent.Client agent, BuildTaskBase arg, CancellationToken cancellationToken) =>
             await agent.supportsPlatformAsync(JsonConvert.SerializeObject(arg.Platform), cancellationToken);
         
         private sealed class RunningJobToken

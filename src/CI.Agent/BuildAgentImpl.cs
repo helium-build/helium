@@ -59,7 +59,7 @@ namespace Helium.CI.Agent
                 await buildDir.WorkspacePipe.CompleteAsync();
                 
                 try {
-                    var buildTask = JsonConvert.DeserializeObject<BuildTask>(task);
+                    var buildTask = JsonConvert.DeserializeObject<BuildTaskBase>(task);
                     buildDir.BuildTaskTCS.SetResult(buildTask);
                 }
                 catch(Exception ex) {

@@ -31,7 +31,7 @@ namespace Helium.CI.Server
 
 
         public string Id => job.Id;
-        public BuildTask BuildTask => job.Task;
+        public BuildTaskBase BuildTask => job.Task;
 
         public BuildState State => state;
 

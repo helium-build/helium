@@ -9,7 +9,7 @@ namespace Helium.Pipeline
 {
     public sealed class BuildJob
     {
-        public BuildJob(string id, BuildTask task, IEnumerable<BuildInput>? input = null) {
+        public BuildJob(string id, BuildTaskBase task, IEnumerable<BuildInput>? input = null) {
             if(!Regex.IsMatch(id, @"[a-z0-9\-_]+")) {
                 throw new Exception("Invalid id.");
             }
@@ -23,12 +23,12 @@ namespace Helium.Pipeline
         public BuildJob(IDictionary<string, object> obj)
             : this(
                 id: (string)obj["id"],
-                task: (BuildTask)obj["task"],
+                task: (BuildTaskBase)obj["task"],
                 input: obj.TryGetValue("input", out var inputObj) ? ((IEnumerable)inputObj).Cast<BuildInput>() : null
             ) {}
 
         public string Id { get; }
-        public BuildTask Task { get; }
+        public BuildTaskBase Task { get; }
         public IReadOnlyList<BuildInput> Input { get; }
     }
 }

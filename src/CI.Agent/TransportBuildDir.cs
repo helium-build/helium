@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
+using Helium.CI.Common.Protocol;
 using Helium.Env;
 using Helium.Pipeline;
 using Helium.Util;
@@ -30,7 +31,7 @@ namespace Helium.CI.Agent
         private readonly TTransport transport;
         
         private readonly Pipe workspacePipe = new Pipe();
-        private readonly TaskCompletionSource<BuildTask> buildStartTask = new TaskCompletionSource<BuildTask>();
+        private readonly TaskCompletionSource<BuildTaskBase> buildStartTask = new TaskCompletionSource<BuildTaskBase>();
         private readonly Pipe buildOutputPipe = new Pipe();
         private readonly Stream buildOutputStream;
         private readonly Task<int> buildRunTask;
@@ -38,7 +39,7 @@ namespace Helium.CI.Agent
         
 
         public PipeWriter WorkspacePipe => workspacePipe.Writer;
-        public TaskCompletionSource<BuildTask> BuildTaskTCS => buildStartTask;
+        public TaskCompletionSource<BuildTaskBase> BuildTaskTCS => buildStartTask;
         public Stream BuildOutputStream => buildOutputStream;
         public Task<int> BuildResult => buildRunTask;
         public string ArtifactDir => Path.Combine(buildDir.Value, "artifacts");
@@ -57,8 +58,15 @@ namespace Helium.CI.Agent
             try {
                 using(await workspaceLock.LockAsync(cancellationToken)) {
                     await ExtractWorkspace(WorkspaceDir, workspacePipe.Reader.AsStream());
-                    var buildTask = await buildStartTask.Task.WaitAsync(cancellationToken);
-                    return await ExecBuild(buildOutputPipe.Writer, buildTask, cancellationToken);
+                    var buildTaskBase = await buildStartTask.Task.WaitAsync(cancellationToken);
+                    return buildTaskBase switch {
+                        BuildTask buildTask => await ExecBuild(buildTask, cancellationToken),
+                        
+                        ContainerBuildTask containerBuildTask =>
+                            await ExecContainerBuild(containerBuildTask, cancellationToken),
+                        
+                        _ => throw new InvalidBuildTask()
+                    };
                 }
             }
             catch(Exception ex) {
@@ -73,7 +81,7 @@ namespace Helium.CI.Agent
             await ArchiveUtil.ExtractTar(tarStream, workspaceDir);
         }
 
-        private async Task<int> ExecBuild(PipeWriter writer, BuildTask buildTask, CancellationToken cancellationToken) {
+        private async Task<int> ExecBuild(BuildTask buildTask, CancellationToken cancellationToken) {
             if(!PathUtil.IsValidSubPath(buildTask.BuildFile)) {
                 throw new Exception("Invalid build file path.");
             }
@@ -100,9 +108,17 @@ namespace Helium.CI.Agent
                 },
             };
 
-            if(buildTask.SaveReplay) {
-                psi.ArgumentList.Add("--archive");
-                psi.ArgumentList.Add(ReplayFile);
+            switch(buildTask.ReplayMode) {
+                case ReplayMode.Discard:
+                    break;
+                    
+                case ReplayMode.RecordCache:
+                    psi.ArgumentList.Add("--archive");
+                    psi.ArgumentList.Add(ReplayFile);
+                    break;
+                
+                default:
+                    throw new InvalidBuildTask();
             }
             
             psi.ArgumentList.Add(buildDir.Value);
@@ -139,6 +155,10 @@ namespace Helium.CI.Agent
                 process.Kill();
                 throw;
             }
+        }
+
+        private async Task<int> ExecContainerBuild(ContainerBuildTask containerBuildTask, CancellationToken cancellationToken) {
+            throw new NotImplementedException();
         }
         
         public override Task OpenAsync(CancellationToken cancellationToken) =>

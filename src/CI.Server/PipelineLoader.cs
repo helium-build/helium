@@ -55,6 +55,7 @@ namespace Helium.CI.Server
             
             engine.SetValue(nameof(BuildJob), TypeReference.CreateTypeReference(engine, typeof(BuildJob)));
             engine.SetValue(nameof(BuildTask), TypeReference.CreateTypeReference(engine, typeof(BuildTask)));
+            engine.SetValue(nameof(ContainerBuildTask), TypeReference.CreateTypeReference(engine, typeof(ContainerBuildTask)));
             engine.SetValue(nameof(GitBuildInput), TypeReference.CreateTypeReference(engine, typeof(GitBuildInput)));
             engine.SetValue(nameof(HttpRequestBuildInput), TypeReference.CreateTypeReference(engine, typeof(HttpRequestBuildInput)));
             engine.SetValue(nameof(ArtifactBuildInput), TypeReference.CreateTypeReference(engine, typeof(ArtifactBuildInput)));

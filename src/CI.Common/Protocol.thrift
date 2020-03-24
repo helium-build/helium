@@ -2,6 +2,7 @@ namespace netstd Helium.CI.Common.Protocol
 
 exception InvalidState {}
 exception UnknownOutput {}
+exception InvalidBuildTask {}
 
 struct Version {
     1: i32 protocolVersion,
