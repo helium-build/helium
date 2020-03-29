@@ -58,7 +58,7 @@ namespace Helium.Engine.Docker
 
         protected RunDockerBuild BuildContainerBuildCommand(PlatformInfo platform, ContainerBuildProperties props) =>
             new RunDockerBuild(
-                proxyImage: "helium/container-build-proxy",
+                proxyImage: "helium-build/container-build-proxy:debian-buster-20190708",
                 cacheDirectory: props.CacheDir,
                 enableProxyNetwork: props.EnableProxyNetwork,
                 buildContextArchive: props.BuildContextArchive,

@@ -48,7 +48,7 @@ namespace Helium.Engine.BuildExecutor
                         new NetworkConnectParameters {
                             Container = proxyContainer.ID,
                             EndpointConfig = new EndpointSettings {
-                                Aliases = {
+                                Aliases = new List<string> {
                                     buildProxyHostname,
                                 },
                             }
@@ -62,15 +62,12 @@ namespace Helium.Engine.BuildExecutor
                         NoCache = true,
                         ForceRemove = true,
                         NetworkMode = network.ID,
-                        Tags = {
+                        Tags = new List<string> {
                             imageTag,
                         },
+                        BuildArgs = new Dictionary<string, string>(build.BuildArgs),
                     };
-
-                    foreach(var (arg, value) in build.BuildArgs) {
-                        buildParams.BuildArgs[arg] = value;
-                    }
-
+                    
                     buildParams.BuildArgs["HTTP_PROXY"] = proxySpec;
                     buildParams.BuildArgs["http_proxy"] = proxySpec;
                     buildParams.BuildArgs["HTTPS_PROXY"] = proxySpec;
@@ -90,6 +87,7 @@ namespace Helium.Engine.BuildExecutor
                             while((bytesRead = await buildStream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0) {
                                 await outputObserver.StandardOutput(buffer, bytesRead);
                             }
+                            
                         }
 
                         await using(var image = await client.Images.SaveImageAsync(imageTag, cancellationToken)) {
@@ -98,6 +96,8 @@ namespace Helium.Engine.BuildExecutor
                         }
 
                         FileUtil.SetUnixMode(build.OutputFile, (6 << 6) | (4 << 3) | 4);
+
+                        return 0;
                     }
                     finally {
                         await client.Images.DeleteImageAsync(imageTag, new ImageDeleteParameters(), cancellationToken);
@@ -119,10 +119,6 @@ namespace Helium.Engine.BuildExecutor
                         cancellationToken);
                 }
             }
-            
-            
-
-            return 0;
         }
 
         private static string OutputImageTag(string proxyContainerId) => "helium-build/output-image-for-" + proxyContainerId;

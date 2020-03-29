@@ -71,12 +71,7 @@ namespace Helium.Engine.ContainerBuild
 
                 var digest = await LookupDigest(domain, image, tag, platform);
 
-                const string sha256Prefix = "sha256:";
-                if(!digest.StartsWith(sha256Prefix)) {
-                    throw new Exception("Unexpected digest type.");
-                }
-
-                return (domain, image, digest.Substring(sha256Prefix.Length));
+                return (domain, image, digest);
             }
             
             
