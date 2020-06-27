@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 using Docker.Registry.DotNet;
 using Docker.Registry.DotNet.Authentication;
 using Docker.Registry.DotNet.Models;
-using dockerfile;
+using Helium.DockerfileHandler;
+using Helium.DockerfileHandler.Commands;
+using Helium.DockerfileHandler.Parser;
 using Helium.Sdks;
 
 namespace Helium.Engine.ContainerBuild
@@ -15,30 +17,35 @@ namespace Helium.Engine.ContainerBuild
     public static class DockerfileResolver
     {
 
-        public static async Task<(string resolvedDockerfile, Dictionary<string, string> imageMapping)> ProcessDockerfile(TextReader reader, PlatformInfo platform) {
-            var dockerfile = await Dockerfile.ParseAsync(reader);
+        public static async Task<DockerfileInfo> ProcessDockerfile(TextReader reader, PlatformInfo platform, IReadOnlyDictionary<string, string> buildArgs) {
+            var dockerfile = await DockerfileParser.Parse(reader, buildArgs);
             var imageMapping = new Dictionary<string, string>();
-            
-            foreach(var inst in dockerfile.Instructions) {
-                if(!inst.InstructionName.Equals("FROM", StringComparison.InvariantCultureIgnoreCase)) {
-                    continue;
-                }
 
-                var requestedImage = inst.Arguments;
-                if(requestedImage == null) {
-                    throw new Exception("Invalid FROM statement.");
-                }
-
+            async Task<string> GetMappedImage(string requestedImage) {
                 if(!imageMapping.TryGetValue(requestedImage, out var resolvedImage)) {
                     var (domain, image, digest) = await ResolveImageName(requestedImage, platform);
                     resolvedImage = $"{domain}/{image}@{digest}";
                     imageMapping.Add(requestedImage, resolvedImage);
                 }
-                    
-                inst.Arguments = resolvedImage;
-            }
 
-            return (dockerfile.Contents(), imageMapping);
+                return resolvedImage;
+            }
+            
+            return new DockerfileInfo(
+                dockerfile.UnconsumedBuildArgs,
+                await dockerfile.Builds
+                    .ToAsyncEnumerable()
+                    .SelectAwait(async build => 
+                        new DockerfileBuild(
+                            new FromCommand(
+                                await GetMappedImage(build.FromCommand.Image),
+                                build.FromCommand.AsName
+                            ), 
+                            build.Commands
+                        )
+                    )
+                    .ToListAsync()
+            );
         }
 
         private const string defaultTag = "latest";

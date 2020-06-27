@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Helium.DockerfileHandler;
 using Helium.Sdks;
 
 namespace Helium.Engine.ContainerBuild
@@ -7,14 +9,19 @@ namespace Helium.Engine.ContainerBuild
     {
         PlatformInfo Platform { get; }
         
-        string WorkspaceDir { get; }
+        IReadOnlyDictionary<string, string> BuildArgs { get; }
         
+        string WorkspaceDir { get; }
+
         Task<string> GetCacheDir();
         bool EnableNetwork { get; }
-
-        Task<string> GetBuildContext();
         
         string ImageFile { get; }
+        
+        Task<DockerfileInfo> LoadDockerfile();
+
+
+        string BuildContext { get; }
 
         Task CompleteBuild();
     }

@@ -1,5 +1,8 @@
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading.Tasks;
+using Helium.DockerfileHandler;
 using Helium.Engine.Docker;
 using Helium.Sdks;
 using Helium.Util;
@@ -8,18 +11,20 @@ namespace Helium.Engine.ContainerBuild
 {
     public abstract class LiveRecorder : IRecorder
     {
-        public LiveRecorder(PlatformInfo platform, string workspace, string buildContext, string dockerfilePath, string imageFile) {
+        public LiveRecorder(PlatformInfo platform, string workspace, string buildContext, string dockerfilePath, string imageFile, IReadOnlyDictionary<string, string> buildArgs) {
             Platform = platform;
             WorkspaceDir = workspace;
-            this.buildContext = buildContext;
+            BuildContext = buildContext;
             this.dockerfilePath = dockerfilePath;
             ImageFile = imageFile;
+            BuildArgs = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>(buildArgs));
         }
 
-        private readonly string buildContext;
         private readonly string dockerfilePath;
         
         public PlatformInfo Platform { get; }
+        
+        public IReadOnlyDictionary<string, string> BuildArgs { get; }
 
         public string WorkspaceDir { get; }
 
@@ -27,21 +32,15 @@ namespace Helium.Engine.ContainerBuild
             DirectoryUtil.CreateTempDirectory(WorkspaceDir);
 
         public bool EnableNetwork => true;
-        
-        public async Task<string> GetBuildContext() {
-            string newDockerfile;
-            using(var reader = File.OpenText(dockerfilePath)) {
-                (newDockerfile, _) = await DockerfileResolver.ProcessDockerfile(reader, Platform);
-            }
-
-            await using var buildContextStream = FileUtil.CreateTempFile(WorkspaceDir, out var buildContextFile);
-            await BuildContextHandler.WriteBuildContext(buildContext, newDockerfile, buildContextStream);
-            return buildContextFile;
-        }
 
         public string ImageFile { get; }
+        public string BuildContext { get; }
 
         public abstract Task CompleteBuild();
 
+        public async Task<DockerfileInfo> LoadDockerfile() {
+            using var reader = File.OpenText(dockerfilePath);
+            return await DockerfileResolver.ProcessDockerfile(reader, Platform, BuildArgs);
+        }
     }
 }

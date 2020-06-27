@@ -12,7 +12,7 @@ namespace Helium.Engine.Docker
     internal abstract class LauncherBase : ILauncher
     {
         public abstract Task<int> Run(PlatformInfo platform, LaunchProperties props);
-        public abstract Task<int> BuildContainer(PlatformInfo platform, ContainerBuildProperties props);
+        public abstract Task<int> BuildContainer(PlatformInfo platform, RunDockerBuild props);
 
 
         protected RunDockerCommand BuildRunCommand(PlatformInfo platform, LaunchProperties props) {
@@ -55,15 +55,5 @@ namespace Helium.Engine.Docker
             
             return run;
         }
-
-        protected RunDockerBuild BuildContainerBuildCommand(PlatformInfo platform, ContainerBuildProperties props) =>
-            new RunDockerBuild(
-                proxyImage: "helium-build/container-build-proxy:debian-buster-20190708",
-                cacheDirectory: props.CacheDir,
-                enableProxyNetwork: props.EnableProxyNetwork,
-                buildContextArchive: props.BuildContextArchive,
-                outputFile: props.OutputFile + ".tmp",
-                buildArgs: new Dictionary<string, string>(props.BuildArgs)
-            );
     }
 }

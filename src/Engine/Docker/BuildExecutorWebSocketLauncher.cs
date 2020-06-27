@@ -93,9 +93,8 @@ namespace Helium.Engine.Docker
             throw new OperationCanceledException();
         }
 
-        public override Task<int> BuildContainer(PlatformInfo platform, ContainerBuildProperties props) {
-            var containerBuildCommand = BuildContainerBuildCommand(platform, props);
-            return RunWebSocketExecutor(containerBuildCommand, CancellationToken.None);
+        public override Task<int> BuildContainer(PlatformInfo platform, RunDockerBuild props) {
+            return RunWebSocketExecutor(props, CancellationToken.None);
         }
     }
 }

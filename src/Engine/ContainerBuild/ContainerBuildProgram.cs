@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Helium.Engine.Docker;
@@ -31,7 +32,7 @@ namespace Helium.Engine.ContainerBuild
 
             IRecorder recorder;
             if(options.Archive == null) {
-                recorder = new NullRecorder(platform, options.Workspace, buildContext,dockerfilePath, options.OutputFile);
+                recorder = new NullRecorder(platform, options.Workspace, buildContext,dockerfilePath, options.OutputFile, new Dictionary<string, string>());
             }
             else {
                 throw new NotImplementedException();

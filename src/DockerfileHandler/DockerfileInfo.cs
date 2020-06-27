@@ -9,13 +9,13 @@ namespace Helium.DockerfileHandler
     public class DockerfileInfo
     {
 
-        public DockerfileInfo(IEnumerable<string> unconsumedBuildArgs, IEnumerable<DockerfileBuild> commands) {
+        public DockerfileInfo(IEnumerable<string> unconsumedBuildArgs, IEnumerable<DockerfileBuild> builds) {
             UnconsumedBuildArgs = new ReadOnlyCollectionNoList<string>(new HashSet<string>(unconsumedBuildArgs));
-            Commands = commands.ToList().AsReadOnly();
+            Builds = builds.ToList().AsReadOnly();
         }
 
         public IReadOnlyCollection<string> UnconsumedBuildArgs { get; }
         
-        public IReadOnlyList<DockerfileBuild> Commands { get; }
+        public IReadOnlyList<DockerfileBuild> Builds { get; }
     }
 }

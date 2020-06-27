@@ -48,12 +48,10 @@ namespace Helium.Engine.Docker
 
         protected abstract void AddRunArguments(ProcessStartInfo psi, RunDockerCommand run);
 
-        public sealed override async Task<int> BuildContainer(PlatformInfo platform, ContainerBuildProperties props) {
-            var runCommand = BuildContainerBuildCommand(platform, props);
-
+        public sealed override async Task<int> BuildContainer(PlatformInfo platform, RunDockerBuild props) {
             var psi = CreatePSI();
             
-            AddContainerBuildArguments(psi, runCommand);
+            AddContainerBuildArguments(psi, props);
 
             var process = Process.Start(psi) ?? throw new Exception("Could not start docker process.");
             await process.WaitForExitAsync();

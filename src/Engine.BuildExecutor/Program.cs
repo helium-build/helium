@@ -45,8 +45,10 @@ namespace Helium.Engine.BuildExecutor
                         Console.Error.WriteLine("Invalid arguments.");
                         return 1;
                     }
+                    
+                    var buildJob = new ContainerBuildJob(client);
 
-                    return await ContainerBuildJob.RunBuild(client, JsonConvert.DeserializeObject<RunDockerBuild>(args[1]), new ConsoleOutputObserver(), cancel.Token);
+                    return await buildJob.RunBuild( JsonConvert.DeserializeObject<RunDockerBuild>(args[1]), new ConsoleOutputObserver(), cancel.Token);
                 }
 
                 case "serve":
@@ -178,24 +180,7 @@ namespace Helium.Engine.BuildExecutor
                 cancellationToken
             );
 
-            byte[] buffer = new byte[1024];
-            while(!cancellationToken.IsCancellationRequested) {
-                var result = await stream.ReadOutputAsync(buffer, 0, buffer.Length, cancellationToken);
-                    
-                if(result.EOF) {
-                    break;
-                }
-
-                switch(result.Target) {
-                    case MultiplexedStream.TargetStream.StandardOut:
-                        await outputObserver.StandardOutput(buffer, result.Count);
-                        break;
-
-                    case MultiplexedStream.TargetStream.StandardError:
-                        await outputObserver.StandardError(buffer, result.Count);
-                        break;
-                }
-            }
+            await DockerHelpers.PipeContainerOutput(outputObserver, stream, cancellationToken);
 
             var waitResponse = await client.Containers.WaitContainerAsync(response.ID, cancellationToken);
             return (int)waitResponse.StatusCode;

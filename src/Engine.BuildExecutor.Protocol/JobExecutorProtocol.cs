@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using Helium.DockerfileHandler;
 using JsonSubTypes;
 using Newtonsoft.Json;
 
@@ -80,27 +81,34 @@ namespace Helium.Engine.BuildExecutor.Protocol
 
     public sealed class RunDockerBuild : CommandBase {
         public RunDockerBuild(
+            string buildContextDir,
+            string cacheDir,
+            bool enableNetwork,
+            DockerfileInfo dockerfile,
             string proxyImage,
-            string cacheDirectory,
-            bool enableProxyNetwork,
-            string buildContextArchive,
             string outputFile,
+            
             IReadOnlyDictionary<string, string>? buildArgs = null
         ) {
+            BuildContextDir = buildContextDir;
+            CacheDir = cacheDir;
+            EnableNetwork = enableNetwork;
+            Dockerfile = dockerfile;
             ProxyImage = proxyImage;
-            CacheDirectory = cacheDirectory;
-            EnableProxyNetwork = enableProxyNetwork;
-            BuildContextArchive = buildContextArchive;
             OutputFile = outputFile;
             BuildArgs = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>(buildArgs ?? new Dictionary<string, string>()));
         }
 
         public override string Action => "RunDockerBuild";
 
+        public string BuildContextDir { get; }
+        
+        public string CacheDir { get; }
+        public bool EnableNetwork { get; }
+        
         public string ProxyImage { get; }
-        public string CacheDirectory { get; }
-        public bool EnableProxyNetwork { get; }
-        public string BuildContextArchive { get; }
+        
+        public DockerfileInfo Dockerfile { get; }
         public IReadOnlyDictionary<string, string> BuildArgs { get; }
         public string OutputFile { get; }
     }

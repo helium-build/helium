@@ -22,10 +22,10 @@ namespace Helium.DockerfileHandler.Parser
 
             var parts = ParseStringsWhitespaceDelimited(args);
             if(parts.Length == 1) {
-                return new FromCommand(image: SubstitueArgs(parts[0], parseOptions.BuildArgs), asName: null);
+                return new FromCommand(image: SubstituteArgs(parts[0], parseOptions), asName: null);
             }
             else if(parts.Length == 3 && parts[1].Equals("AS", StringComparison.InvariantCultureIgnoreCase)) {
-                return new FromCommand(image: SubstitueArgs(parts[0], parseOptions.BuildArgs), asName: SubstitueArgs(parts[2], parseOptions.BuildArgs));
+                return new FromCommand(image: SubstituteArgs(parts[0], parseOptions), asName: SubstituteArgs(parts[2], parseOptions));
             }
             else {
                 throw new DockerfileSyntaxException("Invalid FROM command.");
@@ -122,9 +122,8 @@ namespace Helium.DockerfileHandler.Parser
             throw new NotImplementedException();
         }
 
-        private static string SubstitueArgs(string part, IReadOnlyDictionary<string,string> buildArgs) {
-            throw new NotImplementedException();
-        }
+        private static string SubstituteArgs(string part, ParseOptions parseOptions) =>
+            new ShellOps(parseOptions.BuildArgs, parseOptions.EscapeChar).Process(part);
 
         private static string[] ParseStringsWhitespaceDelimited(string args) =>
             args.Split(DockerfileParser.whitespaceChars, StringSplitOptions.RemoveEmptyEntries);

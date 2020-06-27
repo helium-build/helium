@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using FSharp.Control.Tasks;
+using Helium.Engine.BuildExecutor.Protocol;
 using Helium.Engine.Docker;
 using Helium.Sdks;
 using Helium.Util;
@@ -13,17 +14,20 @@ namespace Helium.Engine.ContainerBuild
         public static async Task<int> Run(ILauncher launcher, IRecorder recorder) {
 
             var cacheDir = await recorder.GetCacheDir();
-            var buildContextFile = await recorder.GetBuildContext();
+
+            var dockerfile = await recorder.LoadDockerfile();
 
             string tempImageFile;
             await using(FileUtil.CreateTempFile(recorder.WorkspaceDir, out tempImageFile)) {}
-            
-            var props = new ContainerBuildProperties(
-                buildArgs: new Dictionary<string, string>(),
-                outputFile: tempImageFile,
+
+            var props = new RunDockerBuild(
+                buildContextDir: recorder.BuildContext,
                 cacheDir: cacheDir,
-                buildContextArchive: buildContextFile,
-                enableProxyNetwork: recorder.EnableNetwork
+                enableNetwork: recorder.EnableNetwork,
+                dockerfile: dockerfile,
+                proxyImage: "helium-build/container-build-proxy:debian-buster-20190708",
+                outputFile: tempImageFile,
+                buildArgs: recorder.BuildArgs
             );
 
             return await launcher.BuildContainer(recorder.Platform, props);

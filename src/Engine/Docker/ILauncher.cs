@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Helium.Engine.BuildExecutor.Protocol;
 using Helium.Engine.Docker;
 using Helium.Sdks;
 
@@ -10,6 +11,6 @@ namespace Helium.Engine.Docker
     {
         Task<int> Run(PlatformInfo platform, LaunchProperties props);
 
-        Task<int> BuildContainer(PlatformInfo platform, ContainerBuildProperties props);
+        Task<int> BuildContainer(PlatformInfo platform, RunDockerBuild props);
     }
 }
