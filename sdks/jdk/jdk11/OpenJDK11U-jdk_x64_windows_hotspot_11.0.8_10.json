@@ -1,0 +1,52 @@
+{
+  "Implements": [
+    "jdk"
+  ],
+  "Version": "11.0.8+10",
+  "Platforms": [
+    {
+      "OS": "Windows",
+      "Arch": "Amd64"
+    }
+  ],
+  "SetupSteps": [
+    {
+      "Action": "Download",
+      "Url": "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.8%2B10/OpenJDK11U-jdk_x64_windows_hotspot_11.0.8_10.zip",
+      "FileName": "OpenJDK11U-jdk_x64_windows_hotspot_11.0.8_10.zip",
+      "Hash": {
+        "HashType": "Sha256",
+        "Hash": "473e552748b23bd95ad097249e97f5d923d8dde3b956a9487ab17c860a6baa48"
+      }
+    },
+    {
+      "Action": "Extract",
+      "FileName": "OpenJDK11U-jdk_x64_windows_hotspot_11.0.8_10.zip",
+      "Directory": "."
+    },
+    {
+      "Action": "Delete",
+      "FileName": "OpenJDK11U-jdk_x64_windows_hotspot_11.0.8_10.zip"
+    }
+  ],
+  "PathDirs": [
+    "jdk-11.0.8+10/bin"
+  ],
+  "Env": {
+    "JAVA_HOME": [
+      [
+        {
+          "Name": "SdkDirectory"
+        },
+        "/jdk-11.0.8+10"
+      ],
+      [
+        {
+          "Name": "SdkDirectory"
+        },
+        "/jdk-11.0.8+10"
+      ]
+    ]
+  },
+  "ConfigFileTemplates": {}
+}

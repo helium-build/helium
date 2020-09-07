@@ -1,0 +1,52 @@
+{
+  "Implements": [
+    "jdk"
+  ],
+  "Version": "8.0.265+1",
+  "Platforms": [
+    {
+      "OS": "Linux",
+      "Arch": "S390x"
+    }
+  ],
+  "SetupSteps": [
+    {
+      "Action": "Download",
+      "Url": "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u265-b01/OpenJDK8U-jdk_s390x_linux_hotspot_8u265b01.tar.gz",
+      "FileName": "OpenJDK8U-jdk_s390x_linux_hotspot_8u265b01.tar.gz",
+      "Hash": {
+        "HashType": "Sha256",
+        "Hash": "aca50f02d59169cb428d54501846b518edc9fff6a6f428459c72b4faa2b4abb0"
+      }
+    },
+    {
+      "Action": "Extract",
+      "FileName": "OpenJDK8U-jdk_s390x_linux_hotspot_8u265b01.tar.gz",
+      "Directory": "."
+    },
+    {
+      "Action": "Delete",
+      "FileName": "OpenJDK8U-jdk_s390x_linux_hotspot_8u265b01.tar.gz"
+    }
+  ],
+  "PathDirs": [
+    "jdk8u265-b01/bin"
+  ],
+  "Env": {
+    "JAVA_HOME": [
+      [
+        {
+          "Name": "SdkDirectory"
+        },
+        "/jdk8u265-b01"
+      ],
+      [
+        {
+          "Name": "SdkDirectory"
+        },
+        "/jdk8u265-b01"
+      ]
+    ]
+  },
+  "ConfigFileTemplates": {}
+}

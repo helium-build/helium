@@ -1,0 +1,43 @@
+{
+  "Implements": [
+    "dotnet"
+  ],
+  "Version": "2.1.21",
+  "Platforms": [
+    {
+      "OS": "Linux",
+      "Arch": "Arm"
+    }
+  ],
+  "SetupSteps": [
+    {
+      "Action": "Download",
+      "Url": "https://dotnetcli.azureedge.net/dotnet/Sdk/2.1.809/dotnet-sdk-2.1.809-linux-arm.tar.gz",
+      "FileName": "dotnet-sdk-2.1.809-linux-arm.tar.gz",
+      "Hash": {
+        "HashType": "Sha512",
+        "Hash": "7c3b7b049c1bc29f31d44e2406227b3766c745cb98cadd8da16d9df4d8c608d23ab5ff8888b9c43e02fd88989a8f03eb850f34a4b0fb78c5e8b0aedcb5a8d24c"
+      }
+    },
+    {
+      "Action": "Extract",
+      "FileName": "dotnet-sdk-2.1.809-linux-arm.tar.gz",
+      "Directory": "dotnet-2.1.21"
+    },
+    {
+      "Action": "Delete",
+      "FileName": "dotnet-sdk-2.1.809-linux-arm.tar.gz"
+    }
+  ],
+  "PathDirs": [
+    "dotnet-2.1.21"
+  ],
+  "Env": {
+    "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
+    "DOTNET_SKIP_FIRST_TIME_EXPERIENCE": "1"
+  },
+  "ConfigFileTemplates": {
+    "$CONFIG/NuGet/NuGet.Config": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<configuration>\n    <packageSources>\n        <clear/>\n        {% for repo in repos.nuget -%}\n        <add key=\"{{ repo.name | escape }}\" value=\"{{ repo.url | escape }}\" />\n        {% endfor -%}\n    </packageSources>\n    \n    <config>\n        <add key=\"defaultPushSource\" value=\"{{ repos.nuget_push_url | escape }}\" />\n    </config>\n</configuration>\n",
+    "~/.nuget/NuGet/NuGet.Config": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<configuration>\n    <packageSources>\n        <clear/>\n        {% for repo in repos.nuget -%}\n        <add key=\"{{ repo.name | escape }}\" value=\"{{ repo.url | escape }}\" />\n        {% endfor -%}\n    </packageSources>\n    \n    <config>\n        <add key=\"defaultPushSource\" value=\"{{ repos.nuget_push_url | escape }}\" />\n    </config>\n</configuration>\n"
+  }
+}

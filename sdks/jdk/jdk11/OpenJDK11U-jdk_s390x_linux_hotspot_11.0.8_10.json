@@ -1,0 +1,52 @@
+{
+  "Implements": [
+    "jdk"
+  ],
+  "Version": "11.0.8+10",
+  "Platforms": [
+    {
+      "OS": "Linux",
+      "Arch": "S390x"
+    }
+  ],
+  "SetupSteps": [
+    {
+      "Action": "Download",
+      "Url": "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.8%2B10/OpenJDK11U-jdk_s390x_linux_hotspot_11.0.8_10.tar.gz",
+      "FileName": "OpenJDK11U-jdk_s390x_linux_hotspot_11.0.8_10.tar.gz",
+      "Hash": {
+        "HashType": "Sha256",
+        "Hash": "5619e1437c7cd400169eb7f1c831c2635fdb2776a401147a2fc1841b01f83ed6"
+      }
+    },
+    {
+      "Action": "Extract",
+      "FileName": "OpenJDK11U-jdk_s390x_linux_hotspot_11.0.8_10.tar.gz",
+      "Directory": "."
+    },
+    {
+      "Action": "Delete",
+      "FileName": "OpenJDK11U-jdk_s390x_linux_hotspot_11.0.8_10.tar.gz"
+    }
+  ],
+  "PathDirs": [
+    "jdk-11.0.8+10/bin"
+  ],
+  "Env": {
+    "JAVA_HOME": [
+      [
+        {
+          "Name": "SdkDirectory"
+        },
+        "/jdk-11.0.8+10"
+      ],
+      [
+        {
+          "Name": "SdkDirectory"
+        },
+        "/jdk-11.0.8+10"
+      ]
+    ]
+  },
+  "ConfigFileTemplates": {}
+}

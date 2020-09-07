@@ -1,0 +1,52 @@
+{
+  "Implements": [
+    "jdk"
+  ],
+  "Version": "8.0.265+1",
+  "Platforms": [
+    {
+      "OS": "Windows",
+      "Arch": "X86"
+    }
+  ],
+  "SetupSteps": [
+    {
+      "Action": "Download",
+      "Url": "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u265-b01/OpenJDK8U-jdk_x86-32_windows_hotspot_8u265b01.zip",
+      "FileName": "OpenJDK8U-jdk_x86-32_windows_hotspot_8u265b01.zip",
+      "Hash": {
+        "HashType": "Sha256",
+        "Hash": "e4ae66bbaf046fa80eeabda1521b444366d88dad9c5da6d4846298511f17b43a"
+      }
+    },
+    {
+      "Action": "Extract",
+      "FileName": "OpenJDK8U-jdk_x86-32_windows_hotspot_8u265b01.zip",
+      "Directory": "."
+    },
+    {
+      "Action": "Delete",
+      "FileName": "OpenJDK8U-jdk_x86-32_windows_hotspot_8u265b01.zip"
+    }
+  ],
+  "PathDirs": [
+    "jdk8u265-b01/bin"
+  ],
+  "Env": {
+    "JAVA_HOME": [
+      [
+        {
+          "Name": "SdkDirectory"
+        },
+        "/jdk8u265-b01"
+      ],
+      [
+        {
+          "Name": "SdkDirectory"
+        },
+        "/jdk8u265-b01"
+      ]
+    ]
+  },
+  "ConfigFileTemplates": {}
+}

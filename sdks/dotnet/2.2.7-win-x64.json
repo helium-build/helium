@@ -1,60 +1,42 @@
 {
-  "implements": [
+  "Implements": [
     "dotnet"
   ],
-  "version": "2.2.7",
-  "platforms": [
+  "Version": "2.2.7",
+  "Platforms": [
     {
-      "os": "Windows",
-      "arch": "Amd64"
+      "OS": "Windows",
+      "Arch": "Amd64"
     }
   ],
-  "setupSteps": [
+  "SetupSteps": [
     {
-      "Case": "Download",
-      "Fields": [
-        "https://dotnetcli.azureedge.net/dotnet/Sdk/2.2.402/dotnet-sdk-2.2.402-win-x64.zip",
-        "dotnet-sdk-2.2.402-win-x64.zip",
-        {
-          "Case": "Sha512",
-          "Fields": [
-            "0FA3BF476B560C8FC70749DF37A41580F5B97334B7A1F19D66E32096D055043F4D7AD2828F994306E0A24C62A3030358BCC4579D2D8D439D90F36FECFB2666F6"
-          ]
-        }
-      ]
+      "Action": "Download",
+      "Url": "https://dotnetcli.azureedge.net/dotnet/Sdk/2.2.402/dotnet-sdk-2.2.402-win-x64.zip",
+      "FileName": "dotnet-sdk-2.2.402-win-x64.zip",
+      "Hash": {
+        "HashType": "Sha512",
+        "Hash": "0FA3BF476B560C8FC70749DF37A41580F5B97334B7A1F19D66E32096D055043F4D7AD2828F994306E0A24C62A3030358BCC4579D2D8D439D90F36FECFB2666F6"
+      }
     },
     {
-      "Case": "Extract",
-      "Fields": [
-        "dotnet-sdk-2.2.402-win-x64.zip",
-        "dotnet-2.2.7"
-      ]
+      "Action": "Extract",
+      "FileName": "dotnet-sdk-2.2.402-win-x64.zip",
+      "Directory": "dotnet-2.2.7"
     },
     {
-      "Case": "Delete",
-      "Fields": [
-        "dotnet-sdk-2.2.402-win-x64.zip"
-      ]
+      "Action": "Delete",
+      "FileName": "dotnet-sdk-2.2.402-win-x64.zip"
     }
   ],
-  "pathDirs": [
+  "PathDirs": [
     "dotnet-2.2.7"
   ],
-  "env": {
-    "DOTNET_CLI_TELEMETRY_OPTOUT": {
-      "Case": "OfString",
-      "Fields": [
-        "1"
-      ]
-    },
-    "DOTNET_SKIP_FIRST_TIME_EXPERIENCE": {
-      "Case": "OfString",
-      "Fields": [
-        "1"
-      ]
-    }
+  "Env": {
+    "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
+    "DOTNET_SKIP_FIRST_TIME_EXPERIENCE": "1"
   },
-  "configFileTemplates": {
+  "ConfigFileTemplates": {
     "$CONFIG/NuGet/NuGet.Config": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<configuration>\n    <packageSources>\n        <clear/>\n        {% for repo in repos.nuget -%}\n        <add key=\"{{ repo.name | escape }}\" value=\"{{ repo.url | escape }}\" />\n        {% endfor -%}\n    </packageSources>\n    \n    <config>\n        <add key=\"defaultPushSource\" value=\"{{ repos.nuget_push_url | escape }}\" />\n    </config>\n</configuration>\n",
     "~/.nuget/NuGet/NuGet.Config": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<configuration>\n    <packageSources>\n        <clear/>\n        {% for repo in repos.nuget -%}\n        <add key=\"{{ repo.name | escape }}\" value=\"{{ repo.url | escape }}\" />\n        {% endfor -%}\n    </packageSources>\n    \n    <config>\n        <add key=\"defaultPushSource\" value=\"{{ repos.nuget_push_url | escape }}\" />\n    </config>\n</configuration>\n"
   }

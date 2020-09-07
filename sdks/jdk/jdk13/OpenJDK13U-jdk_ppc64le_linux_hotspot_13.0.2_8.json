@@ -1,0 +1,52 @@
+{
+  "Implements": [
+    "jdk"
+  ],
+  "Version": "13.0.2+8",
+  "Platforms": [
+    {
+      "OS": "Linux",
+      "Arch": "Ppc64le"
+    }
+  ],
+  "SetupSteps": [
+    {
+      "Action": "Download",
+      "Url": "https://github.com/AdoptOpenJDK/openjdk13-binaries/releases/download/jdk-13.0.2%2B8/OpenJDK13U-jdk_ppc64le_linux_hotspot_13.0.2_8.tar.gz",
+      "FileName": "OpenJDK13U-jdk_ppc64le_linux_hotspot_13.0.2_8.tar.gz",
+      "Hash": {
+        "HashType": "Sha256",
+        "Hash": "fb3362e34aac091a4682394d20dcdc3daea51995d369d62c28424573e0fc04aa"
+      }
+    },
+    {
+      "Action": "Extract",
+      "FileName": "OpenJDK13U-jdk_ppc64le_linux_hotspot_13.0.2_8.tar.gz",
+      "Directory": "."
+    },
+    {
+      "Action": "Delete",
+      "FileName": "OpenJDK13U-jdk_ppc64le_linux_hotspot_13.0.2_8.tar.gz"
+    }
+  ],
+  "PathDirs": [
+    "jdk-13.0.2+8/bin"
+  ],
+  "Env": {
+    "JAVA_HOME": [
+      [
+        {
+          "Name": "SdkDirectory"
+        },
+        "/jdk-13.0.2+8"
+      ],
+      [
+        {
+          "Name": "SdkDirectory"
+        },
+        "/jdk-13.0.2+8"
+      ]
+    ]
+  },
+  "ConfigFileTemplates": {}
+}

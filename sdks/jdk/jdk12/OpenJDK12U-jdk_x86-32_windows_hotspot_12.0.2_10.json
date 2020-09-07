@@ -1,62 +1,52 @@
 {
-  "implements": [
+  "Implements": [
     "jdk"
   ],
-  "version": "12.0.2+10",
-  "platforms": [
+  "Version": "12.0.2+10",
+  "Platforms": [
     {
-      "os": "Windows",
-      "arch": "X86"
+      "OS": "Windows",
+      "Arch": "X86"
     }
   ],
-  "setupSteps": [
+  "SetupSteps": [
     {
-      "Case": "Download",
-      "Fields": [
-        "https://github.com/AdoptOpenJDK/openjdk12-binaries/releases/download/jdk-12.0.2%2B10/OpenJDK12U-jdk_x86-32_windows_hotspot_12.0.2_10.zip",
-        "OpenJDK12U-jdk_x86-32_windows_hotspot_12.0.2_10.zip",
-        {
-          "Case": "Sha256",
-          "Fields": [
-            "2b175ef177e2e6741517e85cabe346ffbd0e2b65608c0a2db4565068ae87aba5"
-          ]
-        }
-      ]
+      "Action": "Download",
+      "Url": "https://github.com/AdoptOpenJDK/openjdk12-binaries/releases/download/jdk-12.0.2%2B10/OpenJDK12U-jdk_x86-32_windows_hotspot_12.0.2_10.zip",
+      "FileName": "OpenJDK12U-jdk_x86-32_windows_hotspot_12.0.2_10.zip",
+      "Hash": {
+        "HashType": "Sha256",
+        "Hash": "2b175ef177e2e6741517e85cabe346ffbd0e2b65608c0a2db4565068ae87aba5"
+      }
     },
     {
-      "Case": "Extract",
-      "Fields": [
-        "OpenJDK12U-jdk_x86-32_windows_hotspot_12.0.2_10.zip",
-        "."
-      ]
+      "Action": "Extract",
+      "FileName": "OpenJDK12U-jdk_x86-32_windows_hotspot_12.0.2_10.zip",
+      "Directory": "."
     },
     {
-      "Case": "Delete",
-      "Fields": [
-        "OpenJDK12U-jdk_x86-32_windows_hotspot_12.0.2_10.zip"
-      ]
+      "Action": "Delete",
+      "FileName": "OpenJDK12U-jdk_x86-32_windows_hotspot_12.0.2_10.zip"
     }
   ],
-  "pathDirs": [
+  "PathDirs": [
     "jdk-12.0.2+10/bin"
   ],
-  "env": {
-    "JAVA_HOME": {
-      "Case": "Concat",
-      "Fields": [
-        [
-          {
-            "Case": "SdkDirectory"
-          },
-          {
-            "Case": "OfString",
-            "Fields": [
-              "/jdk-12.0.2+10"
-            ]
-          }
-        ]
+  "Env": {
+    "JAVA_HOME": [
+      [
+        {
+          "Name": "SdkDirectory"
+        },
+        "/jdk-12.0.2+10"
+      ],
+      [
+        {
+          "Name": "SdkDirectory"
+        },
+        "/jdk-12.0.2+10"
       ]
-    }
+    ]
   },
-  "configFileTemplates": {}
+  "ConfigFileTemplates": {}
 }

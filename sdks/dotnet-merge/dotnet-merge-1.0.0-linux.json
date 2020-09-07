@@ -1,33 +1,29 @@
 {
-  "implements": [
+  "Implements": [
     "dotnet-merge"
   ],
-  "version": "1.0.0",
-  "platforms": [
+  "Version": "1.0.0",
+  "Platforms": [
     {
-      "os": "Linux",
-      "arch": "None"
+      "OS": "Linux",
+      "Arch": "None"
     }
   ],
-  "setupSteps": [
+  "SetupSteps": [
     {
-      "Case": "CreateDirectory",
-      "Fields": [
-        "dotnet-merge/"
-      ]
+      "Action": "CreateDirectory",
+      "FileName": "dotnet-merge/"
     },
     {
-      "Case": "CreateFile",
-      "Fields": [
-        "dotnet-merge/dotnet",
-        true,
-        "#!/bin/bash\n\nif [ ! -d /sdk/dotnet-sdk ]; then\n  mkdir /sdk/dotnet-sdk\n  IFS=:\n  for dir in $PATH; do\n    if [ \"$dir\" != \"\" ] && [ \"$dir\" != \"$(dirname \"$0\")\" ] && [ -f \"$dir/dotnet\" ]; then\n      cp -n \"$dir/dotnet\" /sdk/dotnet-sdk/\n      cp -rnsT \"$dir/\" /sdk/dotnet-sdk\n    fi\n  done\nfi\n\nexec /sdk/dotnet-sdk/dotnet \"$@\"\n"
-      ]
+      "Action": "CreateFile",
+      "FileName": "dotnet-merge/dotnet",
+      "IsExecutable": true,
+      "Content": "#!/bin/bash\n\nif [ ! -d /sdk/dotnet-sdk ]; then\n  mkdir /sdk/dotnet-sdk\n  IFS=:\n  for dir in $PATH; do\n    if [ \"$dir\" != \"\" ] && [ \"$dir\" != \"$(dirname \"$0\")\" ] && [ -f \"$dir/dotnet\" ]; then\n      cp -n \"$dir/dotnet\" /sdk/dotnet-sdk/\n      cp -rnsT \"$dir/\" /sdk/dotnet-sdk\n    fi\n  done\nfi\n\nexec /sdk/dotnet-sdk/dotnet \"$@\"\n"
     }
   ],
-  "pathDirs": [
+  "PathDirs": [
     "dotnet-merge"
   ],
-  "env": {},
-  "configFileTemplates": {}
+  "Env": {},
+  "ConfigFileTemplates": {}
 }

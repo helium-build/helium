@@ -1,62 +1,52 @@
 {
-  "implements": [
+  "Implements": [
     "jdk"
   ],
-  "version": "10.0.2+13",
-  "platforms": [
+  "Version": "10.0.2+13",
+  "Platforms": [
     {
-      "os": "Windows",
-      "arch": "Amd64"
+      "OS": "Windows",
+      "Arch": "Amd64"
     }
   ],
-  "setupSteps": [
+  "SetupSteps": [
     {
-      "Case": "Download",
-      "Fields": [
-        "https://github.com/AdoptOpenJDK/openjdk10-binaries/releases/download/jdk-10.0.2%2B13.1/OpenJDK10U-jdk_x64_windows_hotspot_10.0.2_13.zip",
-        "OpenJDK10U-jdk_x64_windows_hotspot_10.0.2_13.zip",
-        {
-          "Case": "Sha256",
-          "Fields": [
-            "108733ecde8422d6ca2bdc1c9368268605ea9e2d75679ac181333fa25b74d3f7"
-          ]
-        }
-      ]
+      "Action": "Download",
+      "Url": "https://github.com/AdoptOpenJDK/openjdk10-binaries/releases/download/jdk-10.0.2%2B13.1/OpenJDK10U-jdk_x64_windows_hotspot_10.0.2_13.zip",
+      "FileName": "OpenJDK10U-jdk_x64_windows_hotspot_10.0.2_13.zip",
+      "Hash": {
+        "HashType": "Sha256",
+        "Hash": "108733ecde8422d6ca2bdc1c9368268605ea9e2d75679ac181333fa25b74d3f7"
+      }
     },
     {
-      "Case": "Extract",
-      "Fields": [
-        "OpenJDK10U-jdk_x64_windows_hotspot_10.0.2_13.zip",
-        "."
-      ]
+      "Action": "Extract",
+      "FileName": "OpenJDK10U-jdk_x64_windows_hotspot_10.0.2_13.zip",
+      "Directory": "."
     },
     {
-      "Case": "Delete",
-      "Fields": [
-        "OpenJDK10U-jdk_x64_windows_hotspot_10.0.2_13.zip"
-      ]
+      "Action": "Delete",
+      "FileName": "OpenJDK10U-jdk_x64_windows_hotspot_10.0.2_13.zip"
     }
   ],
-  "pathDirs": [
+  "PathDirs": [
     "jdk-10.0.2+13/bin"
   ],
-  "env": {
-    "JAVA_HOME": {
-      "Case": "Concat",
-      "Fields": [
-        [
-          {
-            "Case": "SdkDirectory"
-          },
-          {
-            "Case": "OfString",
-            "Fields": [
-              "/jdk-10.0.2+13"
-            ]
-          }
-        ]
+  "Env": {
+    "JAVA_HOME": [
+      [
+        {
+          "Name": "SdkDirectory"
+        },
+        "/jdk-10.0.2+13"
+      ],
+      [
+        {
+          "Name": "SdkDirectory"
+        },
+        "/jdk-10.0.2+13"
       ]
-    }
+    ]
   },
-  "configFileTemplates": {}
+  "ConfigFileTemplates": {}
 }

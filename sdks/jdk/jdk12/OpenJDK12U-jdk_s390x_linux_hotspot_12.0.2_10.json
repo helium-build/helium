@@ -1,62 +1,52 @@
 {
-  "implements": [
+  "Implements": [
     "jdk"
   ],
-  "version": "12.0.2+10",
-  "platforms": [
+  "Version": "12.0.2+10",
+  "Platforms": [
     {
-      "os": "Linux",
-      "arch": "S390x"
+      "OS": "Linux",
+      "Arch": "S390x"
     }
   ],
-  "setupSteps": [
+  "SetupSteps": [
     {
-      "Case": "Download",
-      "Fields": [
-        "https://github.com/AdoptOpenJDK/openjdk12-binaries/releases/download/jdk-12.0.2%2B10/OpenJDK12U-jdk_s390x_linux_hotspot_12.0.2_10.tar.gz",
-        "OpenJDK12U-jdk_s390x_linux_hotspot_12.0.2_10.tar.gz",
-        {
-          "Case": "Sha256",
-          "Fields": [
-            "9897deeaf7a2c90374fbaca8b3eb8e63267d8fc1863b43b21c0bfc86e4783470"
-          ]
-        }
-      ]
+      "Action": "Download",
+      "Url": "https://github.com/AdoptOpenJDK/openjdk12-binaries/releases/download/jdk-12.0.2%2B10/OpenJDK12U-jdk_s390x_linux_hotspot_12.0.2_10.tar.gz",
+      "FileName": "OpenJDK12U-jdk_s390x_linux_hotspot_12.0.2_10.tar.gz",
+      "Hash": {
+        "HashType": "Sha256",
+        "Hash": "9897deeaf7a2c90374fbaca8b3eb8e63267d8fc1863b43b21c0bfc86e4783470"
+      }
     },
     {
-      "Case": "Extract",
-      "Fields": [
-        "OpenJDK12U-jdk_s390x_linux_hotspot_12.0.2_10.tar.gz",
-        "."
-      ]
+      "Action": "Extract",
+      "FileName": "OpenJDK12U-jdk_s390x_linux_hotspot_12.0.2_10.tar.gz",
+      "Directory": "."
     },
     {
-      "Case": "Delete",
-      "Fields": [
-        "OpenJDK12U-jdk_s390x_linux_hotspot_12.0.2_10.tar.gz"
-      ]
+      "Action": "Delete",
+      "FileName": "OpenJDK12U-jdk_s390x_linux_hotspot_12.0.2_10.tar.gz"
     }
   ],
-  "pathDirs": [
+  "PathDirs": [
     "jdk-12.0.2+10/bin"
   ],
-  "env": {
-    "JAVA_HOME": {
-      "Case": "Concat",
-      "Fields": [
-        [
-          {
-            "Case": "SdkDirectory"
-          },
-          {
-            "Case": "OfString",
-            "Fields": [
-              "/jdk-12.0.2+10"
-            ]
-          }
-        ]
+  "Env": {
+    "JAVA_HOME": [
+      [
+        {
+          "Name": "SdkDirectory"
+        },
+        "/jdk-12.0.2+10"
+      ],
+      [
+        {
+          "Name": "SdkDirectory"
+        },
+        "/jdk-12.0.2+10"
       ]
-    }
+    ]
   },
-  "configFileTemplates": {}
+  "ConfigFileTemplates": {}
 }

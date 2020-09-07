@@ -1,62 +1,52 @@
 {
-  "implements": [
+  "Implements": [
     "jdk"
   ],
-  "version": "9.0.4+11",
-  "platforms": [
+  "Version": "9.0.4+11",
+  "Platforms": [
     {
-      "os": "Windows",
-      "arch": "Amd64"
+      "OS": "Windows",
+      "Arch": "Amd64"
     }
   ],
-  "setupSteps": [
+  "SetupSteps": [
     {
-      "Case": "Download",
-      "Fields": [
-        "https://github.com/AdoptOpenJDK/openjdk9-binaries/releases/download/jdk-9.0.4%2B11/OpenJDK9U-jdk_x64_windows_hotspot_9.0.4_11.zip",
-        "OpenJDK9U-jdk_x64_windows_hotspot_9.0.4_11.zip",
-        {
-          "Case": "Sha256",
-          "Fields": [
-            "b2de88155b2eaad123c2615f7eb3c0442d77545046bf85cfbcfe44fc97931dbd"
-          ]
-        }
-      ]
+      "Action": "Download",
+      "Url": "https://github.com/AdoptOpenJDK/openjdk9-binaries/releases/download/jdk-9.0.4%2B11/OpenJDK9U-jdk_x64_windows_hotspot_9.0.4_11.zip",
+      "FileName": "OpenJDK9U-jdk_x64_windows_hotspot_9.0.4_11.zip",
+      "Hash": {
+        "HashType": "Sha256",
+        "Hash": "b2de88155b2eaad123c2615f7eb3c0442d77545046bf85cfbcfe44fc97931dbd"
+      }
     },
     {
-      "Case": "Extract",
-      "Fields": [
-        "OpenJDK9U-jdk_x64_windows_hotspot_9.0.4_11.zip",
-        "."
-      ]
+      "Action": "Extract",
+      "FileName": "OpenJDK9U-jdk_x64_windows_hotspot_9.0.4_11.zip",
+      "Directory": "."
     },
     {
-      "Case": "Delete",
-      "Fields": [
-        "OpenJDK9U-jdk_x64_windows_hotspot_9.0.4_11.zip"
-      ]
+      "Action": "Delete",
+      "FileName": "OpenJDK9U-jdk_x64_windows_hotspot_9.0.4_11.zip"
     }
   ],
-  "pathDirs": [
+  "PathDirs": [
     "jdk-9.0.4+11/bin"
   ],
-  "env": {
-    "JAVA_HOME": {
-      "Case": "Concat",
-      "Fields": [
-        [
-          {
-            "Case": "SdkDirectory"
-          },
-          {
-            "Case": "OfString",
-            "Fields": [
-              "/jdk-9.0.4+11"
-            ]
-          }
-        ]
+  "Env": {
+    "JAVA_HOME": [
+      [
+        {
+          "Name": "SdkDirectory"
+        },
+        "/jdk-9.0.4+11"
+      ],
+      [
+        {
+          "Name": "SdkDirectory"
+        },
+        "/jdk-9.0.4+11"
       ]
-    }
+    ]
   },
-  "configFileTemplates": {}
+  "ConfigFileTemplates": {}
 }

@@ -1,62 +1,52 @@
 {
-  "implements": [
+  "Implements": [
     "jdk"
   ],
-  "version": "10.0.2+13",
-  "platforms": [
+  "Version": "10.0.2+13",
+  "Platforms": [
     {
-      "os": "Linux",
-      "arch": "Ppc64le"
+      "OS": "Linux",
+      "Arch": "Ppc64le"
     }
   ],
-  "setupSteps": [
+  "SetupSteps": [
     {
-      "Case": "Download",
-      "Fields": [
-        "https://github.com/AdoptOpenJDK/openjdk10-binaries/releases/download/jdk-10.0.2%2B13.1/OpenJDK10U-jdk_ppc64le_linux_hotspot_10.0.2_13.tar.gz",
-        "OpenJDK10U-jdk_ppc64le_linux_hotspot_10.0.2_13.tar.gz",
-        {
-          "Case": "Sha256",
-          "Fields": [
-            "f5c1b1476d588459d1edc03279025cce3aeaa464a4f28234cd18e8134e946954"
-          ]
-        }
-      ]
+      "Action": "Download",
+      "Url": "https://github.com/AdoptOpenJDK/openjdk10-binaries/releases/download/jdk-10.0.2%2B13.1/OpenJDK10U-jdk_ppc64le_linux_hotspot_10.0.2_13.tar.gz",
+      "FileName": "OpenJDK10U-jdk_ppc64le_linux_hotspot_10.0.2_13.tar.gz",
+      "Hash": {
+        "HashType": "Sha256",
+        "Hash": "f5c1b1476d588459d1edc03279025cce3aeaa464a4f28234cd18e8134e946954"
+      }
     },
     {
-      "Case": "Extract",
-      "Fields": [
-        "OpenJDK10U-jdk_ppc64le_linux_hotspot_10.0.2_13.tar.gz",
-        "."
-      ]
+      "Action": "Extract",
+      "FileName": "OpenJDK10U-jdk_ppc64le_linux_hotspot_10.0.2_13.tar.gz",
+      "Directory": "."
     },
     {
-      "Case": "Delete",
-      "Fields": [
-        "OpenJDK10U-jdk_ppc64le_linux_hotspot_10.0.2_13.tar.gz"
-      ]
+      "Action": "Delete",
+      "FileName": "OpenJDK10U-jdk_ppc64le_linux_hotspot_10.0.2_13.tar.gz"
     }
   ],
-  "pathDirs": [
+  "PathDirs": [
     "jdk-10.0.2+13/bin"
   ],
-  "env": {
-    "JAVA_HOME": {
-      "Case": "Concat",
-      "Fields": [
-        [
-          {
-            "Case": "SdkDirectory"
-          },
-          {
-            "Case": "OfString",
-            "Fields": [
-              "/jdk-10.0.2+13"
-            ]
-          }
-        ]
+  "Env": {
+    "JAVA_HOME": [
+      [
+        {
+          "Name": "SdkDirectory"
+        },
+        "/jdk-10.0.2+13"
+      ],
+      [
+        {
+          "Name": "SdkDirectory"
+        },
+        "/jdk-10.0.2+13"
       ]
-    }
+    ]
   },
-  "configFileTemplates": {}
+  "ConfigFileTemplates": {}
 }

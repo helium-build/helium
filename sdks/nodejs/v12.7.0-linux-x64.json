@@ -1,47 +1,39 @@
 {
-  "implements": [
+  "Implements": [
     "node"
   ],
-  "version": "12.7.0",
-  "platforms": [
+  "Version": "12.7.0",
+  "Platforms": [
     {
-      "os": "Linux",
-      "arch": "Amd64"
+      "OS": "Linux",
+      "Arch": "Amd64"
     }
   ],
-  "setupSteps": [
+  "SetupSteps": [
     {
-      "Case": "Download",
-      "Fields": [
-        "https://nodejs.org/dist/v12.7.0/node-v12.7.0-linux-x64.tar.gz",
-        "node-v12.7.0-linux-x64.tar.gz",
-        {
-          "Case": "Sha256",
-          "Fields": [
-            "bc232791d839dd2159173ebedfdc22376e582a5f51a546e0f01de7182720e174"
-          ]
-        }
-      ]
+      "Action": "Download",
+      "Url": "https://nodejs.org/dist/v12.7.0/node-v12.7.0-linux-x64.tar.gz",
+      "FileName": "node-v12.7.0-linux-x64.tar.gz",
+      "Hash": {
+        "HashType": "Sha256",
+        "Hash": "bc232791d839dd2159173ebedfdc22376e582a5f51a546e0f01de7182720e174"
+      }
     },
     {
-      "Case": "Extract",
-      "Fields": [
-        "node-v12.7.0-linux-x64.tar.gz",
-        "."
-      ]
+      "Action": "Extract",
+      "FileName": "node-v12.7.0-linux-x64.tar.gz",
+      "Directory": "."
     },
     {
-      "Case": "Delete",
-      "Fields": [
-        "node-v12.7.0-linux-x64.tar.gz"
-      ]
+      "Action": "Delete",
+      "FileName": "node-v12.7.0-linux-x64.tar.gz"
     }
   ],
-  "pathDirs": [
+  "PathDirs": [
     "node-v12.7.0-linux-x64/bin"
   ],
-  "env": {},
-  "configFileTemplates": {
+  "Env": {},
+  "ConfigFileTemplates": {
     "~/.npmrc": "\n{% if repos.npm != null -%}\nregistry={{repos.npm.registry}}\n{% endif -%}\n"
   }
 }

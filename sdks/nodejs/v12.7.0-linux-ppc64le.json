@@ -1,47 +1,39 @@
 {
-  "implements": [
+  "Implements": [
     "node"
   ],
-  "version": "12.7.0",
-  "platforms": [
+  "Version": "12.7.0",
+  "Platforms": [
     {
-      "os": "Linux",
-      "arch": "Ppc64le"
+      "OS": "Linux",
+      "Arch": "Ppc64le"
     }
   ],
-  "setupSteps": [
+  "SetupSteps": [
     {
-      "Case": "Download",
-      "Fields": [
-        "https://nodejs.org/dist/v12.7.0/node-v12.7.0-linux-ppc64le.tar.gz",
-        "node-v12.7.0-linux-ppc64le.tar.gz",
-        {
-          "Case": "Sha256",
-          "Fields": [
-            "314630c31f69ee95e41a9eeb5bbe12b4dc4dbcf603b809170dbd5230a2df210d"
-          ]
-        }
-      ]
+      "Action": "Download",
+      "Url": "https://nodejs.org/dist/v12.7.0/node-v12.7.0-linux-ppc64le.tar.gz",
+      "FileName": "node-v12.7.0-linux-ppc64le.tar.gz",
+      "Hash": {
+        "HashType": "Sha256",
+        "Hash": "314630c31f69ee95e41a9eeb5bbe12b4dc4dbcf603b809170dbd5230a2df210d"
+      }
     },
     {
-      "Case": "Extract",
-      "Fields": [
-        "node-v12.7.0-linux-ppc64le.tar.gz",
-        "."
-      ]
+      "Action": "Extract",
+      "FileName": "node-v12.7.0-linux-ppc64le.tar.gz",
+      "Directory": "."
     },
     {
-      "Case": "Delete",
-      "Fields": [
-        "node-v12.7.0-linux-ppc64le.tar.gz"
-      ]
+      "Action": "Delete",
+      "FileName": "node-v12.7.0-linux-ppc64le.tar.gz"
     }
   ],
-  "pathDirs": [
+  "PathDirs": [
     "node-v12.7.0-linux-ppc64le/bin"
   ],
-  "env": {},
-  "configFileTemplates": {
+  "Env": {},
+  "ConfigFileTemplates": {
     "~/.npmrc": "\n{% if repos.npm != null -%}\nregistry={{repos.npm.registry}}\n{% endif -%}\n"
   }
 }

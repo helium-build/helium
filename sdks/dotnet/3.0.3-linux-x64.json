@@ -1,0 +1,43 @@
+{
+  "Implements": [
+    "dotnet"
+  ],
+  "Version": "3.0.3",
+  "Platforms": [
+    {
+      "OS": "Linux",
+      "Arch": "Amd64"
+    }
+  ],
+  "SetupSteps": [
+    {
+      "Action": "Download",
+      "Url": "https://dotnetcli.azureedge.net/dotnet/Sdk/3.0.103/dotnet-sdk-3.0.103-linux-x64.tar.gz",
+      "FileName": "dotnet-sdk-3.0.103-linux-x64.tar.gz",
+      "Hash": {
+        "HashType": "Sha512",
+        "Hash": "22acd337c1f837c586b9d0e3581feeba828c7d6dc64e4c6c9b24bdc6159c635eb7019c3fb0534edeb4f84971e9c3584c7e3a4d80854cf5664d2792ee8fde189b"
+      }
+    },
+    {
+      "Action": "Extract",
+      "FileName": "dotnet-sdk-3.0.103-linux-x64.tar.gz",
+      "Directory": "dotnet-3.0.3"
+    },
+    {
+      "Action": "Delete",
+      "FileName": "dotnet-sdk-3.0.103-linux-x64.tar.gz"
+    }
+  ],
+  "PathDirs": [
+    "dotnet-3.0.3"
+  ],
+  "Env": {
+    "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
+    "DOTNET_SKIP_FIRST_TIME_EXPERIENCE": "1"
+  },
+  "ConfigFileTemplates": {
+    "$CONFIG/NuGet/NuGet.Config": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<configuration>\n    <packageSources>\n        <clear/>\n        {% for repo in repos.nuget -%}\n        <add key=\"{{ repo.name | escape }}\" value=\"{{ repo.url | escape }}\" />\n        {% endfor -%}\n    </packageSources>\n    \n    <config>\n        <add key=\"defaultPushSource\" value=\"{{ repos.nuget_push_url | escape }}\" />\n    </config>\n</configuration>\n",
+    "~/.nuget/NuGet/NuGet.Config": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<configuration>\n    <packageSources>\n        <clear/>\n        {% for repo in repos.nuget -%}\n        <add key=\"{{ repo.name | escape }}\" value=\"{{ repo.url | escape }}\" />\n        {% endfor -%}\n    </packageSources>\n    \n    <config>\n        <add key=\"defaultPushSource\" value=\"{{ repos.nuget_push_url | escape }}\" />\n    </config>\n</configuration>\n"
+  }
+}

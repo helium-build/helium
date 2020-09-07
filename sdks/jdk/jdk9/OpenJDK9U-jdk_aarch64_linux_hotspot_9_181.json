@@ -1,62 +1,52 @@
 {
-  "implements": [
+  "Implements": [
     "jdk"
   ],
-  "version": "9.0.0+181",
-  "platforms": [
+  "Version": "9.0.0+181",
+  "Platforms": [
     {
-      "os": "Linux",
-      "arch": "Aarch64"
+      "OS": "Linux",
+      "Arch": "Aarch64"
     }
   ],
-  "setupSteps": [
+  "SetupSteps": [
     {
-      "Case": "Download",
-      "Fields": [
-        "https://github.com/AdoptOpenJDK/openjdk9-binaries/releases/download/jdk-9%2B181/OpenJDK9U-jdk_aarch64_linux_hotspot_9_181.tar.gz",
-        "OpenJDK9U-jdk_aarch64_linux_hotspot_9_181.tar.gz",
-        {
-          "Case": "Sha256",
-          "Fields": [
-            "d1ee522053bb4135536b1d3173be8224bf54563d166e882b7ee2ccf609c2517f"
-          ]
-        }
-      ]
+      "Action": "Download",
+      "Url": "https://github.com/AdoptOpenJDK/openjdk9-binaries/releases/download/jdk-9%2B181/OpenJDK9U-jdk_aarch64_linux_hotspot_9_181.tar.gz",
+      "FileName": "OpenJDK9U-jdk_aarch64_linux_hotspot_9_181.tar.gz",
+      "Hash": {
+        "HashType": "Sha256",
+        "Hash": "d1ee522053bb4135536b1d3173be8224bf54563d166e882b7ee2ccf609c2517f"
+      }
     },
     {
-      "Case": "Extract",
-      "Fields": [
-        "OpenJDK9U-jdk_aarch64_linux_hotspot_9_181.tar.gz",
-        "."
-      ]
+      "Action": "Extract",
+      "FileName": "OpenJDK9U-jdk_aarch64_linux_hotspot_9_181.tar.gz",
+      "Directory": "."
     },
     {
-      "Case": "Delete",
-      "Fields": [
-        "OpenJDK9U-jdk_aarch64_linux_hotspot_9_181.tar.gz"
-      ]
+      "Action": "Delete",
+      "FileName": "OpenJDK9U-jdk_aarch64_linux_hotspot_9_181.tar.gz"
     }
   ],
-  "pathDirs": [
+  "PathDirs": [
     "jdk-9+181/bin"
   ],
-  "env": {
-    "JAVA_HOME": {
-      "Case": "Concat",
-      "Fields": [
-        [
-          {
-            "Case": "SdkDirectory"
-          },
-          {
-            "Case": "OfString",
-            "Fields": [
-              "/jdk-9+181"
-            ]
-          }
-        ]
+  "Env": {
+    "JAVA_HOME": [
+      [
+        {
+          "Name": "SdkDirectory"
+        },
+        "/jdk-9+181"
+      ],
+      [
+        {
+          "Name": "SdkDirectory"
+        },
+        "/jdk-9+181"
       ]
-    }
+    ]
   },
-  "configFileTemplates": {}
+  "ConfigFileTemplates": {}
 }

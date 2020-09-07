@@ -1,47 +1,39 @@
 {
-  "implements": [
+  "Implements": [
     "node"
   ],
-  "version": "12.7.0",
-  "platforms": [
+  "Version": "12.7.0",
+  "Platforms": [
     {
-      "os": "Windows",
-      "arch": "Amd64"
+      "OS": "Windows",
+      "Arch": "Amd64"
     }
   ],
-  "setupSteps": [
+  "SetupSteps": [
     {
-      "Case": "Download",
-      "Fields": [
-        "https://nodejs.org/dist/v12.7.0/node-v12.7.0-win-x64.zip",
-        "node-v12.7.0-win-x64.zip",
-        {
-          "Case": "Sha256",
-          "Fields": [
-            "68802316ca4eb4d72ec5f9ff837752a6ec8cd73537ad7c346f30899ee523f4b7"
-          ]
-        }
-      ]
+      "Action": "Download",
+      "Url": "https://nodejs.org/dist/v12.7.0/node-v12.7.0-win-x64.zip",
+      "FileName": "node-v12.7.0-win-x64.zip",
+      "Hash": {
+        "HashType": "Sha256",
+        "Hash": "68802316ca4eb4d72ec5f9ff837752a6ec8cd73537ad7c346f30899ee523f4b7"
+      }
     },
     {
-      "Case": "Extract",
-      "Fields": [
-        "node-v12.7.0-win-x64.zip",
-        "."
-      ]
+      "Action": "Extract",
+      "FileName": "node-v12.7.0-win-x64.zip",
+      "Directory": "."
     },
     {
-      "Case": "Delete",
-      "Fields": [
-        "node-v12.7.0-win-x64.zip"
-      ]
+      "Action": "Delete",
+      "FileName": "node-v12.7.0-win-x64.zip"
     }
   ],
-  "pathDirs": [
+  "PathDirs": [
     "node-v12.7.0-win-x64/bin"
   ],
-  "env": {},
-  "configFileTemplates": {
+  "Env": {},
+  "ConfigFileTemplates": {
     "~/.npmrc": "\n{% if repos.npm != null -%}\nregistry={{repos.npm.registry}}\n{% endif -%}\n"
   }
 }

@@ -1,47 +1,39 @@
 {
-  "implements": [
+  "Implements": [
     "node"
   ],
-  "version": "12.7.0",
-  "platforms": [
+  "Version": "12.7.0",
+  "Platforms": [
     {
-      "os": "Linux",
-      "arch": "Arm"
+      "OS": "Linux",
+      "Arch": "Arm"
     }
   ],
-  "setupSteps": [
+  "SetupSteps": [
     {
-      "Case": "Download",
-      "Fields": [
-        "https://nodejs.org/dist/v12.7.0/node-v12.7.0-linux-armv7l.tar.gz",
-        "node-v12.7.0-linux-armv7l.tar.gz",
-        {
-          "Case": "Sha256",
-          "Fields": [
-            "c1247cb4a646a28f703ba52dd40b8162b7703b3c107b2fcb8efe9de5f9f74599"
-          ]
-        }
-      ]
+      "Action": "Download",
+      "Url": "https://nodejs.org/dist/v12.7.0/node-v12.7.0-linux-armv7l.tar.gz",
+      "FileName": "node-v12.7.0-linux-armv7l.tar.gz",
+      "Hash": {
+        "HashType": "Sha256",
+        "Hash": "c1247cb4a646a28f703ba52dd40b8162b7703b3c107b2fcb8efe9de5f9f74599"
+      }
     },
     {
-      "Case": "Extract",
-      "Fields": [
-        "node-v12.7.0-linux-armv7l.tar.gz",
-        "."
-      ]
+      "Action": "Extract",
+      "FileName": "node-v12.7.0-linux-armv7l.tar.gz",
+      "Directory": "."
     },
     {
-      "Case": "Delete",
-      "Fields": [
-        "node-v12.7.0-linux-armv7l.tar.gz"
-      ]
+      "Action": "Delete",
+      "FileName": "node-v12.7.0-linux-armv7l.tar.gz"
     }
   ],
-  "pathDirs": [
+  "PathDirs": [
     "node-v12.7.0-linux-armv7l/bin"
   ],
-  "env": {},
-  "configFileTemplates": {
+  "Env": {},
+  "ConfigFileTemplates": {
     "~/.npmrc": "\n{% if repos.npm != null -%}\nregistry={{repos.npm.registry}}\n{% endif -%}\n"
   }
 }

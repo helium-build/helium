@@ -1,62 +1,52 @@
 {
-  "implements": [
+  "Implements": [
     "jdk"
   ],
-  "version": "12.0.2+10",
-  "platforms": [
+  "Version": "12.0.2+10",
+  "Platforms": [
     {
-      "os": "Linux",
-      "arch": "Arm"
+      "OS": "Linux",
+      "Arch": "Arm"
     }
   ],
-  "setupSteps": [
+  "SetupSteps": [
     {
-      "Case": "Download",
-      "Fields": [
-        "https://github.com/AdoptOpenJDK/openjdk12-binaries/releases/download/jdk-12.0.2%2B10/OpenJDK12U-jdk_arm_linux_hotspot_12.0.2_10.tar.gz",
-        "OpenJDK12U-jdk_arm_linux_hotspot_12.0.2_10.tar.gz",
-        {
-          "Case": "Sha256",
-          "Fields": [
-            "9fec85826ffb7b2b2cf2853a6ed3e001b528ed5cf13e435cd13026398b5178d8"
-          ]
-        }
-      ]
+      "Action": "Download",
+      "Url": "https://github.com/AdoptOpenJDK/openjdk12-binaries/releases/download/jdk-12.0.2%2B10/OpenJDK12U-jdk_arm_linux_hotspot_12.0.2_10.tar.gz",
+      "FileName": "OpenJDK12U-jdk_arm_linux_hotspot_12.0.2_10.tar.gz",
+      "Hash": {
+        "HashType": "Sha256",
+        "Hash": "9fec85826ffb7b2b2cf2853a6ed3e001b528ed5cf13e435cd13026398b5178d8"
+      }
     },
     {
-      "Case": "Extract",
-      "Fields": [
-        "OpenJDK12U-jdk_arm_linux_hotspot_12.0.2_10.tar.gz",
-        "."
-      ]
+      "Action": "Extract",
+      "FileName": "OpenJDK12U-jdk_arm_linux_hotspot_12.0.2_10.tar.gz",
+      "Directory": "."
     },
     {
-      "Case": "Delete",
-      "Fields": [
-        "OpenJDK12U-jdk_arm_linux_hotspot_12.0.2_10.tar.gz"
-      ]
+      "Action": "Delete",
+      "FileName": "OpenJDK12U-jdk_arm_linux_hotspot_12.0.2_10.tar.gz"
     }
   ],
-  "pathDirs": [
+  "PathDirs": [
     "jdk-12.0.2+10/bin"
   ],
-  "env": {
-    "JAVA_HOME": {
-      "Case": "Concat",
-      "Fields": [
-        [
-          {
-            "Case": "SdkDirectory"
-          },
-          {
-            "Case": "OfString",
-            "Fields": [
-              "/jdk-12.0.2+10"
-            ]
-          }
-        ]
+  "Env": {
+    "JAVA_HOME": [
+      [
+        {
+          "Name": "SdkDirectory"
+        },
+        "/jdk-12.0.2+10"
+      ],
+      [
+        {
+          "Name": "SdkDirectory"
+        },
+        "/jdk-12.0.2+10"
       ]
-    }
+    ]
   },
-  "configFileTemplates": {}
+  "ConfigFileTemplates": {}
 }

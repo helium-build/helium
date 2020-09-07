@@ -1,0 +1,43 @@
+{
+  "Implements": [
+    "dotnet"
+  ],
+  "Version": "3.0.3",
+  "Platforms": [
+    {
+      "OS": "Windows",
+      "Arch": "Arm"
+    }
+  ],
+  "SetupSteps": [
+    {
+      "Action": "Download",
+      "Url": "https://dotnetcli.azureedge.net/dotnet/Sdk/3.0.103/dotnet-sdk-3.0.103-win-arm.zip",
+      "FileName": "dotnet-sdk-3.0.103-win-arm.zip",
+      "Hash": {
+        "HashType": "Sha512",
+        "Hash": "5b1b042cc1ee611149d997e8255cae1a56211194583ec6b8721bf219fdf15233e9c18f58fea3ff698ad22707491d8120e5d010b18de0ef33a913425f7cc995b6"
+      }
+    },
+    {
+      "Action": "Extract",
+      "FileName": "dotnet-sdk-3.0.103-win-arm.zip",
+      "Directory": "dotnet-3.0.3"
+    },
+    {
+      "Action": "Delete",
+      "FileName": "dotnet-sdk-3.0.103-win-arm.zip"
+    }
+  ],
+  "PathDirs": [
+    "dotnet-3.0.3"
+  ],
+  "Env": {
+    "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
+    "DOTNET_SKIP_FIRST_TIME_EXPERIENCE": "1"
+  },
+  "ConfigFileTemplates": {
+    "$CONFIG/NuGet/NuGet.Config": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<configuration>\n    <packageSources>\n        <clear/>\n        {% for repo in repos.nuget -%}\n        <add key=\"{{ repo.name | escape }}\" value=\"{{ repo.url | escape }}\" />\n        {% endfor -%}\n    </packageSources>\n    \n    <config>\n        <add key=\"defaultPushSource\" value=\"{{ repos.nuget_push_url | escape }}\" />\n    </config>\n</configuration>\n",
+    "~/.nuget/NuGet/NuGet.Config": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<configuration>\n    <packageSources>\n        <clear/>\n        {% for repo in repos.nuget -%}\n        <add key=\"{{ repo.name | escape }}\" value=\"{{ repo.url | escape }}\" />\n        {% endfor -%}\n    </packageSources>\n    \n    <config>\n        <add key=\"defaultPushSource\" value=\"{{ repos.nuget_push_url | escape }}\" />\n    </config>\n</configuration>\n"
+  }
+}

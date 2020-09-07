@@ -1,0 +1,43 @@
+{
+  "Implements": [
+    "dotnet"
+  ],
+  "Version": "2.1.21",
+  "Platforms": [
+    {
+      "OS": "Windows",
+      "Arch": "Amd64"
+    }
+  ],
+  "SetupSteps": [
+    {
+      "Action": "Download",
+      "Url": "https://dotnetcli.azureedge.net/dotnet/Sdk/2.1.809/dotnet-sdk-2.1.809-win-x64.zip",
+      "FileName": "dotnet-sdk-2.1.809-win-x64.zip",
+      "Hash": {
+        "HashType": "Sha512",
+        "Hash": "ed636fa3b017df1587acf69f4a7b3d49f419564d846187b99954328aeae2e39f42aaf12475891513ee54e004cf2c63a9e990d5e115e6667f8613a898bdf3f44b"
+      }
+    },
+    {
+      "Action": "Extract",
+      "FileName": "dotnet-sdk-2.1.809-win-x64.zip",
+      "Directory": "dotnet-2.1.21"
+    },
+    {
+      "Action": "Delete",
+      "FileName": "dotnet-sdk-2.1.809-win-x64.zip"
+    }
+  ],
+  "PathDirs": [
+    "dotnet-2.1.21"
+  ],
+  "Env": {
+    "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
+    "DOTNET_SKIP_FIRST_TIME_EXPERIENCE": "1"
+  },
+  "ConfigFileTemplates": {
+    "$CONFIG/NuGet/NuGet.Config": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<configuration>\n    <packageSources>\n        <clear/>\n        {% for repo in repos.nuget -%}\n        <add key=\"{{ repo.name | escape }}\" value=\"{{ repo.url | escape }}\" />\n        {% endfor -%}\n    </packageSources>\n    \n    <config>\n        <add key=\"defaultPushSource\" value=\"{{ repos.nuget_push_url | escape }}\" />\n    </config>\n</configuration>\n",
+    "~/.nuget/NuGet/NuGet.Config": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<configuration>\n    <packageSources>\n        <clear/>\n        {% for repo in repos.nuget -%}\n        <add key=\"{{ repo.name | escape }}\" value=\"{{ repo.url | escape }}\" />\n        {% endfor -%}\n    </packageSources>\n    \n    <config>\n        <add key=\"defaultPushSource\" value=\"{{ repos.nuget_push_url | escape }}\" />\n    </config>\n</configuration>\n"
+  }
+}
