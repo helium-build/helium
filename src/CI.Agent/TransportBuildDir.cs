@@ -63,7 +63,7 @@ namespace Helium.CI.Agent
                     return await ExecBuildProcess(buildTask, cancellationToken);
                 }
             }
-            catch(Exception ex) {
+            catch {
                 await buildOutputPipe.Writer.CompleteAsync();
                 throw;
             }
@@ -180,10 +180,10 @@ namespace Helium.CI.Agent
                     "container-build",
                     
                     "--os",
-                    containerBuildTask.Platform.os.ToString(),
+                    containerBuildTask.Platform.OS.ToString(),
                     
                     "--arch",
-                    containerBuildTask.Platform.arch.ToString(),
+                    containerBuildTask.Platform.Arch.ToString(),
 
                     "--file",
                     Path.Combine(WorkspaceDir, containerBuildTask.Dockerfile),

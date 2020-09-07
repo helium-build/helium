@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Helium.Sdks;
-using Microsoft.FSharp.Collections;
 
 namespace Helium.SdkGenerator
 {
@@ -29,21 +28,18 @@ exec /sdk/dotnet-sdk/dotnet ""$@""
         public async IAsyncEnumerable<(string path, SdkInfo)> GenerateSdks() {
             
             var sdkInfo = new SdkInfo(
-                implements: ListModule.OfArray(new[] { "dotnet-merge" }),
+                implements: new[] { "dotnet-merge" },
                 version: "1.0.0",
-                platforms: ListModule.OfArray(new[] {
+                platforms: new[] {
                     new PlatformInfo(SdkOperatingSystem.Linux, SdkArch.None), 
-                }),
+                },
                 
-                setupSteps: ListModule.OfArray(new[] {
-                   SdkSetupStep.NewCreateDirectory("dotnet-merge/"),
-                   SdkSetupStep.NewCreateFile("dotnet-merge/dotnet", true, shellScript),
-                }),
+                setupSteps: new SdkSetupStep[] {
+                   new SdkSetupStep.CreateDirectory("dotnet-merge/"),
+                   new SdkSetupStep.CreateFile("dotnet-merge/dotnet", true, shellScript),
+                },
                 
-                pathDirs: ListModule.OfArray(new[] { "dotnet-merge" }),
-                env: MapModule.Empty<string, EnvValue>(),
-                
-                configFileTemplates: MapModule.Empty<string, string>()
+                pathDirs: new[] { "dotnet-merge" }
             );
 
             yield return ("dotnet-merge/dotnet-merge-1.0.0-linux.json", sdkInfo);

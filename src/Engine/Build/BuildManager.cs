@@ -63,7 +63,7 @@ namespace Helium.Engine.Build
         private static ICleanup<Func<Task<LaunchProperties>>> GetDockerLaunchProps(PlatformInfo platform, List<SdkInfo> sdks, string workDir, string? currentDir, string sourcesDir, Config conf, ISdkInstallManager sdkInstallManager, BuildSchema schema) =>
             DirectoryCleanup.CreateTempDir(workDir, async tempDir => {
 
-                var dockerImage = platform.os switch {
+                var dockerImage = platform.OS switch {
                     SdkOperatingSystem.Linux => "helium-build/build-env:debian-buster-20190708",
                     SdkOperatingSystem.Windows => "helium-build/build-env:windows-servercore-1903",
                     _ => throw new Exception("Unexpected OS"),
@@ -80,7 +80,7 @@ namespace Helium.Engine.Build
 
                 string? currentDirectory = null;
                 if(currentDir != null) {
-                    currentDirectory = platform.os switch {
+                    currentDirectory = platform.OS switch {
                         SdkOperatingSystem.Linux => Path.Combine("/sources/", currentDir),
                         SdkOperatingSystem.Windows => Path.Combine("C:\\sources\\", currentDir),
                         _ => throw new Exception("Unexpected OS"),
@@ -97,11 +97,14 @@ namespace Helium.Engine.Build
                 );
 
                 foreach(var requiredSdk in schema.sdk) {
+                    if(requiredSdk.name == null) throw new Exception("Required sdk name is null.");
+                    if(requiredSdk.version == null) throw new Exception("Required sdk version is null.");
+                    
                     var sdk = sdks.First(sdkInfo => sdkInfo.Matches(requiredSdk.name, requiredSdk.version) && sdkInfo.SupportedBy(platform));
 
                     var (sdkHash, sdkInstallDir) = await sdkInstallManager.GetInstalledSdkDir(sdk);
 
-                    foreach(var (fileName, template) in sdk.configFileTemplates) {
+                    foreach(var (fileName, template) in sdk.ConfigFileTemplates) {
                         if(fileName.Contains(":")) {
                             throw new Exception("SDK config filenames may not contain colons.");
                         }
@@ -121,11 +124,11 @@ namespace Helium.Engine.Build
 
                     var containerSdkDir = Path.Combine(rootDir, "helium/sdk", sdkHash);
 
-                    foreach(var (name, envValue) in sdk.env) {
+                    foreach(var (name, envValue) in sdk.Env) {
                         props.Environment.TryAdd(name, envValue.Resolve(containerSdkDir));
                     }
 
-                    props.PathDirs.AddRange(sdk.pathDirs.Select(dir => containerSdkDir + Path.DirectorySeparatorChar + dir));
+                    props.PathDirs.AddRange(sdk.PathDirs.Select(dir => containerSdkDir + Path.DirectorySeparatorChar + dir));
                     props.SdkDirs.Add((containerSdkDir, sdkInstallDir));
                 }
 

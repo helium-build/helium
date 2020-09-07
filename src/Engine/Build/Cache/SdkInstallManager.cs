@@ -31,7 +31,7 @@ namespace Helium.Engine.Build.Cache
         
 
         public virtual Task<(string hash, string installDir)> GetInstalledSdkDir(SdkInfo sdk) {
-            var sdkHash = SdkLoader.sdkSha256(sdk);
+            var sdkHash = SdkLoader.SdkSha256(sdk);
             return sdkStore.GetOrAdd(sdkHash, _ => Task.Run(() => InstalledSdkUncached(sdk, sdkHash)));
         }
 
@@ -48,7 +48,7 @@ namespace Helium.Engine.Build.Cache
 
                 CleanupTempSdkDirs(baseDir);
 
-                Console.Error.WriteLine($"Installing SDK for {sdk.implements.First()} version {sdk.version}");
+                Console.Error.WriteLine($"Installing SDK for {sdk.Implements.First()} version {sdk.Version}");
 
                 using var tempDirCleanup = DirectoryCleanup.CreateTempDir(baseDir, prefix: "temp-");
 
@@ -80,33 +80,33 @@ namespace Helium.Engine.Build.Cache
         }
 
         private async Task InstallSdk(SdkInfo sdk, string sdkHash, string installDir) {
-            await SdkLoader.saveSdk(sdk, Path.Combine(installDir, "../sdk.json"));
+            await SdkLoader.SaveSdk(Path.Combine(installDir, "../sdk.json"), sdk);
             
-            foreach(var step in sdk.setupSteps) {
+            foreach(var step in sdk.SetupSteps) {
                 switch(step) {
                     case SdkSetupStep.Download download:
                     {
-                        if(!PathUtil.IsValidSubPath(download.fileName)) {
-                            throw new Exception($"Download filenames may not contain .. directories: {download.fileName}");
+                        if(!PathUtil.IsValidSubPath(download.FileName)) {
+                            throw new Exception($"Download filenames may not contain .. directories: {download.FileName}");
                         }
 
-                        var fileName = Path.Combine(installDir, download.fileName);
-                        await HttpUtil.FetchFileValidate(download.url, fileName, download.Item3.Validate);
+                        var fileName = Path.Combine(installDir, download.FileName);
+                        await HttpUtil.FetchFileValidate(download.Url, fileName, download.Hash.Validate);
                     }
                         break;
 
                     case SdkSetupStep.Extract extract:
                     {
-                        if(!PathUtil.IsValidSubPath(extract.fileName)) {
-                            throw new Exception($"Extract filenames may not contain .. directories: {extract.fileName}");
+                        if(!PathUtil.IsValidSubPath(extract.FileName)) {
+                            throw new Exception($"Extract filenames may not contain .. directories: {extract.FileName}");
                         }
                         
-                        if(!PathUtil.IsValidSubPath(extract.directory)) {
-                            throw new Exception($"Extract filenames may not contain .. directories: {extract.directory}");
+                        if(!PathUtil.IsValidSubPath(extract.Directory)) {
+                            throw new Exception($"Extract filenames may not contain .. directories: {extract.Directory}");
                         }
 
-                        var fileName = Path.Combine(installDir, extract.fileName);
-                        var directory = Path.Combine(installDir, extract.directory);
+                        var fileName = Path.Combine(installDir, extract.FileName);
+                        var directory = Path.Combine(installDir, extract.Directory);
 
                         if(fileName.EndsWith(".zip", StringComparison.InvariantCultureIgnoreCase)) {
                             ZipFile.ExtractToDirectory(fileName, directory);
@@ -127,34 +127,34 @@ namespace Helium.Engine.Build.Cache
 
                     case SdkSetupStep.Delete delete:
                     {
-                        if(!PathUtil.IsValidSubPath(delete.fileName)) {
+                        if(!PathUtil.IsValidSubPath(delete.FileName)) {
                             throw new Exception("Delete filenames may not contain .. directories");
                         }
                         
-                        var fileName = Path.Combine(installDir, delete.fileName);
+                        var fileName = Path.Combine(installDir, delete.FileName);
                         File.Delete(fileName);
                     }
                         break;
 
                     case SdkSetupStep.CreateDirectory createDirectory:
                     {
-                        if(!PathUtil.IsValidSubPath(createDirectory.fileName)) {
+                        if(!PathUtil.IsValidSubPath(createDirectory.FileName)) {
                             throw new Exception("CreateDirectory filenames may not contain .. directories");
                         }
                         
-                        var fileName = Path.Combine(installDir, createDirectory.fileName);
+                        var fileName = Path.Combine(installDir, createDirectory.FileName);
                         Directory.CreateDirectory(fileName);
                     }
                         break;
 
                     case SdkSetupStep.CreateFile createFile:
                     {
-                        if(!PathUtil.IsValidSubPath(createFile.fileName)) {
+                        if(!PathUtil.IsValidSubPath(createFile.FileName)) {
                             throw new Exception("CreateFile filenames may not contain .. directories");
                         }
                         
-                        var fileName = Path.Combine(installDir, createFile.fileName);
-                        await File.WriteAllTextAsync(fileName, createFile.content, Globals.HeliumEncoding);
+                        var fileName = Path.Combine(installDir, createFile.FileName);
+                        await File.WriteAllTextAsync(fileName, createFile.Content, Globals.HeliumEncoding);
                         FileUtil.MakeExecutable(fileName);
                     }
                         break;

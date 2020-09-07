@@ -58,7 +58,7 @@ namespace Helium.Engine.Build.Record
 
         public async IAsyncEnumerable<SdkInfo> ListAvailableSdks() {
             foreach(var subDir in Directory.GetDirectories(Path.Combine(extractedDir, "sdks"))) {
-                yield return await SdkLoader.loadSdk(Path.Combine(subDir, "sdk.json"));
+                yield return await SdkLoader.LoadSdk(Path.Combine(subDir, "sdk.json"));
             }
         }
 
@@ -86,7 +86,7 @@ namespace Helium.Engine.Build.Record
             private readonly ReplayRecorder replayRecorder;
 
             public async Task<(string hash, string installDir)> GetInstalledSdkDir(SdkInfo sdk) {
-                var sdkHash = SdkLoader.sdkSha256(sdk);
+                var sdkHash = SdkLoader.SdkSha256(sdk);
                 var sdkDir = Path.Combine(replayRecorder.extractedDir, ArchiveRecorder.SdkPath(sdkHash));
 
                 if(!Directory.Exists(sdkDir)) {

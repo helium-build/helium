@@ -5,7 +5,6 @@ using System.IO.Pipelines;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using FSharp.Control.Tasks;
 using Helium.CI.Common.Protocol;
 using Helium.Pipeline;
 using Helium.Sdks;

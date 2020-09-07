@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Sdks\Sdks.fsproj" />
+    <ProjectReference Include="..\Sdks\Sdks.csproj" />
     <ProjectReference Include="..\Util\Util.csproj" />
   </ItemGroup>
 

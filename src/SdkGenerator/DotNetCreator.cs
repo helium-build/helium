@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Helium.Sdks;
 using Helium.Util;
-using Microsoft.FSharp.Collections;
 
 namespace Helium.SdkGenerator
 {
@@ -78,27 +77,28 @@ namespace Helium.SdkGenerator
                         }
 
                         var sdkInfo = new SdkInfo(
-                            implements: ListModule.OfArray(new[] { "dotnet" }),
+                            implements: new[] { "dotnet" },
                             version: verRuntime,
-                            platforms: ListModule.OfArray(new[] {
+                            platforms: new[] {
                                 new PlatformInfo(os.os, arch.arch), 
-                            }),
-                            setupSteps: ListModule.OfArray(new[] {
-                                SdkSetupStep.NewDownload($"https://dotnetcli.azureedge.net/dotnet/Sdk/{verSdk}/{fileName}", fileName, SdkHash.NewSha512(sha512)),
-                                SdkSetupStep.NewExtract(fileName, outDir),
-                                SdkSetupStep.NewDelete(fileName), 
-                            }),
+                            },
+                            setupSteps: new SdkSetupStep[] {
+                                new SdkSetupStep.Download($"https://dotnetcli.azureedge.net/dotnet/Sdk/{verSdk}/{fileName}", fileName, new SdkHash(SdkHashType.Sha512, sha512)),
+                                new SdkSetupStep.Extract(fileName, outDir),
+                                new SdkSetupStep.Delete(fileName), 
+                            },
                             
-                            pathDirs: ListModule.OfArray(new[] { outDir }),
+                            pathDirs: new[] { outDir },
                             
-                            env: MapModule.OfArray(new[] {
-                                Tuple.Create("DOTNET_CLI_TELEMETRY_OPTOUT", EnvValue.NewOfString("1")),
-                                Tuple.Create("DOTNET_SKIP_FIRST_TIME_EXPERIENCE", EnvValue.NewOfString("1")),
-                            }),
-                            configFileTemplates: MapModule.OfArray(new[] {
-                                Tuple.Create("$CONFIG/NuGet/NuGet.Config", configFile),
-                                Tuple.Create("~/.nuget/NuGet/NuGet.Config", configFile), 
-                            })
+                            env: new Dictionary<string, EnvValue> {
+                                { "DOTNET_CLI_TELEMETRY_OPTOUT", new EnvValue.OfString("1") },
+                                { "DOTNET_SKIP_FIRST_TIME_EXPERIENCE", new EnvValue.OfString("1") },
+                            },
+                            
+                            configFileTemplates: new Dictionary<string, string> {
+                                { "$CONFIG/NuGet/NuGet.Config", configFile },
+                                { "~/.nuget/NuGet/NuGet.Config", configFile }, 
+                            }
                         );
 
                         yield return ($"dotnet/{verRuntime}-{os.osStr}-{arch.archStr}.json", sdkInfo);

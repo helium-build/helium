@@ -16,7 +16,7 @@ namespace Helium.SdkGenerator
                 await foreach(var (path, sdk) in creator.GenerateSdks()) {
                     string fullPath = Path.Combine(sdkDir, path);
                     EnsureDirectory(Path.GetDirectoryName(fullPath));
-                    await SdkLoader.saveSdk(sdk, fullPath);
+                    await SdkLoader.SaveSdk(fullPath, sdk);
                 }
             }
         }

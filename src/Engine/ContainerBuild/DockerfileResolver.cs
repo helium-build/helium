@@ -106,7 +106,7 @@ namespace Helium.Engine.ContainerBuild
         }
 
         private static bool PlatformMatches(Platform manifestPlatform, PlatformInfo platform) =>
-            OSMatches(manifestPlatform.Os, platform.os) && ArchMatches(manifestPlatform.Architecture, platform.arch);
+            OSMatches(manifestPlatform.Os, platform.OS) && ArchMatches(manifestPlatform.Architecture, platform.Arch);
         
         private static bool OSMatches(string manifestOS, SdkOperatingSystem os) =>
             (manifestOS, os) switch {

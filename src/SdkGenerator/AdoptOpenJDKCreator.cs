@@ -5,7 +5,6 @@ using System.Net;
 using System.Threading.Tasks;
 using Helium.Sdks;
 using Helium.Util;
-using Microsoft.FSharp.Collections;
 
 namespace Helium.SdkGenerator
 {
@@ -46,6 +45,8 @@ namespace Helium.SdkGenerator
             if(
                 release.release_name == null ||
                 release.release_link == null ||
+                binary.os == null ||
+                binary.architecture == null ||
                 binary.binary_name == null ||
                 binary.binary_link == null ||
                 binary.checksum_link == null ||
@@ -61,8 +62,8 @@ namespace Helium.SdkGenerator
             var shaFileContent = await HttpUtil.FetchString(binary.checksum_link);
             var sha256 = HashUtil.ParseSha256(shaFileContent) ?? throw new Exception($"Invalid SHA256 from {binary.checksum_link}.");
 
-            var os = SdkHelper.parseOperatingSystem(binary.os);
-            var arch = SdkHelper.parseArch(binary.architecture);
+            var os = SdkHelper.ParseOperatingSystem(binary.os);
+            var arch = SdkHelper.ParseArch(binary.architecture);
 
             var zipDirName =
                 binary.version == "10"
@@ -70,26 +71,25 @@ namespace Helium.SdkGenerator
                     : release.release_name;
 
             var sdkInfo = new SdkInfo(
-                implements: ListModule.OfArray(new[] {"jdk"}),
+                implements: new[] {"jdk"},
                 version: binary.version_data.semver,
-                platforms: ListModule.OfArray(new[] {new PlatformInfo(os, arch)}),
-                setupSteps: ListModule.OfArray(new[] {
-                    SdkSetupStep.NewDownload(binary.binary_link, binary.binary_name, SdkHash.NewSha256(sha256)),
-                    SdkSetupStep.NewExtract(binary.binary_name, "."),
-                    SdkSetupStep.NewDelete(binary.binary_name),
-                }),
-                pathDirs: ListModule.OfArray(new[] {
+                platforms: new[] {new PlatformInfo(os, arch)},
+                setupSteps: new SdkSetupStep[] {
+                    new SdkSetupStep.Download(binary.binary_link, binary.binary_name, new SdkHash(SdkHashType.Sha256, sha256)),
+                    new SdkSetupStep.Extract(binary.binary_name, "."),
+                    new SdkSetupStep.Delete(binary.binary_name),
+                },
+                pathDirs: new[] {
                     zipDirName + "/bin"
-                }),
-                env: MapModule.OfArray(new[] {
-                    Tuple.Create("JAVA_HOME", EnvValue.NewConcat(
-                        ListModule.OfArray(new[] {
-                            EnvValue.SdkDirectory,
-                            EnvValue.NewOfString("/" + zipDirName),
-                        })
-                    )),
-                }),
-                configFileTemplates: MapModule.Empty<string, string>()
+                },
+                env: new Dictionary<string, EnvValue> {
+                    { "JAVA_HOME", new EnvValue.Concat(
+                        new EnvValue[] {
+                            new EnvValue.BuiltInValue(EnvValue.BuiltInValue.SdkDirectory),
+                            new EnvValue.OfString("/" + zipDirName),
+                        }
+                    ) },
+                }
             );
 
             var noExtFile = Path.GetFileNameWithoutExtension(binary.binary_name);

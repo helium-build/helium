@@ -38,11 +38,7 @@ namespace Helium.Engine.Build.Record
             await RecordBuildSchema(() => File.ReadAllTextAsync(SchemaFile, Globals.HeliumEncoding))
         );
 
-        public async IAsyncEnumerable<SdkInfo> ListAvailableSdks() {
-            foreach(var sdkTask in SdkLoader.loadSdks.Invoke(SdkDir)) {
-                yield return await sdkTask;
-            }
-        }
+        public IAsyncEnumerable<SdkInfo> ListAvailableSdks() => SdkLoader.LoadSdks(SdkDir);
 
         public async Task<Config> LoadRepoConfig() => new Config {
             repos = Repos.Parse(

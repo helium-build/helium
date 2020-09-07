@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Helium.Sdks;
 using Helium.Util;
-using Microsoft.FSharp.Collections;
 
 namespace Helium.SdkGenerator
 {
@@ -49,28 +48,27 @@ registry={{repos.npm.registry}}
                     
                     
 
-                    if(!shaMap.TryGetValue(fileName, out var sha512)) {
+                    if(!shaMap.TryGetValue(fileName, out var sha256)) {
                         continue;
                     }
 
                     var sdkInfo = new SdkInfo(
-                        implements: ListModule.OfArray(new[] { "node" }),
+                        implements: new[] { "node" },
                         version: version,
-                        platforms: ListModule.OfArray(new[] {
+                        platforms: new[] {
                             new PlatformInfo(platform.os, platform.arch), 
-                        }),
-                        setupSteps: ListModule.OfArray(new[] {
-                            SdkSetupStep.NewDownload($"https://nodejs.org/dist/v{version}/{fileName}", fileName, SdkHash.NewSha256(sha512)),
-                            SdkSetupStep.NewExtract(fileName, "."),
-                            SdkSetupStep.NewDelete(fileName), 
-                        }),
+                        },
+                        setupSteps: new SdkSetupStep[] {
+                            new SdkSetupStep.Download($"https://nodejs.org/dist/v{version}/{fileName}", fileName, new SdkHash(SdkHashType.Sha256, sha256)),
+                            new SdkSetupStep.Extract(fileName, "."),
+                            new SdkSetupStep.Delete(fileName), 
+                        },
                             
-                        pathDirs: ListModule.OfArray(new[] { archiveDir + "/bin" }),
-                            
-                        env: MapModule.Empty<string, EnvValue>(),
-                        configFileTemplates: MapModule.OfArray(new[] {
-                            Tuple.Create("~/.npmrc", configFile), 
-                        })
+                        pathDirs: new[] { archiveDir + "/bin" },
+                        
+                        configFileTemplates: new Dictionary<string, string> {
+                            { "~/.npmrc", configFile }, 
+                        }
                     );
 
                     yield return ($"nodejs/v{version}-{platform.osStr}-{platform.archStr}.json", sdkInfo);
