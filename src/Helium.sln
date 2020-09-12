@@ -33,6 +33,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DockerfileHandler", "Docker
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sdks", "Sdks\Sdks.csproj", "{07371B48-BCD0-43D2-AE93-2DD7B8B24DE3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SdkServer", "SdkServer\SdkServer.csproj", "{7F616763-3A34-45DF-A962-B19F69984BA3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -226,5 +228,17 @@ Global
 		{07371B48-BCD0-43D2-AE93-2DD7B8B24DE3}.Release|x64.Build.0 = Release|Any CPU
 		{07371B48-BCD0-43D2-AE93-2DD7B8B24DE3}.Release|x86.ActiveCfg = Release|Any CPU
 		{07371B48-BCD0-43D2-AE93-2DD7B8B24DE3}.Release|x86.Build.0 = Release|Any CPU
+		{7F616763-3A34-45DF-A962-B19F69984BA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F616763-3A34-45DF-A962-B19F69984BA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F616763-3A34-45DF-A962-B19F69984BA3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{7F616763-3A34-45DF-A962-B19F69984BA3}.Debug|x64.Build.0 = Debug|Any CPU
+		{7F616763-3A34-45DF-A962-B19F69984BA3}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7F616763-3A34-45DF-A962-B19F69984BA3}.Debug|x86.Build.0 = Debug|Any CPU
+		{7F616763-3A34-45DF-A962-B19F69984BA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F616763-3A34-45DF-A962-B19F69984BA3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F616763-3A34-45DF-A962-B19F69984BA3}.Release|x64.ActiveCfg = Release|Any CPU
+		{7F616763-3A34-45DF-A962-B19F69984BA3}.Release|x64.Build.0 = Release|Any CPU
+		{7F616763-3A34-45DF-A962-B19F69984BA3}.Release|x86.ActiveCfg = Release|Any CPU
+		{7F616763-3A34-45DF-A962-B19F69984BA3}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

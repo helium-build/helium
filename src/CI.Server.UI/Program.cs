@@ -51,13 +51,13 @@ namespace Helium.CI.Server.UI
                 })
                 .ConfigureWebHost(webBuilder => {
                     webBuilder
-                        .ConfigureAppConfiguration(((builderContext, config) => {
+                        .ConfigureAppConfiguration((builderContext, config) => {
                             var env = builderContext.HostingEnvironment;
 
                             config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
                             config.AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true,
                                 reloadOnChange: false);
-                        }))
+                        })
                         .UseKestrel(options => {
 
                         })
