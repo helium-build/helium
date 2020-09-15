@@ -15,12 +15,12 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="CommandLineParser" Version="2.6.0" />
-    <PackageReference Include="Docker.Registry.DotNet" Version="1.0.10" />
-    <PackageReference Include="DotLiquid" Version="2.0.314" />
-    <PackageReference Include="Nett" Version="0.13.0" />
+    <PackageReference Include="CommandLineParser" Version="2.8.0" />
+    <PackageReference Include="Docker.Registry.DotNet" Version="1.1.15" />
+    <PackageReference Include="DotLiquid" Version="2.0.361" />
+    <PackageReference Include="Nett" Version="0.15.0" />
     <PackageReference Include="Nito.AsyncEx" Version="5.0.0" />
-    <PackageReference Include="System.Linq.Async" Version="4.0.0" />
+    <PackageReference Include="System.Linq.Async" Version="4.1.1" />
   </ItemGroup>
 
   <ItemGroup>

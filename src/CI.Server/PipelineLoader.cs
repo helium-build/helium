@@ -34,13 +34,13 @@ namespace Helium.CI.Server
                 argObj.Add(k, v);
             }
             
-            engine.ResetTimeoutTicks();
+            engine.ResetConstraints();
             return builderState.PipelineBuilder?.Invoke(argObj) ?? throw new Exception("Pipeline was not set.");
         }
 
         private void Load(string pipelineScript) {
             
-            engine.ResetTimeoutTicks();
+            engine.ResetConstraints();
 
             dynamic console = new ExpandoObject();
             console.log = new Action<object>(ConsoleLog);

@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Titanium.Web.Proxy" Version="3.1.1276" />
+    <PackageReference Include="Titanium.Web.Proxy" Version="3.1.1301" />
     <PackageReference Include="Nito.AsyncEx" Version="5.0.0" />
   </ItemGroup>
 
