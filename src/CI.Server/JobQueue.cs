@@ -2,11 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.IO.Pipelines;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
-using Helium.CI.Common.Protocol;
+using Helium.CI.Common;
 using Helium.Pipeline;
+using Helium.Sdks;
 using Helium.Util;
 using ICSharpCode.SharpZipLib.Tar;
 using Newtonsoft.Json;
@@ -21,7 +24,7 @@ namespace Helium.CI.Server
         private readonly AsyncMonitor monitor = new AsyncMonitor();
         private readonly LinkedList<RunnableJob> jobQueue = new LinkedList<RunnableJob>();
         
-        public async Task<IPipelineStatus> Add(IPipelineRunManager pipelineRunManager, IEnumerable<BuildJob> jobs, int buildNum, CancellationToken cancellationToken) {
+        public async Task<IPipelineStatus> AddJobs(IPipelineRunManager pipelineRunManager, IEnumerable<BuildJob> jobs, int buildNum, CancellationToken cancellationToken) {
             var dependentJobs = new HashSet<BuildJob>();
             var jobMap = new Dictionary<BuildJob, IJobStatus>();
 
@@ -74,7 +77,7 @@ namespace Helium.CI.Server
             dependentJobs.Remove(job);
 
             var runnable = new RunnableJob(pipelineRunManager, job, jobMap);
-            jobMap.Add(job, runnable.Status);
+            jobMap.Add(job, runnable.JobStatus);
             runnableJobs.Add(runnable);
         }
 
@@ -99,93 +102,26 @@ namespace Helium.CI.Server
             }
             
             private readonly IReadOnlyList<(BuildInputHandler handler, string path)> inputHandlers;
-            private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
 
             public BuildTaskBase BuildTask { get; }
+            public IJobStatusUpdatable JobStatus => Status;
+            
             public JobStatus Status { get; }
 
-            public async Task Run(BuildAgent.IAsync agent, AgentConfig agentConfig, CancellationToken cancellationToken) {
-                try {
-                    var combinedToken = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, cancellationTokenSource.Token).Token;
-
-                    await WriteWorkspace(agent, combinedToken);
-                    await agent.startBuildAsync(JsonConvert.SerializeObject(BuildTask), combinedToken);
-                    Status.Started(agentConfig);
-
-                    await ReadConsole(agent, combinedToken);
-
-                    int exitCode = (await agent.getExitCodeAsync(combinedToken)).ExitCode;
-                    if(exitCode != 0) {
-                        await Status.FailedWith(exitCode);
-                        return;
-                    }
-
-                    if(BuildTask.ReplayMode != ReplayMode.Discard) {
-                        await ReadReplay(agent, combinedToken);
-                    }
-
-                    foreach(var artifact in await agent.artifactsAsync(combinedToken)) {
-                        await ReadArtifact(agent, artifact, combinedToken);
-                    }
-
-                    await Status.Completed();
-                }
-                catch(Exception ex) {
-                    await Status.Error(ex);
-                    throw;
-                }
-            }
-
-            private async Task ReadReplay(BuildAgent.IAsync agent, CancellationToken combinedToken) {
-                await agent.openOutputAsync(OutputType.REPLAY, "", combinedToken);
-
-                await using var fileStream = Status.OpenReplay();
-                await ReadOutput(agent, fileStream, combinedToken);
-            }
-
-            private async Task ReadArtifact(BuildAgent.IAsync agent, string artifact, CancellationToken cancellationToken) {
-                if(!PathUtil.IsValidSubPath(artifact) || string.IsNullOrEmpty(artifact)) {
-                    throw new Exception("Invalid path name.");
-                }
-
-                await agent.openOutputAsync(OutputType.ARTIFACT, artifact, cancellationToken);
-                
-                var path = Path.Combine(Status.ArtifactDir, artifact);
-                Directory.CreateDirectory(Path.GetDirectoryName(path));
-                await using var fileStream = File.Create(path);
-
-                await ReadOutput(agent, fileStream, cancellationToken);
-            }
-
-            private async Task ReadOutput(BuildAgent.IAsync agent, Stream fileStream, CancellationToken cancellationToken) {
-                while(true) {
-                    var data = await agent.readOutputAsync(cancellationToken);
-                    if(data.Length == 0) break;
-                    await fileStream.WriteAsync(data, cancellationToken);
-                }
-            }
-
-            private async Task ReadConsole(BuildAgent.IAsync agent, CancellationToken cancellationToken) {
-                while(true) {
-                    var status = await agent.getStatusAsync(cancellationToken);
-                    if(status.Output == null || status.Output.Length == 0) {
-                        break;
-                    }
-
-                    await Status.AppendOutput(status.Output, cancellationToken);
-                }
-            }
-
-            private async Task WriteWorkspace(BuildAgent.IAsync agent, CancellationToken cancellationToken) {
-                await using var workspaceStream = new WorkspaceStream(agent);
-                await using var tarStream = new TarOutputStream(workspaceStream);
+            
+            public async Task WriteWorkspace(Stream stream, CancellationToken cancellationToken) {
+                await using var tarStream = new TarOutputStream(stream);
                 
                 foreach(var inputHandler in inputHandlers) {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    
                     var file = await inputHandler.handler(cancellationToken);
                     await ArchiveUtil.AddFileOrDirToTar(tarStream, inputHandler.path, file);
                 }
             }
+            
+            
 
             private static BuildInputHandler HandleGitInput(IPipelineRunManager pipelineRunManager, GitBuildInput git) => async cancellationToken => {
                 var dir = pipelineRunManager.NextInputPath();
@@ -213,20 +149,16 @@ namespace Helium.CI.Server
 
                 return Path.Combine(jobStatus.ArtifactDir, artifact.ArtifactPath);
             };
-
-            public void CancelBuild() {
-                cancellationTokenSource.Cancel();
-            }
         }
 
-        public async Task<IRunnableJob> AcceptJob(Func<BuildTaskBase, Task<bool>> jobFilter, CancellationToken cancellationToken) {
+        public async Task<IRunnableJob> AcceptJob(PlatformChecker platformChecker, CancellationToken cancellationToken) {
             using(await monitor.EnterAsync(cancellationToken)) {
                 while(true) {
                     cancellationToken.ThrowIfCancellationRequested();
 
                     for(var node = jobQueue.First; node != null; node = node.Next) {
                         cancellationToken.ThrowIfCancellationRequested();
-                        if(await jobFilter(node.Value.BuildTask)) {
+                        if(await platformChecker(node.Value.BuildTask.Platform, cancellationToken)) {
                             jobQueue.Remove(node);
                             return node.Value;
                         }
@@ -235,54 +167,6 @@ namespace Helium.CI.Server
                     await monitor.WaitAsync(cancellationToken);
                 }
             }
-        }
-    }
-
-    internal class WorkspaceStream : Stream
-    {
-        public WorkspaceStream(BuildAgent.IAsync agent) {
-            this.agent = agent;
-        }
-        
-        private readonly BuildAgent.IAsync agent;
-
-        public override void Write(byte[] buffer, int offset, int count) {
-            WriteAsync(buffer, offset, count, CancellationToken.None).Wait();
-        }
-
-        public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) {
-            if(offset == 0 && count == buffer.Length) {
-                await agent.sendWorkspaceAsync(buffer, cancellationToken);
-            }
-            else {
-                var b = new byte[count];
-                Buffer.BlockCopy(buffer, offset, b, 0, count);
-                await agent.sendWorkspaceAsync(b, cancellationToken);
-            }
-        }
-
-        public override int Read(byte[] buffer, int offset, int count) {
-            throw new NotSupportedException();
-        }
-
-        public override long Seek(long offset, SeekOrigin origin) {
-            throw new NotSupportedException();
-        }
-
-        public override void SetLength(long value) {
-            throw new NotSupportedException();
-        }
-
-        public override void Flush() {}
-        public override async Task FlushAsync(CancellationToken cancellationToken) {}
-
-        public override bool CanRead => false;
-        public override bool CanSeek => false;
-        public override bool CanWrite => true;
-        public override long Length => throw new NotSupportedException();
-        public override long Position {
-            get => throw new NotSupportedException();
-            set => throw new NotSupportedException();
         }
     }
 }

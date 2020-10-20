@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package helium.ci.common;
+option csharp_namespace = "Helium.CI.Common";
+
+service BuildServer {
+    rpc acceptBuildJob(stream BuildStatusUpdate) returns (stream RunBuildCommand) {}
+}
+
+message RunBuildCommand {
+    oneof payload {
+        SupportsPlatformRequest supportsPlatformRequest = 1;
+        string buildTask = 2;
+        bytes workspaceContent = 3;
+        google.protobuf.Empty workspaceEnd = 4;
+        ArtifactRequest artifact = 5;
+    }
+}
+
+message ArtifactRequest {
+    oneof payload {
+        ArtifactInfo artifact = 1;
+        google.protobuf.Empty replay = 2;
+    }
+}
+
+message SupportsPlatformRequest {
+    string platform = 1;
+}
+
+message BuildStatusUpdate {
+    oneof payload {
+        SupportsPlatformResponse platformSupport = 1;
+        bytes buildOutput = 2;
+        JobResult jobFinished = 3;
+        bytes artifactData = 4;
+        ArtifactEnd artifactEnd = 5;
+    }
+}
+
+message SupportsPlatformResponse {
+    bool isSupported = 1;
+}
+
+message JobResult {
+    bool canceled = 3;
+    int32 exitCode = 1;
+    repeated ArtifactInfo artifacts = 2;
+}
+
+message ArtifactInfo {
+    string name = 1;
+}
+
+message ArtifactEnd {
+    bool hasError = 1;
+}

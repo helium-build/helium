@@ -100,7 +100,10 @@ namespace Helium.Engine.Build
                     if(requiredSdk.name == null) throw new Exception("Required sdk name is null.");
                     if(requiredSdk.version == null) throw new Exception("Required sdk version is null.");
                     
-                    var sdk = sdks.First(sdkInfo => sdkInfo.Matches(requiredSdk.name, requiredSdk.version) && sdkInfo.SupportedBy(platform));
+                    var sdk = sdks.FirstOrDefault(sdkInfo => sdkInfo.Matches(requiredSdk.name, requiredSdk.version) && sdkInfo.SupportedBy(platform));
+                    if(sdk == null) {
+                        throw new Exception($"Could not find match for sdk {requiredSdk.name} version {requiredSdk.version}");
+                    }
 
                     var (sdkHash, sdkInstallDir) = await sdkInstallManager.GetInstalledSdkDir(sdk);
 

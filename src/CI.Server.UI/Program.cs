@@ -2,9 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
+using CI.Server.JobServer;
+using Grpc.Core;
+using Helium.CI.Common;
 using Helium.Util;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -22,23 +27,28 @@ namespace Helium.CI.Server.UI
         public static async Task Main(string[] args) {
             var cancel = new CancellationTokenSource();
             var jobQueue = new JobQueue();
-
-            using var cert = await CertUtil.LoadOrGenerateCertificate(Path.Combine(ConfDir, "cert.pfx"));
             
             Console.WriteLine("Helium CI UI");
-            Console.WriteLine("TLS Key");
-            Console.WriteLine(Convert.ToBase64String(cert.Export(X509ContentType.Cert)));
 
-            var serverConfig = new ServerConfig(cert);
-
-            var agentManager = await AgentManager.Load(Path.Combine(ConfDir, "agents"), jobQueue, serverConfig, cancel.Token);
+            var agentManager = await AgentManager.Load(Path.Combine(ConfDir, "agents"), cancel.Token);
             var projectManager = await ProjectManager.Load(Path.Combine(ConfDir, "projects"), jobQueue, cancel.Token);
-            
+
+            var server = new Grpc.Core.Server {
+                Services = {BuildServer.BindService(new BuildServerImpl(agentManager, jobQueue))},
+                Ports = {new ServerPort("0.0.0.0", 6000, ServerCredentials.Insecure)},
+            };
             try {
-                await CreateHostBuilder(agentManager, projectManager).Build().RunAsync();
+                server.Start();
+                
+                try {
+                    await CreateHostBuilder(agentManager, projectManager).Build().RunAsync();
+                }
+                finally {
+                    cancel.Cancel();
+                }
             }
             finally {
-                cancel.Cancel();
+                await server.ShutdownAsync();
             }
         }
 

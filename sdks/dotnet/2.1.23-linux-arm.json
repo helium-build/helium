@@ -2,7 +2,7 @@
   "Implements": [
     "dotnet"
   ],
-  "Version": "2.1.21",
+  "Version": "2.1.23",
   "Platforms": [
     {
       "OS": "Linux",
@@ -12,25 +12,25 @@
   "SetupSteps": [
     {
       "Action": "Download",
-      "Url": "https://dotnetcli.azureedge.net/dotnet/Sdk/2.1.809/dotnet-sdk-2.1.809-linux-arm.tar.gz",
-      "FileName": "dotnet-sdk-2.1.809-linux-arm.tar.gz",
+      "Url": "https://dotnetcli.azureedge.net/dotnet/Sdk/2.1.811/dotnet-sdk-2.1.811-linux-arm.tar.gz",
+      "FileName": "dotnet-sdk-2.1.811-linux-arm.tar.gz",
       "Hash": {
         "HashType": "Sha512",
-        "Hash": "7c3b7b049c1bc29f31d44e2406227b3766c745cb98cadd8da16d9df4d8c608d23ab5ff8888b9c43e02fd88989a8f03eb850f34a4b0fb78c5e8b0aedcb5a8d24c"
+        "Hash": "b53a1a603528a07a94fc494ef92b900633b91b95f74661738e705748207d401c5910ca00f742ca844d3ad31f430837da78604ca53f96eea104ae8233aeb9c207"
       }
     },
     {
       "Action": "Extract",
-      "FileName": "dotnet-sdk-2.1.809-linux-arm.tar.gz",
-      "Directory": "dotnet-2.1.21"
+      "FileName": "dotnet-sdk-2.1.811-linux-arm.tar.gz",
+      "Directory": "dotnet-2.1.23"
     },
     {
       "Action": "Delete",
-      "FileName": "dotnet-sdk-2.1.809-linux-arm.tar.gz"
+      "FileName": "dotnet-sdk-2.1.811-linux-arm.tar.gz"
     }
   ],
   "PathDirs": [
-    "dotnet-2.1.21"
+    "dotnet-2.1.23"
   ],
   "Env": {
     "DOTNET_CLI_TELEMETRY_OPTOUT": "1",

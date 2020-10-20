@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Helium.Env;
 using Helium.Pipeline;
 using Helium.Util;
-using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Nito.AsyncEx;
 
@@ -164,7 +163,7 @@ namespace Helium.CI.Server
                     
                     var runManager = new PipelineRunManager(buildDir);
                 
-                    var status = await jobQueue.Add(runManager, pipeline.BuildJobs, buildNum, CancellationToken.None);
+                    var status = await jobQueue.AddJobs(runManager, pipeline.BuildJobs, buildNum, CancellationToken.None);
                     statuses[buildNum] = status;
                     return status;
                 }

@@ -22,6 +22,6 @@ output/
 !docker/helium-*/*/helium/bin/
 
 *.gen
-gen-*/
+*.capnp.cs
 
 .env

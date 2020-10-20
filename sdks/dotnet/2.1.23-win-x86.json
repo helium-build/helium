@@ -2,7 +2,7 @@
   "Implements": [
     "dotnet"
   ],
-  "Version": "2.1.21",
+  "Version": "2.1.23",
   "Platforms": [
     {
       "OS": "Windows",
@@ -12,25 +12,25 @@
   "SetupSteps": [
     {
       "Action": "Download",
-      "Url": "https://dotnetcli.azureedge.net/dotnet/Sdk/2.1.809/dotnet-sdk-2.1.809-win-x86.zip",
-      "FileName": "dotnet-sdk-2.1.809-win-x86.zip",
+      "Url": "https://dotnetcli.azureedge.net/dotnet/Sdk/2.1.811/dotnet-sdk-2.1.811-win-x86.zip",
+      "FileName": "dotnet-sdk-2.1.811-win-x86.zip",
       "Hash": {
         "HashType": "Sha512",
-        "Hash": "1816238d58b2e6e4a3ab82330e102b4875647677dcde1f330602bea212fe8941e5cdb24deb566558118b002fabc8cc1c20c7fda87c0af687c6b6e0d12596c4b2"
+        "Hash": "943ad4f792cf9c8b311b8cb7f14623793761d147ae8ab00503ab7f25f536d89cd86585efee86fbe743dc0bd93cc88eb5a6ec941be2d36c7ba5d87cd7da66ef59"
       }
     },
     {
       "Action": "Extract",
-      "FileName": "dotnet-sdk-2.1.809-win-x86.zip",
-      "Directory": "dotnet-2.1.21"
+      "FileName": "dotnet-sdk-2.1.811-win-x86.zip",
+      "Directory": "dotnet-2.1.23"
     },
     {
       "Action": "Delete",
-      "FileName": "dotnet-sdk-2.1.809-win-x86.zip"
+      "FileName": "dotnet-sdk-2.1.811-win-x86.zip"
     }
   ],
   "PathDirs": [
-    "dotnet-2.1.21"
+    "dotnet-2.1.23"
   ],
   "Env": {
     "DOTNET_CLI_TELEMETRY_OPTOUT": "1",

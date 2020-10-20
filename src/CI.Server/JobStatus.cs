@@ -13,7 +13,7 @@ using Nito.AsyncEx;
 
 namespace Helium.CI.Server
 {
-    internal class JobStatus : IJobStatus
+    internal class JobStatus : IJobStatusUpdatable
     {
         public JobStatus(string buildDir, BuildJob job) {
             this.buildDir = buildDir;
@@ -34,6 +34,10 @@ namespace Helium.CI.Server
         public BuildTaskBase BuildTask => job.Task;
 
         public BuildState State => state;
+
+        private readonly CancellationTokenSource buildCancel = new CancellationTokenSource();
+
+        public CancellationToken BuildCancelToken => buildCancel.Token;
 
         public event EventHandler<JobStartedEventArgs>? JobStarted;
         public event EventHandler<JobCompletedEventArgs>? JobCompleted;
@@ -112,6 +116,7 @@ namespace Helium.CI.Server
             OutputLinesChanged?.Invoke(this, new OutputLinesChangedEventArgs(outputLines));
 
             state = buildState;
+            complete.TrySetResult(null);
             JobCompleted?.Invoke(this, jobCompletedEventArgs);
         }
 
@@ -156,5 +161,9 @@ namespace Helium.CI.Server
 
         public Task Error(Exception ex) =>
             FinishOutput(BuildState.Error, new JobCompletedEventArgs(1, null));
+
+        public void Cancel() {
+            throw new NotImplementedException();
+        }
     }
 }

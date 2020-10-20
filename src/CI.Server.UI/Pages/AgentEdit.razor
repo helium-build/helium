@@ -4,7 +4,7 @@
 @inject IAgentManager AgentManager
 @inject NavigationManager NavigationManager
 
-@if(agent == null) {
+@if(agent == null || model == null) {
     <p>The requested agent could not be found.</p>
 }
 else {
@@ -29,10 +29,8 @@ else {
 
     [Parameter]
     public Guid Id { get; set; }
-    
-    private AgentEditModel model = new AgentEditModel {
-        ConnectionType = "ssl",
-    };
+
+    private AgentEditModel? model = null;
 
     private IAgent? agent;
     
@@ -42,21 +40,13 @@ else {
 
         var config = agent.Config;
 
-        model.Name = config.Name;
-        model.Workers = config.Workers;
-
-        switch(config.Connection) {
-            case SslAgentConnection sslConn:
-                model.ConnectionType = "ssl";
-                model.SslHost = sslConn.Host;
-                model.SslPort = sslConn.Port;
-                model.AgentSslKey = Convert.ToBase64String(sslConn.AgentCertBytes);
-                break;
-        }
+        model = new AgentEditModel(config.Key) {
+            Name = config.Name,
+        };
     }
     
     private async Task OnSubmit() {
-        if(agent == null) return;
+        if(agent == null || model == null) return;
         
         var agentConfig = model.ToConfig();
 

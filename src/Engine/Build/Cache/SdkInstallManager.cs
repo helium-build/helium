@@ -35,8 +35,9 @@ namespace Helium.Engine.Build.Cache
             return sdkStore.GetOrAdd(sdkHash, _ => Task.Run(() => InstalledSdkUncached(sdk, sdkHash)));
         }
 
-        private (string hash, string installDir) InstalledSdkUncached(SdkInfo sdk, string sdkHash) =>
-            MutexHelper.Lock(Path.Combine(baseDir, "sdk.lock"), () => {
+        private (string hash, string installDir) InstalledSdkUncached(SdkInfo sdk, string sdkHash) {
+            Directory.CreateDirectory(baseDir);
+            return MutexHelper.Lock(Path.Combine(baseDir, "sdk.lock"), () => {
 
                 Directory.CreateDirectory(baseDir);
 
@@ -63,12 +64,16 @@ namespace Helium.Engine.Build.Cache
                     ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
                     throw;
                 }
+                
+                Console.Error.WriteLine("Completed SDK installation");
 
 
                 Directory.Move(tempDir, sdkDir);
 
                 return (sdkHash, installDir);
             }, CancellationToken.None);
+        }
+            
 
         private void CleanupTempSdkDirs(string baseDir) {
             foreach(var tempDir in Directory.EnumerateDirectories(baseDir, "temp-*")) {
@@ -90,6 +95,7 @@ namespace Helium.Engine.Build.Cache
                             throw new Exception($"Download filenames may not contain .. directories: {download.FileName}");
                         }
 
+                        await Console.Error.WriteLineAsync("Downloading: " + download.Url);
                         var fileName = Path.Combine(installDir, download.FileName);
                         await HttpUtil.FetchFileValidate(download.Url, fileName, download.Hash.Validate);
                     }

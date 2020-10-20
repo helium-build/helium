@@ -14,6 +14,8 @@ namespace Helium.CI.Server
         BuildTaskBase BuildTask { get; }
         
         BuildState State { get; }
+        
+        CancellationToken BuildCancelToken { get; }
 
         event EventHandler<JobStartedEventArgs> JobStarted;
         event EventHandler<JobCompletedEventArgs> JobCompleted;

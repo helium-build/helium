@@ -7,7 +7,6 @@ using Helium.Pipeline;
 using Helium.Sdks;
 using Jint;
 using Jint.Runtime.Interop;
-using Microsoft.AspNetCore.Http;
 
 namespace Helium.CI.Server
 {

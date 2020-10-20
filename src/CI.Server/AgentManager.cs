@@ -8,24 +8,19 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Helium.Util;
-using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 
 namespace Helium.CI.Server
 {
     public sealed class AgentManager : IAgentManager
     {
-        private AgentManager(string agentsDir, IJobQueue jobQueue, ServerConfig serverConfig, IDictionary<Guid, IAgent> agents, CancellationToken cancellationToken) {
+        private AgentManager(string agentsDir, IDictionary<Guid, IAgent> agents, CancellationToken cancellationToken) {
             this.agentsDir = agentsDir;
-            this.jobQueue = jobQueue;
-            this.serverConfig = serverConfig;
             this.agents = new ConcurrentDictionary<Guid, IAgent>(agents);
             this.cancellationToken = cancellationToken;
         }
         
         private readonly string agentsDir;
-        private readonly IJobQueue jobQueue;
-        private readonly ServerConfig serverConfig;
         private readonly ConcurrentDictionary<Guid, IAgent> agents;
         private readonly CancellationToken cancellationToken;
 
@@ -41,7 +36,7 @@ namespace Helium.CI.Server
                 cancellationToken.ThrowIfCancellationRequested();
                 id = Guid.NewGuid();
                 var dir = Path.Combine(agentsDir, id.ToString());
-                agent = new Agent(dir, id, jobQueue, serverConfig, config);
+                agent = new Agent(dir, id, config);
             } while(!agents.TryAdd(id, agent));
 
             await agent.WriteConfig(null, cancellationToken);
@@ -55,11 +50,10 @@ namespace Helium.CI.Server
                 return;
             }
 
-            agent2.Stop();
             Directory.Delete(agent2.AgentDir);
         }
 
-        public static async Task<IAgentManager> Load(string agentsDir, IJobQueue jobQueue, ServerConfig serverConfig, CancellationToken cancellationToken) {
+        public static async Task<IAgentManager> Load(string agentsDir, CancellationToken cancellationToken) {
             var agents = new Dictionary<Guid, IAgent>();
 
             Directory.CreateDirectory(agentsDir);
@@ -74,25 +68,23 @@ namespace Helium.CI.Server
                 var configStr = await File.ReadAllTextAsync(Path.Combine(agentDir, "agent.json"), cancellationToken);
                 var config = JsonConvert.DeserializeObject<AgentConfig>(configStr);
                 
-                var agent = new Agent(Path.GetFullPath(agentDir), id, jobQueue, serverConfig, config);
-                agent.Startup(cancellationToken);
+                var agent = new Agent(Path.GetFullPath(agentDir), id, config);
                 agents[id] = agent;
             }
             
-            return new AgentManager(agentsDir, jobQueue, serverConfig, agents, cancellationToken);
+            return new AgentManager(agentsDir, agents, cancellationToken);
         }
 
         private sealed class Agent : IAgent
         {
-            public Agent(string agentDir, Guid id, IJobQueue jobQueue, ServerConfig serverConfig, AgentConfig config) {
+            public Agent(string agentDir, Guid id, AgentConfig config) {
                 AgentDir = agentDir;
                 Id = id;
-                exec = new AgentExecutor(jobQueue, config, serverConfig);
+                this.config = config;
             }
-            
-            private readonly AgentExecutor exec;
 
-            public AgentConfig Config => exec.Config;
+            private volatile AgentConfig config;
+            public AgentConfig Config => config;
 
             public string AgentDir { get; }
             public Guid Id { get; }
@@ -112,13 +104,8 @@ namespace Helium.CI.Server
 
             public async Task UpdateConfig(AgentConfig config, CancellationToken cancellationToken) {
                 await WriteConfig(config, cancellationToken);
-                await exec.UpdateConfig(config, cancellationToken);
+                this.config = config;
             }
-
-            public void Startup(CancellationToken cancellationToken) =>
-                Task.Run(() => exec.AcceptJobs(cancellationToken), cancellationToken);
-
-            public void Stop() => exec.Stop();
         }
         
     }

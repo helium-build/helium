@@ -7,6 +7,7 @@ namespace Helium.Sdks
 {
     public class PlatformInfo: IEquatable<PlatformInfo>
     {
+        [JsonConstructor]
         public PlatformInfo(SdkOperatingSystem os, SdkArch arch) {
             OS = os;
             Arch = arch;

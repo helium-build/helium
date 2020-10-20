@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net.Security;
@@ -7,23 +8,31 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
-using Helium.CI.Common.Protocol;
+using CI.Common;
+using Grpc.Core;
+using Helium.CI.Common;
 using Helium.Util;
 using Microsoft.Extensions.Logging;
 using Nett;
 using Nito.AsyncEx;
-using Thrift.Processor;
-using Thrift.Protocol;
-using Thrift.Server;
-using Thrift.Transport;
-using Thrift.Transport.Server;
 using static Helium.Env.Directories;
 
 namespace Helium.CI.Agent
 {
     internal class Program
     {
-        private static async Task Main(string[] args) {
+        private static async Task<int> Main(string[] args) {
+
+            string hostname = RequireEnvValue("HELIUM_CI_SERVER_HOST");
+            int port = RequireEnvValueInt("HELIUM_CI_SERVER_PORT");
+            string apiKey = RequireEnvValue("HELIUM_CI_AGENT_KEY");
+            int maxJobs =
+                Environment.GetEnvironmentVariable("HELIUM_CI_AGENT_MAX_JOBS") is {} maxJobStr &&
+                int.TryParse(maxJobStr, out var maxJobsInt)
+                    ? maxJobsInt
+                    : 1;
+
+
             var logger = LoggerFactory.Create(builder => {
                 builder.SetMinimumLevel(LogLevel.Trace);
                 builder.AddConsole();
@@ -33,49 +42,44 @@ namespace Helium.CI.Agent
                 Directory.Delete(dir, recursive: true);
             }
             
-            using var cert = await CertUtil.LoadOrGenerateCertificate(Path.Combine(ConfDir, "cert.pfx"));
-
-            var config = await LoadConfig();
-            var allowedCerts = config.CIServer
-                .Select(ciServer => ciServer.PublicKey)
-                .Where(key => key != null)
-                .Select(key => new X509Certificate2(Convert.FromBase64String(key!)))
-                .ToList();
-            
             Console.WriteLine("Helium CI Agent");
-            Console.WriteLine("TLS Key");
-            Console.WriteLine(Convert.ToBase64String(cert.Export(X509ContentType.Cert)));
-            
-            var transport = new ServerTransportWorkspace(AgentWorkspacesDir, 8080, cert, clientCertValidator: ValidateCert(allowedCerts));
-            var server = new TThreadPoolAsyncServer(
-                new BuildAgentFactory(),
-                transport,
-                null,
-                null,
-                new TBinaryProtocol.Factory(),
-                new TBinaryProtocol.Factory(),
-                new TThreadPoolAsyncServer.Configuration(),
-                logger
-            );
 
+
+            Channel? channel = null;
+            
             var cancel = new CancellationTokenSource();
             Console.CancelKeyPress += (_, e) => {
                 if(!cancel.IsCancellationRequested) {
                     e.Cancel = true;
-                    transport.Close();
                     cancel.Cancel();
+                    channel?.ShutdownAsync();
                 }
             };
+
+            channel = new Channel(hostname, port, ChannelCredentials.Insecure);
+            try {
+                var client = new BuildServer.BuildServerClient(channel);
+                var runner = new BuildAgent(logger, client, apiKey, AgentWorkspacesDir, maxJobs);
+                await runner.JobLoop(cancel.Token);
+            }
+            catch(OperationCanceledException) {}
+            finally {
+                try {
+                    await channel.ShutdownAsync();
+                }
+                catch {}
+            }
             
-            await server.ServeAsync(cancel.Token);
+            
+            return 0;
         }
 
-        private static async Task<AgentConfig> LoadConfig() {
-            var file = Path.Combine(ConfDir, "agent.toml");
-            return Toml.ReadString<AgentConfig>(await File.ReadAllTextAsync(file));
-        }
+        private static string RequireEnvValue(string envName) =>
+            Environment.GetEnvironmentVariable(envName) ?? throw new System.Exception($"Environment variable {envName} was unspecified.");
 
-        private static RemoteCertificateValidationCallback ValidateCert(IEnumerable<X509Certificate2> allowedCerts) => (sender, certificate, chain, policyErrors) =>
-            allowedCerts.Any(certificate.Equals);
+        private static int RequireEnvValueInt(string envName) =>
+            int.TryParse(RequireEnvValue(envName), out var value)
+                ? value
+                : throw new System.Exception($"Environment variable {envName} must be an integer.");
     }
 }

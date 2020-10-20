@@ -7,7 +7,7 @@ namespace Helium.SdkGenerator
     public class SBTCreator : ISdkCreator
     {
 
-        private const string version = "1.3.3";
+        private const string version = "1.4.0";
 
         private const string repoTemplate =
 @"
@@ -29,7 +29,7 @@ namespace Helium.SdkGenerator
                     new PlatformInfo(SdkOperatingSystem.None, SdkArch.None), 
                 },
                 setupSteps: new SdkSetupStep[] {
-                    new SdkSetupStep.Download($"https://piccolo.link/sbt-{version}.tgz", fileName, new SdkHash(SdkHashType.Sha256, "fe64a24ecd26ae02ac455336f664bbd7db6a040144b3106f1c45ebd42e8a476c")),
+                    new SdkSetupStep.Download($"https://github.com/sbt/sbt/releases/download/v{version}/sbt-{version}.tgz", fileName, new SdkHash(SdkHashType.Sha256, "b4775b470920e03de7a5d81121b4dc741c00513f041e65dbb981052ec6d1eed5")),
                     new SdkSetupStep.Extract(fileName, "."),
                     new SdkSetupStep.Delete(fileName), 
                 },

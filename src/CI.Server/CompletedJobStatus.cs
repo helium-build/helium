@@ -23,7 +23,9 @@ namespace Helium.CI.Server
         public string Id { get; }
         public BuildTaskBase BuildTask { get; }
         public BuildState State { get; }
-        
+
+        public CancellationToken BuildCancelToken => CancellationToken.None;
+
         public event EventHandler<JobStartedEventArgs> JobStarted {
             add {}
             remove {}

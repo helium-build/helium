@@ -40,7 +40,7 @@ namespace Helium.SdkGenerator
         }
 
         private static readonly ISdkCreator[] sdkCreators = {
-            new AdoptOpenJDKCreator(),
+            //new AdoptOpenJDKCreator(),
             new SBTCreator(),
             new DotNetCreator(),
             new DotNetMergeCreator(),
